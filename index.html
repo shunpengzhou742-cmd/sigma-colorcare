@@ -8,67 +8,299 @@
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <title>SIGMA ColorCare</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#1e293b;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#1e293b;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
 header{background:#0f172a;color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 h1{font-size:18px;margin:0}header p{font-size:12px;color:#cbd5e1;margin:4px 0 0}
 button{border:0;border-radius:8px;padding:10px 12px;font-weight:600;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
 #langBtn{background:#334155;color:white;padding:7px 10px;font-size:12px}
 main{max-width:560px;margin:0 auto;padding:16px}
 .card{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px #0000000a}
 .status{font-size:11px;padding:4px 8px;border-radius:5px;background:#334155;color:#e2e8f0}
 .statusrow{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
 .dept{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:16px;margin-top:12px;border:1px solid;border-radius:12px}
-.repair{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}.clean{background:#ecfeff;border-color:#a5f3fc;color:#164e63}.weave{background:#eef2ff;border-color:#c7d2fe;color:#312e81}
-.small{font-size:12px;margin-top:5px}.hidden{display:none!important}.warning{background:#fffbeb;color:#92400e;border:1px solid #fde68a;padding:12px;border-radius:8px;font-size:12px;margin:12px 0}
+.repair{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.clean{background:#ecfeff;border-color:#a5f3fc;color:#164e63}
+.weave{background:#eef2ff;border-color:#c7d2fe;color:#312e81}
+.small{font-size:12px;margin-top:5px}
+.hidden{display:none!important}
+.warning{background:#fffbeb;color:#92400e;border:1px solid #fde68a;padding:12px;border-radius:8px;font-size:12px;margin:12px 0}
 footer{text-align:center;color:#64748b;font-size:12px;padding:20px}
 input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:6px 0 12px}
 .primary{background:#2563eb;color:white;width:100%}
 .dark{background:#1e293b;color:white;width:100%}
+#loginMsg{line-height:1.5;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <header>
-<div><h1>SIGMA ColorCare</h1><p data-i18n="subtitle">智能工厂管理系统</p></div>
-<div style="text-align:right"><div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">未配置</span></div><button id="langBtn" onclick="switchLang()">Tiếng Việt</button></div>
+  <div><h1>SIGMA ColorCare</h1><p data-i18n="subtitle">智能工厂管理系统</p></div>
+  <div style="text-align:right">
+    <div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">连接中</span></div>
+    <button id="langBtn" type="button" onclick="switchLang()">Tiếng Việt</button>
+  </div>
 </header>
+
 <main>
-<section id="loginView" class="card">
-<h2 data-i18n="login">登录系统</h2>
-<div id="configWarning" class="warning" data-i18n="configWarning">Firebase 尚未配置。当前只能查看本地框架。</div>
-<form id="loginForm">
-<label data-i18n="email">账号 / 邮箱</label><input type="email" id="email" placeholder="name@example.com" required>
-<label data-i18n="password">密码</label><input type="password" id="password" required>
-<button class="primary" type="submit" data-i18n="loginBtn">登录</button>
-</form>
-<p id="loginMsg" class="small"></p>
-</section>
-<section id="appView" class="hidden">
-<div class="card" style="display:flex;justify-content:space-between;align-items:center"><div><small data-i18n="user">当前用户</small><div id="userEmail"></div></div><button onclick="logout()" data-i18n="logout">退出</button></div>
-<h3 data-i18n="selectDept">选择部门</h3>
-<button class="dept repair" onclick="openDept('repair')"><span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b></button>
-<button class="dept clean" onclick="openDept('clean')"><span><strong data-i18n="clean">清洗部门 (2)</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b></button>
-<button class="dept weave" onclick="openDept('weave')"><span><strong data-i18n="weave">修织部门 (3)</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b></button>
-</section>
-<section id="deptView" class="card hidden"><h2 id="deptTitle"></h2><p data-i18n="placeholder">部门业务页面尚未开发，这是第一阶段框架。</p><button class="dark" onclick="backHome()" data-i18n="back">返回首页</button></section>
+  <section id="loginView" class="card">
+    <h2 data-i18n="login">登录系统</h2>
+    <div id="configWarning" class="warning hidden" data-i18n="configWarning">Firebase 尚未配置。</div>
+    <form id="loginForm">
+      <label for="email" data-i18n="email">账号 / 邮箱</label>
+      <input type="email" id="email" placeholder="name@example.com" autocomplete="username" required>
+      <label for="password" data-i18n="password">密码</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+      <button id="loginBtn" class="primary" type="submit" data-i18n="loginBtn">登录</button>
+    </form>
+    <p id="loginMsg" class="small" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="appView" class="hidden">
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div><small data-i18n="user">当前用户</small><div id="userEmail"></div></div>
+      <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
+    </div>
+    <h3 data-i18n="selectDept">请选择部门</h3>
+    <button class="dept repair" type="button" onclick="openDept('repair')">
+      <span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
+    </button>
+    <button class="dept clean" type="button" onclick="openDept('clean')">
+      <span><strong data-i18n="clean">清洗部门 (2)</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
+    </button>
+    <button class="dept weave" type="button" onclick="openDept('weave')">
+      <span><strong data-i18n="weave">修织部门 (3)</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
+    </button>
+  </section>
+
+  <section id="deptView" class="card hidden">
+    <h2 id="deptTitle"></h2>
+    <p data-i18n="placeholder">部门业务页面尚未开发，这是第一阶段框架。</p>
+    <button class="dark" type="button" onclick="backHome()" data-i18n="back">返回首页</button>
+  </section>
 </main>
-<footer>© 2026 SIGMA ColorCare · Firebase Spark (配置后使用)</footer>
-<script>
-const translations={
-zh:{subtitle:"智能工厂管理系统",login:"登录系统",configWarning:"Firebase 尚未配置。当前只能查看本地框架。",email:"账号 / 邮箱",password:"密码",loginBtn:"登录",user:"当前用户",logout:"退出登录",selectDept:"请选择部门",repair:"修色部门 (1)",repairDesc:"喷色 / 手工描绘",clean:"清洗部门 (2)",cleanDesc:"清洗工序管理",weave:"修织部门 (3)",weaveDesc:"修织工序管理",placeholder:"部门业务页面尚未开发，这是第一阶段框架。",back:"返回首页",online:"在线",offline:"离线",notConfigured:"未配置",deptRepair:"修色部门 (编码: 1)",deptClean:"清洗部门 (编码: 2)",deptWeave:"修织部门 (编码: 3)",lang:"Tiếng Việt"},
-vi:{subtitle:"Hệ thống quản lý nhà máy",login:"Đăng nhập hệ thống",configWarning:"Firebase chưa được cấu hình. Hiện chỉ xem được giao diện cơ bản.",email:"Tài khoản / Email",password:"Mật khẩu",loginBtn:"Đăng nhập",user:"Người dùng hiện tại",logout:"Đăng xuất",selectDept:"Chọn bộ phận",repair:"Bộ phận Sửa màu (1)",repairDesc:"Phun màu / vẽ thủ công",clean:"Bộ phận Giặt (2)",cleanDesc:"Quản lý công đoạn giặt",weave:"Bộ phận Sửa dệt (3)",weaveDesc:"Quản lý sửa dệt",placeholder:"Module nghiệp vụ đang được phát triển.",back:"Quay lại trang chủ",online:"Trực tuyến",offline:"Ngoại tuyến",notConfigured:"Chưa cấu hình",deptRepair:"Bộ phận Sửa màu (mã: 1)",deptClean:"Bộ phận Giặt (mã: 2)",deptWeave:"Bộ phận Sửa dệt (mã: 3)",lang:"中文"}
+
+<footer>© 2026 SIGMA ColorCare · Firebase Spark</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
+  authDomain: "sigma-colorcare.firebaseapp.com",
+  projectId: "sigma-colorcare",
+  storageBucket: "sigma-colorcare.firebasestorage.app",
+  messagingSenderId: "671273011048",
+  appId: "1:671273011048:web:297aa24164afca48ceb8dd"
 };
-let lang="zh", currentDept="";
-function switchLang(){lang=lang==="zh"?"vi":"zh";document.querySelectorAll("[data-i18n]").forEach(e=>{let k=e.dataset.i18n;if(translations[lang][k])e.textContent=translations[lang][k]});document.getElementById("langBtn").textContent=translations[lang].lang;updateNet();if(currentDept)showDeptTitle()}
-function updateNet(){let e=document.getElementById("netStatus");e.textContent=navigator.onLine?translations[lang].online:translations[lang].offline;e.style.background=navigator.onLine?"#166534":"#92400e"}
-window.addEventListener("online",updateNet);window.addEventListener("offline",updateNet);updateNet();
-document.getElementById("fbStatus").textContent=translations[lang].notConfigured;
-document.getElementById("loginForm").addEventListener("submit",e=>{e.preventDefault();document.getElementById("loginMsg").textContent=lang==="zh"?"Firebase 未配置，暂不能真实登录。":"Firebase chưa cấu hình, chưa thể đăng nhập.";});
-function openDept(k){currentDept=k;document.getElementById("appView").classList.add("hidden");document.getElementById("deptView").classList.remove("hidden");showDeptTitle()}
-function showDeptTitle(){let k={repair:"deptRepair",clean:"deptClean",weave:"deptWeave"}[currentDept];document.getElementById("deptTitle").textContent=translations[lang][k]}
-function backHome(){document.getElementById("deptView").classList.add("hidden");document.getElementById("appView").classList.remove("hidden")}
-function logout(){document.getElementById("appView").classList.add("hidden");document.getElementById("loginView").classList.remove("hidden")}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const translations = {
+  zh: {
+    subtitle:"智能工厂管理系统", login:"登录系统",
+    configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
+    loginBtn:"登录", user:"当前用户", logout:"退出登录",
+    selectDept:"请选择部门", repair:"修色部门 (1)", repairDesc:"喷色 / 手工描绘",
+    clean:"清洗部门 (2)", cleanDesc:"清洗工序管理", weave:"修织部门 (3)",
+    weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
+    back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
+    connecting:"Firebase 连接中", lang:"Tiếng Việt",
+    signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
+    loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
+    userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
+    tooMany:"尝试次数过多，请稍后再试。", networkError:"网络连接失败，请检查网络后重试。",
+    noAdmin:"账号已登录，但没有找到对应的管理员资料。请核对 Authentication UID 与 admins 文档 ID 是否完全一致。",
+    inactive:"管理员账号尚未启用（status 必须为 active）。",
+    notAdmin:"该账号没有管理员权限（role 必须为 admin）。",
+    permission:"Firestore 权限不足。请检查 Firestore 安全规则是否允许已登录用户读取自己的 admins/{uid} 文档。",
+    generic:"发生错误，请稍后重试。", signedOut:"已退出登录。"
+  },
+  vi: {
+    subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
+    configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
+    loginBtn:"Đăng nhập", user:"Người dùng hiện tại", logout:"Đăng xuất",
+    selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu (1)", repairDesc:"Phun màu / vẽ thủ công",
+    clean:"Bộ phận Giặt (2)", cleanDesc:"Quản lý công đoạn giặt", weave:"Bộ phận Sửa dệt (3)",
+    weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
+    back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
+    connecting:"Đang kết nối Firebase", lang:"中文",
+    signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
+    loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
+    userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
+    tooMany:"Thử quá nhiều lần, vui lòng thử lại sau.", networkError:"Lỗi mạng, vui lòng kiểm tra kết nối.",
+    noAdmin:"Đã đăng nhập nhưng không tìm thấy hồ sơ quản trị tương ứng. Hãy kiểm tra UID Authentication và ID tài liệu admins có hoàn toàn trùng khớp không.",
+    inactive:"Tài khoản quản trị chưa được kích hoạt (status phải là active).",
+    notAdmin:"Tài khoản này không có quyền quản trị (role phải là admin).",
+    permission:"Không đủ quyền Firestore. Hãy kiểm tra quy tắc bảo mật cho phép người dùng đã đăng nhập đọc tài liệu admins/{uid} của chính mình.",
+    generic:"Đã xảy ra lỗi, vui lòng thử lại.", signedOut:"Đã đăng xuất."
+  }
+};
+
+let lang = "zh";
+let currentDept = "";
+let handlingAuthState = false;
+
+function tr(key){ return translations[lang][key] || key; }
+function setMessage(message, isError=false){
+  const el = document.getElementById("loginMsg");
+  el.textContent = message;
+  el.style.color = isError ? "#b91c1c" : "#166534";
+}
+function updateNet(){
+  const el = document.getElementById("netStatus");
+  el.textContent = navigator.onLine ? tr("online") : tr("offline");
+  el.style.background = navigator.onLine ? "#166534" : "#92400e";
+}
+window.addEventListener("online", updateNet);
+window.addEventListener("offline", updateNet);
+updateNet();
+
+document.getElementById("fbStatus").textContent = tr("configured");
+document.getElementById("fbStatus").style.background = "#166534";
+
+window.switchLang = function(){
+  lang = lang === "zh" ? "vi" : "zh";
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if(translations[lang][key]) el.textContent = translations[lang][key];
+  });
+  document.getElementById("langBtn").textContent = tr("lang");
+  updateNet();
+  if(currentDept) showDeptTitle();
+};
+
+function showLogin(){
+  document.getElementById("loginView").classList.remove("hidden");
+  document.getElementById("appView").classList.add("hidden");
+  document.getElementById("deptView").classList.add("hidden");
+}
+function showApp(user){
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("deptView").classList.add("hidden");
+  document.getElementById("appView").classList.remove("hidden");
+  document.getElementById("userEmail").textContent = user.email || user.uid;
+  currentDept = "";
+}
+function mapAuthError(error){
+  const code = error?.code || "";
+  if(code.includes("invalid-credential") || code.includes("wrong-password")) return tr("wrongPassword");
+  if(code.includes("user-not-found")) return tr("userNotFound");
+  if(code.includes("invalid-email")) return tr("invalidEmail");
+  if(code.includes("too-many-requests")) return tr("tooMany");
+  if(code.includes("network-request-failed")) return tr("networkError");
+  if(code.includes("permission-denied")) return tr("permission");
+  return tr("generic") + (code ? " (" + code + ")" : "");
+}
+
+async function verifyAdmin(user){
+  const adminRef = doc(db, "admins", user.uid);
+  const adminSnap = await getDoc(adminRef);
+  if(!adminSnap.exists()) throw new Error("ADMIN_PROFILE_MISSING");
+  const data = adminSnap.data();
+  if(data.role !== "admin") throw new Error("ADMIN_ROLE_INVALID");
+  if(data.status !== "active") throw new Error("ADMIN_INACTIVE");
+  return true;
+}
+
+document.getElementById("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const button = document.getElementById("loginBtn");
+  button.disabled = true;
+  setMessage(tr("signingIn"));
+  try{
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    setMessage(tr("checkingAdmin"));
+    await verifyAdmin(credential.user);
+    showApp(credential.user);
+    setMessage("");
+  }catch(error){
+    console.error("SIGMA ColorCare login error:", error);
+    if(error.message === "ADMIN_PROFILE_MISSING"){
+      setMessage(tr("noAdmin"), true);
+    }else if(error.message === "ADMIN_ROLE_INVALID"){
+      setMessage(tr("notAdmin"), true);
+    }else if(error.message === "ADMIN_INACTIVE"){
+      setMessage(tr("inactive"), true);
+    }else{
+      setMessage(tr("loginFailed") + mapAuthError(error), true);
+    }
+    if(auth.currentUser){
+      try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
+    }
+    showLogin();
+  }finally{
+    button.disabled = false;
+  }
+});
+
+window.logout = async function(){
+  try{
+    await signOut(auth);
+    currentDept = "";
+    showLogin();
+    setMessage(tr("signedOut"));
+  }catch(error){
+    console.error(error);
+    setMessage(mapAuthError(error), true);
+  }
+};
+
+window.openDept = function(key){
+  currentDept = key;
+  document.getElementById("appView").classList.add("hidden");
+  document.getElementById("deptView").classList.remove("hidden");
+  showDeptTitle();
+};
+function showDeptTitle(){
+  const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
+  const labels = {
+    zh:{deptRepair:"修色部门 (编码: 1)",deptClean:"清洗部门 (编码: 2)",deptWeave:"修织部门 (编码: 3)"},
+    vi:{deptRepair:"Bộ phận Sửa màu (mã: 1)",deptClean:"Bộ phận Giặt (mã: 2)",deptWeave:"Bộ phận Sửa dệt (mã: 3)"}
+  };
+  document.getElementById("deptTitle").textContent = labels[lang][keys[currentDept]];
+}
+window.backHome = function(){
+  document.getElementById("deptView").classList.add("hidden");
+  document.getElementById("appView").classList.remove("hidden");
+};
+
+onAuthStateChanged(auth, async user => {
+  if(handlingAuthState) return;
+  handlingAuthState = true;
+  try{
+    if(!user){
+      showLogin();
+      return;
+    }
+    await verifyAdmin(user);
+    showApp(user);
+  }catch(error){
+    console.error("SIGMA ColorCare admin check error:", error);
+    try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
+    showLogin();
+    if(error.message === "ADMIN_PROFILE_MISSING") setMessage(tr("noAdmin"), true);
+    else if(error.message === "ADMIN_ROLE_INVALID") setMessage(tr("notAdmin"), true);
+    else if(error.message === "ADMIN_INACTIVE") setMessage(tr("inactive"), true);
+    else setMessage(mapAuthError(error), true);
+  }finally{
+    handlingAuthState = false;
+  }
+});
 </script>
+
 <script>
-if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("SW registration failed",err)));
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("SW registration failed",err)));
+}
 </script>
-</body></html>
+</body>
+</html>
