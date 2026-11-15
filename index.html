@@ -14,6 +14,7 @@ header{background:#0f172a;color:white;padding:16px;display:flex;justify-content:
 h1{font-size:18px;margin:0}header p{font-size:12px;color:#cbd5e1;margin:4px 0 0}
 button{border:0;border-radius:8px;padding:10px 12px;font-weight:600;cursor:pointer}
 button:disabled{opacity:.6;cursor:wait}
+.google-link{background:#e2e8f0;color:#0f172a;margin-top:8px;font-size:12px;width:100%}
 #langBtn{background:#334155;color:white;padding:7px 10px;font-size:12px}
 main{max-width:560px;margin:0 auto;padding:16px}
 .card{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px #0000000a}
@@ -58,7 +59,9 @@ input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:
 
   <section id="appView" class="hidden">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div><small data-i18n="user">当前用户</small><div id="userEmail"></div></div>
+      <div style="flex:1;min-width:0"><small data-i18n="user">当前用户</small><div id="userEmail"></div>
+        <button id="googleLinkBtn" class="google-link" type="button" data-i18n="googleLink">绑定 Google 登录</button>
+      </div>
       <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
     </div>
     <h3 data-i18n="selectDept">请选择部门</h3>
@@ -85,7 +88,8 @@ input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+  GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
@@ -101,6 +105,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt:"select_account"});
 
 const translations = {
   zh: {
@@ -120,7 +126,11 @@ const translations = {
     inactive:"管理员账号尚未启用（status 必须为 active）。",
     notAdmin:"该账号没有管理员权限（role 必须为 admin）。",
     permission:"Firestore 权限不足。请检查 Firestore 安全规则是否允许已登录用户读取自己的 admins/{uid} 文档。",
-    generic:"发生错误，请稍后重试。", signedOut:"已退出登录。"
+    generic:"发生错误，请稍后重试。", signedOut:"已退出登录。",
+    googleLink:"绑定 Google 登录", googleLinked:"Google 登录已绑定到当前账号",
+    linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
+    googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
+    googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。"
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -139,7 +149,11 @@ const translations = {
     inactive:"Tài khoản quản trị chưa được kích hoạt (status phải là active).",
     notAdmin:"Tài khoản này không có quyền quản trị (role phải là admin).",
     permission:"Không đủ quyền Firestore. Hãy kiểm tra quy tắc bảo mật cho phép người dùng đã đăng nhập đọc tài liệu admins/{uid} của chính mình.",
-    generic:"Đã xảy ra lỗi, vui lòng thử lại.", signedOut:"Đã đăng xuất."
+    generic:"Đã xảy ra lỗi, vui lòng thử lại.", signedOut:"Đã đăng xuất.",
+    googleLink:"Liên kết đăng nhập Google", googleLinked:"Google đã được liên kết với tài khoản này",
+    linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
+    googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
+    googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google."
   }
 };
 
@@ -186,10 +200,19 @@ function showApp(user){
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
   document.getElementById("userEmail").textContent = user.email || user.uid;
+  updateGoogleLinkButton(user);
   currentDept = "";
+}
+function updateGoogleLinkButton(user){
+  const button = document.getElementById("googleLinkBtn");
+  if(!button) return;
+  const linked = !!user?.providerData?.some(item => item.providerId === "google.com");
+  button.textContent = linked ? tr("googleLinked") : tr("googleLink");
+  button.disabled = linked;
 }
 function mapAuthError(error){
   const code = error?.code || "";
+  if(code.includes("credential-already-in-use") || code.includes("email-already-in-use")) return tr("googleCredentialInUse");
   if(code.includes("invalid-credential") || code.includes("wrong-password")) return tr("wrongPassword");
   if(code.includes("user-not-found")) return tr("userNotFound");
   if(code.includes("invalid-email")) return tr("invalidEmail");
@@ -208,6 +231,43 @@ async function verifyAdmin(user){
   if(data.status !== "active") throw new Error("ADMIN_INACTIVE");
   return true;
 }
+
+
+document.getElementById("googleLinkBtn").addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if(!user){ setMessage(tr("googleNeedPassword"), true); return; }
+  const hasPassword = user.providerData.some(item => item.providerId === "password");
+  const alreadyLinked = user.providerData.some(item => item.providerId === "google.com");
+  if(alreadyLinked){ updateGoogleLinkButton(user); setMessage(tr("googleLinked")); return; }
+  if(!hasPassword){ setMessage(tr("googleNeedPassword"), true); return; }
+  const button = document.getElementById("googleLinkBtn");
+  button.disabled = true;
+  setMessage(tr("linkingGoogle"));
+  try{
+    await linkWithRedirect(user, googleProvider);
+  }catch(error){
+    console.error("SIGMA ColorCare Google link error:", error);
+    setMessage(tr("googleLinkError") + mapAuthError(error), true);
+    button.disabled = false;
+  }
+});
+
+getRedirectResult(auth).then(async result => {
+  if(!result?.user) return;
+  try{
+    await verifyAdmin(result.user);
+    showApp(result.user);
+    setMessage(tr("googleLinkSuccess"));
+  }catch(error){
+    console.error("SIGMA ColorCare post-link admin check error:", error);
+    setMessage(tr("googleLinkError") + mapAuthError(error), true);
+    try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
+    showLogin();
+  }
+}).catch(error => {
+  console.error("SIGMA ColorCare Google redirect error:", error);
+  setMessage(tr("googleLinkError") + mapAuthError(error), true);
+});
 
 document.getElementById("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
