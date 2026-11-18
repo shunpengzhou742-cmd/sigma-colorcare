@@ -77,6 +77,20 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
       </div>
       <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
     </div>
+    <section id="invitePanel" class="card hidden" style="margin-top:18px">
+      <h3 data-i18n="inviteTitle">员工邀请</h3>
+      <p class="small" data-i18n="inviteDesc">生成24小时有效、只能使用一次的员工邀请。</p>
+      <label><input class="invite-dept" type="checkbox" value="1"> <span data-i18n="repair">修色部门 (1)</span></label>
+      <label><input class="invite-dept" type="checkbox" value="2"> <span data-i18n="clean">清洗部门 (2)</span></label>
+      <label><input class="invite-dept" type="checkbox" value="3"> <span data-i18n="weave">修织部门 (3)</span></label>
+      <button id="createInviteBtn" class="primary" type="button" data-i18n="createInvite">生成员工邀请二维码</button>
+      <div id="inviteResult" class="hidden" style="margin-top:16px;text-align:center">
+        <div id="inviteQr" style="display:inline-block;background:white;padding:12px;border-radius:12px"></div>
+        <p id="inviteLinkText" class="small" style="overflow-wrap:anywhere"></p>
+        <button id="copyInviteBtn" class="dark" type="button" data-i18n="copyInvite">复制邀请链接</button>
+      </div>
+      <p id="inviteMsg" class="small" role="status" aria-live="polite"></p>
+    </section>
     <h3 data-i18n="selectDept">请选择部门</h3>
     <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
       <span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
@@ -104,7 +118,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -131,6 +145,7 @@ const translations = {
     weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
+    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个部门。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。",
     signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
     loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
@@ -157,6 +172,7 @@ const translations = {
     weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
+    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một bộ phận.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.",
     signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
     loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
@@ -181,6 +197,8 @@ let currentDept = "";
 let currentRole = null;
 let currentProfile = null;
 let handlingAuthState = false;
+let inviteCompletionPromise = null;
+let latestInviteUrl = "";
 
 function tr(key){ return translations[lang][key] || key; }
 function setMessage(message, isError=false){
@@ -228,6 +246,7 @@ function showApp(user, identity){
   document.getElementById("deptClean").classList.toggle("hidden", !departmentIds.includes(2));
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
   currentDept = "";
 }
@@ -259,6 +278,96 @@ function identityErrorMessage(error){
   if(error.message === "EMPLOYEE_PROFILE_INVALID") return tr("employeeInvalid");
   return mapAuthError(error);
 }
+
+async function completeEmployeeInvite(user){
+  const inviteId = new URLSearchParams(window.location.search).get("invite");
+  if(!inviteId) return false;
+  if(inviteCompletionPromise) return inviteCompletionPromise;
+  inviteCompletionPromise = (async () => {
+    const inviteRef = doc(db, "employeeInvites", inviteId);
+    const employeeRef = doc(db, "employees", user.uid);
+    await runTransaction(db, async transaction => {
+      const inviteSnap = await transaction.get(inviteRef);
+      const employeeSnap = await transaction.get(employeeRef);
+      if(employeeSnap.exists()){
+        const existing = employeeSnap.data();
+        if(existing.status === "active" && existing.invitationId === inviteId) return;
+        throw new Error("INVITE_ALREADY_USED");
+      }
+      if(!inviteSnap.exists()) throw new Error("INVITE_INVALID");
+      const invite = inviteSnap.data();
+      if(invite.status !== "active" || !invite.expiresAt || invite.expiresAt.toMillis() <= Date.now()) throw new Error("INVITE_INVALID");
+      if(!Array.isArray(invite.departmentIds) || invite.departmentIds.length === 0) throw new Error("INVITE_INVALID");
+      const employee = {
+        uid:user.uid,
+        name:user.displayName || (user.email ? user.email.split("@")[0] : "Employee"),
+        email:user.email || "",
+        roleType:1,
+        status:"active",
+        departmentIds:invite.departmentIds,
+        repairTypeIds:invite.repairTypeIds || [],
+        specialRole:false,
+        invitationId:inviteId,
+        createdAt:serverTimestamp(),
+        createdBy:invite.createdBy,
+        updatedAt:serverTimestamp()
+      };
+      transaction.update(inviteRef,{status:"used",usedBy:user.uid,usedAt:serverTimestamp()});
+      transaction.set(employeeRef,employee);
+    });
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("invite");
+    window.history.replaceState({}, "", cleanUrl.toString());
+    return true;
+  })();
+  try { return await inviteCompletionPromise; }
+  finally { inviteCompletionPromise = null; }
+}
+
+async function createEmployeeInvite(){
+  const selected = [...document.querySelectorAll(".invite-dept:checked")].map(el => Number(el.value));
+  const msg = document.getElementById("inviteMsg");
+  if(!selected.length){ msg.textContent = tr("inviteSelect"); return; }
+  const button = document.getElementById("createInviteBtn");
+  button.disabled = true;
+  msg.textContent = tr("inviteCreating");
+  try{
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const inviteId = [...bytes].map(value => value.toString(16).padStart(2,"0")).join("");
+    const inviteRef = doc(db,"employeeInvites",inviteId);
+    const repairTypeIds = selected.includes(1) ? [101,102] : [];
+    await setDoc(inviteRef,{
+      departmentIds:selected,
+      repairTypeIds,
+      status:"active",
+      expiresAt:Timestamp.fromDate(new Date(Date.now()+24*60*60*1000)),
+      createdAt:serverTimestamp(),
+      createdBy:auth.currentUser.uid,
+      usedBy:null,
+      usedAt:null
+    });
+    const inviteUrl = new URL(window.location.href);
+    inviteUrl.searchParams.set("invite",inviteId);
+    latestInviteUrl = inviteUrl.toString();
+    document.getElementById("inviteQr").innerHTML = "";
+    if(!window.QRCode) throw new Error("QR_LIBRARY_UNAVAILABLE");
+    new window.QRCode(document.getElementById("inviteQr"),{text:latestInviteUrl,width:220,height:220,colorDark:"#111827",colorLight:"#ffffff",correctLevel:window.QRCode.CorrectLevel.M});
+    document.getElementById("inviteLinkText").textContent = latestInviteUrl;
+    document.getElementById("inviteResult").classList.remove("hidden");
+    msg.textContent = tr("inviteReady");
+  }catch(error){
+    console.error("SIGMA employee invitation error:",error);
+    msg.textContent = tr("inviteError") + (error.code || error.message || "unknown");
+  }finally{ button.disabled = false; }
+}
+
+document.getElementById("createInviteBtn").addEventListener("click",createEmployeeInvite);
+document.getElementById("copyInviteBtn").addEventListener("click",async()=>{
+  if(!latestInviteUrl) return;
+  try{ await navigator.clipboard.writeText(latestInviteUrl); document.getElementById("inviteMsg").textContent = tr("inviteCopied"); }
+  catch(error){ document.getElementById("inviteMsg").textContent = latestInviteUrl; }
+});
 
 async function resolveUserRole(user){
   const adminSnap = await getDoc(doc(db, "admins", user.uid));
@@ -312,6 +421,8 @@ document.getElementById("googleLinkBtn").addEventListener("click", async () => {
 getRedirectResult(auth).then(async result => {
   if(!result?.user) return;
   try{
+    const joined = await completeEmployeeInvite(result.user);
+    if(joined) setMessage(tr("inviteDone"));
     const identity = await resolveUserRole(result.user);
     showApp(result.user, identity);
     setMessage(result.operationType === "signIn" ? tr("googleLoginSuccess") : tr("googleLinkSuccess"));
@@ -338,6 +449,8 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
   try{
     const credential = await signInWithEmailAndPassword(auth, email, password);
     setMessage(tr("checkingAdmin"));
+    const joined = await completeEmployeeInvite(credential.user);
+    if(joined) setMessage(tr("inviteDone"));
     const identity = await resolveUserRole(credential.user);
     showApp(credential.user, identity);
     setMessage("");
@@ -396,6 +509,8 @@ onAuthStateChanged(auth, async user => {
       showLogin();
       return;
     }
+    const joined = await completeEmployeeInvite(user);
+    if(joined) setMessage(tr("inviteDone"));
     const identity = await resolveUserRole(user);
     showApp(user, identity);
   }catch(error){
@@ -409,6 +524,7 @@ onAuthStateChanged(auth, async user => {
 });
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("SW registration failed",err)));
