@@ -78,13 +78,13 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
       <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
     </div>
     <h3 data-i18n="selectDept">请选择部门</h3>
-    <button class="dept repair" type="button" onclick="openDept('repair')">
+    <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
       <span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
     </button>
-    <button class="dept clean" type="button" onclick="openDept('clean')">
+    <button id="deptClean" class="dept clean" type="button" onclick="openDept('clean')">
       <span><strong data-i18n="clean">清洗部门 (2)</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
     </button>
-    <button class="dept weave" type="button" onclick="openDept('weave')">
+    <button id="deptWeave" class="dept weave" type="button" onclick="openDept('weave')">
       <span><strong data-i18n="weave">修织部门 (3)</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
     </button>
   </section>
@@ -136,6 +136,9 @@ const translations = {
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
     tooMany:"尝试次数过多，请稍后再试。", networkError:"网络连接失败，请检查网络后重试。",
     noAdmin:"账号已登录，但没有找到对应的管理员资料。请核对 Authentication UID 与 admins 文档 ID 是否完全一致。",
+    noEmployee:"账号已登录，但没有找到有效员工资料。请通过负责人提供的有效邀请加入系统。",
+    employeeInactive:"员工账号已停用，请联系负责人。",
+    employeeInvalid:"员工资料无效，请联系负责人检查账号权限。",
     inactive:"管理员账号尚未启用（status 必须为 active）。",
     notAdmin:"该账号没有管理员权限（role 必须为 admin）。",
     permission:"Firestore 权限不足。请检查 Firestore 安全规则是否允许已登录用户读取自己的 admins/{uid} 文档。",
@@ -159,6 +162,9 @@ const translations = {
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
     tooMany:"Thử quá nhiều lần, vui lòng thử lại sau.", networkError:"Lỗi mạng, vui lòng kiểm tra kết nối.",
     noAdmin:"Đã đăng nhập nhưng không tìm thấy hồ sơ quản trị tương ứng. Hãy kiểm tra UID Authentication và ID tài liệu admins có hoàn toàn trùng khớp không.",
+    noEmployee:"Đã đăng nhập nhưng không tìm thấy hồ sơ nhân viên hợp lệ. Vui lòng tham gia bằng lời mời hợp lệ từ người phụ trách.",
+    employeeInactive:"Tài khoản nhân viên đã bị vô hiệu hóa. Vui lòng liên hệ người phụ trách.",
+    employeeInvalid:"Hồ sơ nhân viên không hợp lệ. Vui lòng liên hệ người phụ trách kiểm tra quyền.",
     inactive:"Tài khoản quản trị chưa được kích hoạt (status phải là active).",
     notAdmin:"Tài khoản này không có quyền quản trị (role phải là admin).",
     permission:"Không đủ quyền Firestore. Hãy kiểm tra quy tắc bảo mật cho phép người dùng đã đăng nhập đọc tài liệu admins/{uid} của chính mình.",
@@ -172,6 +178,8 @@ const translations = {
 
 let lang = "zh";
 let currentDept = "";
+let currentRole = null;
+let currentProfile = null;
 let handlingAuthState = false;
 
 function tr(key){ return translations[lang][key] || key; }
@@ -208,11 +216,18 @@ function showLogin(){
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
 }
-function showApp(user){
+function showApp(user, identity){
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
   document.getElementById("userEmail").textContent = user.email || user.uid;
+  currentRole = identity.role;
+  currentProfile = identity.profile || null;
+  const departmentIds = identity.role === "admin" ? [1,2,3] : identity.departmentIds;
+  document.getElementById("deptRepair").classList.toggle("hidden", !departmentIds.includes(1));
+  document.getElementById("deptClean").classList.toggle("hidden", !departmentIds.includes(2));
+  document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
+  document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
   currentDept = "";
 }
@@ -235,14 +250,20 @@ function mapAuthError(error){
   return tr("generic") + (code ? " (" + code + ")" : "");
 }
 
-async function verifyAdmin(user){
-  const adminRef = doc(db, "admins", user.uid);
-  const adminSnap = await getDoc(adminRef);
-  if(!adminSnap.exists()) throw new Error("ADMIN_PROFILE_MISSING");
-  const data = adminSnap.data();
-  if(data.role !== "admin") throw new Error("ADMIN_ROLE_INVALID");
-  if(data.status !== "active") throw new Error("ADMIN_INACTIVE");
-  return true;
+async function resolveUserRole(user){
+  const adminSnap = await getDoc(doc(db, "admins", user.uid));
+  if(adminSnap.exists()){
+    const admin = adminSnap.data();
+    if(admin.role !== "admin") throw new Error("ADMIN_ROLE_INVALID");
+    if(admin.status !== "active") throw new Error("ADMIN_INACTIVE");
+    return {role:"admin", profile:admin, departmentIds:[1,2,3]};
+  }
+  const employeeSnap = await getDoc(doc(db, "employees", user.uid));
+  if(!employeeSnap.exists()) throw new Error("EMPLOYEE_PROFILE_MISSING");
+  const employee = employeeSnap.data();
+  if(employee.status !== "active") throw new Error("EMPLOYEE_INACTIVE");
+  if(employee.roleType !== 1 || !Array.isArray(employee.departmentIds) || employee.departmentIds.length === 0 || employee.departmentIds.some(id => ![1,2,3].includes(id))) throw new Error("EMPLOYEE_PROFILE_INVALID");
+  return {role:"employee", profile:employee, departmentIds:[...new Set(employee.departmentIds)]};
 }
 
 
@@ -281,8 +302,8 @@ document.getElementById("googleLinkBtn").addEventListener("click", async () => {
 getRedirectResult(auth).then(async result => {
   if(!result?.user) return;
   try{
-    await verifyAdmin(result.user);
-    showApp(result.user);
+    const identity = await resolveUserRole(result.user);
+    showApp(result.user, identity);
     setMessage(result.operationType === "signIn" ? tr("googleLoginSuccess") : tr("googleLinkSuccess"));
   }catch(error){
     console.error("SIGMA ColorCare post-link admin check error:", error);
@@ -307,8 +328,8 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
   try{
     const credential = await signInWithEmailAndPassword(auth, email, password);
     setMessage(tr("checkingAdmin"));
-    await verifyAdmin(credential.user);
-    showApp(credential.user);
+    const identity = await resolveUserRole(credential.user);
+    showApp(credential.user, identity);
     setMessage("");
   }catch(error){
     console.error("SIGMA ColorCare login error:", error);
@@ -343,6 +364,9 @@ window.logout = async function(){
 };
 
 window.openDept = function(key){
+  const departmentMap = {repair:1, clean:2, weave:3};
+  const allowed = currentRole === "admin" || (currentProfile?.departmentIds || []).includes(departmentMap[key]);
+  if(!allowed) return;
   currentDept = key;
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.remove("hidden");
@@ -369,8 +393,8 @@ onAuthStateChanged(auth, async user => {
       showLogin();
       return;
     }
-    await verifyAdmin(user);
-    showApp(user);
+    const identity = await resolveUserRole(user);
+    showApp(user, identity);
   }catch(error){
     console.error("SIGMA ColorCare admin check error:", error);
     try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
