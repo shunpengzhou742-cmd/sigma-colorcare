@@ -208,6 +208,17 @@ body.theme-dark .dept-overview small{color:#adc2da}
 body.theme-dark .trend-list{background:linear-gradient(135deg,#1a3151,#203958);border-color:#3c5778}
 body.theme-dark .trend-day{color:#bdd0e7}body.theme-dark .trend-track{background:#314967}body.theme-dark .trend-value{color:#d8eaff}
 
+
+/* v12 daily accounting entry */
+#dailyAccountingForm{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px}
+#dailyAccountingForm label{margin:6px 0 2px;color:#49627d}
+#dailyAccountingForm input,#dailyAccountingForm select{width:100%;min-width:0;padding:11px;border:1px solid #d5e0ed;border-radius:10px;background:#fff;color:#1d3551}
+#dailyAccountingForm #accountingPreview,#dailyAccountingForm button,#dailyAccountingForm #accountingMessage{grid-column:1/-1}
+#dailyAccountingForm button{margin-top:7px}
+body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
+body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
+@media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -264,6 +275,22 @@ body.theme-dark .trend-day{color:#bdd0e7}body.theme-dark .trend-track{background
         <article><span data-i18n="netProfit">公司净利润</span><strong data-i18n="notConnected">暂未接入</strong></article>
       </div>
       <p class="dashboard-note" data-i18n="financeNote">财务指标将在部门日记录、工资单价、材料费用和其他支出数据结构完成核对后启用；不会显示虚构金额。</p>
+
+      <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">部门每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
+      <form id="dailyAccountingForm" class="work-panel">
+        <label data-i18n="accountingDate">核算日期</label><input id="accountingDate" type="date" required>
+        <label data-i18n="accountingDepartment">核算部门</label>
+        <select id="accountingDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="accountingHeadcount">当天人数</label><input id="accountingHeadcount" type="number" min="0" step="1" required placeholder="0">
+        <label data-i18n="accountingOutput">当天总产量</label><input id="accountingOutput" type="number" min="0" step="1" required placeholder="0">
+        <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="accountingUnitPrice" type="number" min="0" step="any" required placeholder="0">
+        <label data-i18n="accountingDailyWage">每人日薪（VND）</label><input id="accountingDailyWage" type="number" min="0" step="any" required placeholder="0">
+        <label data-i18n="accountingMaterialCost">材料费用（VND）</label><input id="accountingMaterialCost" type="number" min="0" step="any" required placeholder="0">
+        <label data-i18n="accountingOtherCost">其他部门支出（VND，可填0）</label><input id="accountingOtherCost" type="number" min="0" step="any" value="0" required>
+        <div id="accountingPreview" class="small" data-i18n="accountingPreviewHint">填写数据后自动预览收入、人工成本和利润。</div>
+        <button id="saveAccountingBtn" class="primary" type="submit" data-i18n="saveAccounting">保存每日核算</button>
+        <p id="accountingMessage" class="small" role="status" aria-live="polite"></p>
+      </form>
       <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
@@ -436,7 +463,25 @@ const translations = {
     trendLoading:"正在读取近7天工单……",
     trendEmpty:"近7天暂无修色工单记录。",
     trendError:"读取趋势失败：",
-    trendPieces:"件"  vi: {
+    trendPieces:"件",
+    dailyAccountingTitle:"部门每日经营数据",
+    adminOnlyEntry:"仅负责人录入",
+    accountingDate:"核算日期",
+    accountingDepartment:"核算部门",
+    accountingHeadcount:"当天人数",
+    accountingOutput:"当天总产量",
+    accountingUnitPrice:"加工单价（越南盾/件）",
+    accountingDailyWage:"每人日薪（越南盾）",
+    accountingMaterialCost:"材料费用（越南盾）",
+    accountingOtherCost:"其他部门支出（越南盾，可填0）",
+    accountingPreviewHint:"填写数据后自动预览收入、人工成本和利润。",
+    saveAccounting:"保存每日核算",
+    accountingPreview:"预计收入：{revenue} VND · 人工：{labor} VND · 预计利润：{profit} VND",
+    accountingSaved:"每日核算已保存。",
+    accountingSaveError:"保存核算失败：",
+    accountingDuplicate:"该部门当天已有核算记录；为避免重复计算，请先核对已有记录。",
+    accountingInvalid:"请填写有效的非负数字。",
+    accountingLoading:"正在保存……"  vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
@@ -495,7 +540,25 @@ const translations = {
     trendLoading:"Đang tải phiếu sửa màu 7 ngày…",
     trendEmpty:"Không có phiếu sửa màu trong 7 ngày qua.",
     trendError:"Không thể tải xu hướng: ",
-    trendPieces:"sản phẩm"
+    trendPieces:"sản phẩm",
+    dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của bộ phận",
+    adminOnlyEntry:"Chỉ quản lý nhập",
+    accountingDate:"Ngày hạch toán",
+    accountingDepartment:"Bộ phận",
+    accountingHeadcount:"Số người trong ngày",
+    accountingOutput:"Tổng sản lượng trong ngày",
+    accountingUnitPrice:"Đơn giá gia công (VND/sản phẩm)",
+    accountingDailyWage:"Lương ngày mỗi người (VND)",
+    accountingMaterialCost:"Chi phí vật liệu (VND)",
+    accountingOtherCost:"Chi phí khác của bộ phận (VND, có thể nhập 0)",
+    accountingPreviewHint:"Tự động xem trước doanh thu, chi phí nhân công và lợi nhuận sau khi nhập.",
+    saveAccounting:"Lưu hạch toán ngày",
+    accountingPreview:"Doanh thu dự kiến: {revenue} VND · Nhân công: {labor} VND · Lợi nhuận dự kiến: {profit} VND",
+    accountingSaved:"Đã lưu hạch toán ngày.",
+    accountingSaveError:"Lưu hạch toán thất bại: ",
+    accountingDuplicate:"Bộ phận này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
+    accountingInvalid:"Vui lòng nhập số hợp lệ không âm.",
+    accountingLoading:"Đang lưu…"
 };
 
 let lang = "zh";
@@ -819,6 +882,52 @@ function renderRepairTrend(rows,startKey,endKey){
     return '<div class="trend-row"><span class="trend-day">'+label+'</span><div class="trend-track"><div class="trend-fill" style="width:'+width+'%"></div></div><span class="trend-value">'+value.toLocaleString()+'</span></div>';
   }).join("");
 }
+
+
+const accountingInputs=["accountingHeadcount","accountingOutput","accountingUnitPrice","accountingDailyWage","accountingMaterialCost","accountingOtherCost"];
+function accountingValues(){
+ const v=Object.fromEntries(accountingInputs.map(id=>[id,Number(document.getElementById(id).value)]));
+ const revenue=v.accountingOutput*v.accountingUnitPrice;
+ const labor=v.accountingHeadcount*v.accountingDailyWage;
+ const profit=revenue-labor-v.accountingMaterialCost-v.accountingOtherCost;
+ return {v,revenue,labor,profit};
+}
+function updateAccountingPreview(){
+ const {v,revenue,labor,profit}=accountingValues();
+ const valid=accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0);
+ document.getElementById("accountingPreview").textContent=valid
+ ?tr("accountingPreview").replace("{revenue}",Math.round(revenue).toLocaleString()).replace("{labor}",Math.round(labor).toLocaleString()).replace("{profit}",Math.round(profit).toLocaleString())
+ :tr("accountingInvalid");
+}
+accountingInputs.forEach(id=>document.getElementById(id).addEventListener("input",updateAccountingPreview));
+document.getElementById("accountingDate").value=localWorkDate();
+document.getElementById("dailyAccountingForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(currentRole!=="admin"||!auth.currentUser)return;
+ const message=document.getElementById("accountingMessage");
+ const button=document.getElementById("saveAccountingBtn");
+ const date=document.getElementById("accountingDate").value;
+ const departmentId=Number(document.getElementById("accountingDepartment").value);
+ const {v,revenue,labor,profit}=accountingValues();
+ if(!date||!accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0)||!Number.isInteger(v.accountingHeadcount)||!Number.isInteger(v.accountingOutput)){
+  message.textContent=tr("accountingInvalid");return;
+ }
+ button.disabled=true;message.textContent=tr("accountingLoading");
+ try{
+  const existing=query(collection(db,"dailyRecords"),where("workDate","==",date),where("departmentId","==",departmentId),limit(1));
+  const found=await getDocs(existing);
+  if(!found.empty){message.textContent=tr("accountingDuplicate");return;}
+  await addDoc(collection(db,"dailyRecords"),{
+   workDate:date,departmentId,headcount:v.accountingHeadcount,outputQuantity:v.accountingOutput,
+   unitPrice:v.accountingUnitPrice,dailyWagePerPerson:v.accountingDailyWage,
+   materialCost:v.accountingMaterialCost,otherCost:v.accountingOtherCost,
+   revenue,laborCost:labor,netProfit:profit,currency:"VND",
+   createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+  });
+  message.textContent=tr("accountingSaved");await loadDashboard();
+ }catch(error){console.error("Daily accounting save error",error);message.textContent=tr("accountingSaveError")+(error.code||error.message||"unknown");}
+ finally{button.disabled=false;}
+});
 
 async function loadDashboard(){
   if(currentRole!=="admin") return;
