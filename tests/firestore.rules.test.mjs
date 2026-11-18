@@ -254,6 +254,66 @@ describe("SIGMA employee invitation Firestore rules", () => {
     ));
   });
 
+  it("allows an active admin to update employee departments and status", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1",
+        name: "Test Employee",
+        email: "employee@example.com",
+        roleType: 1,
+        status: "active",
+        departmentIds: [1],
+        repairTypeIds: [101, 102],
+        specialRole: false,
+        invitationId: "invite-valid",
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        updatedAt: Timestamp.now()
+      });
+    });
+    const db = adminDb();
+    const { updateDoc } = await import("firebase/firestore");
+    await assertSucceeds(updateDoc(doc(db, "employees/employee-1"), {
+      departmentIds: [2, 3],
+      repairTypeIds: [],
+      status: "disabled",
+      updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects an admin changing immutable employee role fields", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1",
+        name: "Test Employee",
+        email: "employee@example.com",
+        roleType: 1,
+        status: "active",
+        departmentIds: [1],
+        repairTypeIds: [101, 102],
+        specialRole: false,
+        invitationId: "invite-valid",
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        updatedAt: Timestamp.now()
+      });
+    });
+    const db = adminDb();
+    const { updateDoc } = await import("firebase/firestore");
+    await assertFails(updateDoc(doc(db, "employees/employee-1"), {
+      roleType: 0,
+      departmentIds: [1],
+      repairTypeIds: [101, 102],
+      status: "active",
+      updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects employees listing the employee directory", async () => {
+    const { collection, getDocs } = await import("firebase/firestore");
+    await assertFails(getDocs(collection(googleDb(), "employees")));
+  });
+
   it("rejects employees deleting their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
