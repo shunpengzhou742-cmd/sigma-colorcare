@@ -250,6 +250,16 @@ function mapAuthError(error){
   return tr("generic") + (code ? " (" + code + ")" : "");
 }
 
+function identityErrorMessage(error){
+  if(error.message === "ADMIN_PROFILE_MISSING") return tr("noAdmin");
+  if(error.message === "ADMIN_ROLE_INVALID") return tr("notAdmin");
+  if(error.message === "ADMIN_INACTIVE") return tr("inactive");
+  if(error.message === "EMPLOYEE_PROFILE_MISSING") return tr("noEmployee");
+  if(error.message === "EMPLOYEE_INACTIVE") return tr("employeeInactive");
+  if(error.message === "EMPLOYEE_PROFILE_INVALID") return tr("employeeInvalid");
+  return mapAuthError(error);
+}
+
 async function resolveUserRole(user){
   const adminSnap = await getDoc(doc(db, "admins", user.uid));
   if(adminSnap.exists()){
@@ -307,7 +317,7 @@ getRedirectResult(auth).then(async result => {
     setMessage(result.operationType === "signIn" ? tr("googleLoginSuccess") : tr("googleLinkSuccess"));
   }catch(error){
     console.error("SIGMA ColorCare post-link admin check error:", error);
-    setMessage(tr("googleLinkError") + mapAuthError(error), true);
+    setMessage(identityErrorMessage(error), true);
     try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
     showLogin();
   }
@@ -333,15 +343,8 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
     setMessage("");
   }catch(error){
     console.error("SIGMA ColorCare login error:", error);
-    if(error.message === "ADMIN_PROFILE_MISSING"){
-      setMessage(tr("noAdmin"), true);
-    }else if(error.message === "ADMIN_ROLE_INVALID"){
-      setMessage(tr("notAdmin"), true);
-    }else if(error.message === "ADMIN_INACTIVE"){
-      setMessage(tr("inactive"), true);
-    }else{
-      setMessage(tr("loginFailed") + mapAuthError(error), true);
-    }
+    const identityMessage = identityErrorMessage(error);
+    setMessage(identityMessage === mapAuthError(error) ? tr("loginFailed") + identityMessage : identityMessage, true);
     if(auth.currentUser){
       try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
     }
@@ -399,10 +402,7 @@ onAuthStateChanged(auth, async user => {
     console.error("SIGMA ColorCare admin check error:", error);
     try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
     showLogin();
-    if(error.message === "ADMIN_PROFILE_MISSING") setMessage(tr("noAdmin"), true);
-    else if(error.message === "ADMIN_ROLE_INVALID") setMessage(tr("notAdmin"), true);
-    else if(error.message === "ADMIN_INACTIVE") setMessage(tr("inactive"), true);
-    else setMessage(mapAuthError(error), true);
+    setMessage(identityErrorMessage(error), true);
   }finally{
     handlingAuthState = false;
   }
