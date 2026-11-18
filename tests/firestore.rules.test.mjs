@@ -626,7 +626,7 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
       });
     });
     const db = googleDb();
-    const { setDoc, getDocs, query, collection, where } = await import("firebase/firestore");
+    const { getDocs, query, collection, where } = await import("firebase/firestore");
     const payload = {
       ...requestData("employee-1", 1), workOrderId: "order-1",
       sourceCollection: "repairWorkOrders", color: "Navy", repairTypeId: 101
