@@ -40,6 +40,7 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
 #logoutBtn,.dark{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:white}
 .dept{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:18px;margin-top:12px;border:1px solid rgba(255,255,255,.23);border-radius:18px;color:#fff;background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,.06));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 12px 30px rgba(0,0,0,.16);min-height:76px}.dept .small{color:#cbd5e1}.dept b{font-size:22px;color:#a5f3fc}.repair{border-left:3px solid #60a5fa}.clean{border-left:3px solid #22d3ee}.weave{border-left:3px solid #a78bfa}
 #deptView h2{margin-top:0}.dark{width:100%}footer{text-align:center;color:#94a3b8;font-size:11px;padding:18px 12px 28px}
+.work-panel{margin:14px 0;padding:14px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(8,15,40,.28)}.work-panel h3{margin:4px 0 10px}.work-panel form label{display:block;margin:10px 0 5px;font-size:13px}.work-panel form input,.work-panel form select,.work-panel form textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#111827;font:inherit}.work-panel form button{width:100%;margin-top:14px}.work-record{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.16)}.work-record:last-child{border-bottom:0}.work-record strong{display:block}.work-summary-row{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.16)}.work-summary-row:last-child{border-bottom:0}
 .employee-card{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.18);border-radius:16px;background:rgba(8,15,40,.34)}.employee-card strong{display:block;overflow-wrap:anywhere}.employee-card .small{margin:4px 0 10px}.employee-depts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.employee-depts label{display:flex;align-items:center;gap:5px;margin:0;padding:7px 9px;border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px}.employee-depts input{width:auto;margin:0}.employee-actions{display:flex;gap:8px;flex-wrap:wrap}.employee-actions button{flex:1;min-width:120px}.employee-status{font-size:11px;color:#a5f3fc;margin:4px 0 8px}
 @media(min-width:700px){main{margin-top:55px}#loginView{padding:38px}.card{border-radius:28px}}
 @media(max-width:420px){header{padding:17px 15px 8px}main{width:calc(100% - 24px);margin-top:22px}.status{font-size:9px;padding:4px 7px}h1{font-size:17px}}
@@ -113,7 +114,45 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
 
   <section id="deptView" class="card hidden">
     <h2 id="deptTitle"></h2>
-    <p data-i18n="placeholder">部门业务页面尚未开发，这是第一阶段框架。</p>
+    <section id="repairWorkbench" class="hidden">
+      <div id="repairEntryPanel" class="work-panel">
+        <h3 data-i18n="repairEntryTitle">修色工单录入（按批次）</h3>
+        <p class="small" data-i18n="repairEntryDesc">每一批货单独提交；系统自动按日期和修色类型汇总。</p>
+        <form id="repairWorkOrderForm">
+          <label for="repairWorkDate" data-i18n="workDate">作业日期</label>
+          <input id="repairWorkDate" type="date" required>
+          <label for="repairTypeId" data-i18n="repairType">修色类型</label>
+          <select id="repairTypeId" required>
+            <option value="101" data-i18n="sprayRepair">喷色（101）</option>
+            <option value="102" data-i18n="handRepair">手工描绘（102）</option>
+          </select>
+          <label for="repairOrderNo" data-i18n="orderNo">订单号（选填）</label>
+          <input id="repairOrderNo" maxlength="80" autocomplete="off">
+          <label for="repairStyleNo" data-i18n="styleNo">款号（选填）</label>
+          <input id="repairStyleNo" maxlength="80" autocomplete="off">
+          <label for="repairColor" data-i18n="color">颜色（选填）</label>
+          <input id="repairColor" maxlength="80" autocomplete="off">
+          <label for="repairQuantity" data-i18n="quantity">本批数量</label>
+          <input id="repairQuantity" type="number" min="1" max="1000000" step="1" required inputmode="numeric">
+          <label for="repairNote" data-i18n="workNote">备注（选填）</label>
+          <textarea id="repairNote" rows="2" maxlength="500"></textarea>
+          <button id="submitRepairOrder" class="primary" type="submit" data-i18n="submitWorkOrder">提交本批工单</button>
+        </form>
+        <p id="repairWorkMessage" class="small" role="status" aria-live="polite"></p>
+      </div>
+      <div class="work-panel">
+        <h3 data-i18n="dailyRepairSummary">每日修色汇总</h3>
+        <div id="repairDailySummary" class="small"></div>
+      </div>
+      <div class="work-panel">
+        <h3 data-i18n="myRepairOrders">修色工单记录</h3>
+        <button id="refreshRepairOrders" class="dark" type="button" data-i18n="refreshRecords">刷新记录</button>
+        <div id="repairWorkOrderList"></div>
+      </div>
+    </section>
+    <section id="otherDeptNotice" class="work-panel hidden">
+      <p data-i18n="otherDeptComing">该部门工单页面将在修色模块验证后继续开发。</p>
+    </section>
     <button class="dark" type="button" onclick="backHome()" data-i18n="back">返回首页</button>
   </section>
 </main>
@@ -126,7 +165,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -170,7 +209,7 @@ const translations = {
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
     googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
-    employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
+    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色（101）", handRepair:"手工描绘（102）", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -198,7 +237,7 @@ const translations = {
     linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
     googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
-    employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa"
+    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu (101)", handRepair:"Vẽ thủ công (102)", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa"
   }
 };
 
@@ -502,6 +541,113 @@ function renderEmployeeList(employees){
 
 document.getElementById("refreshEmployeesBtn").addEventListener("click",loadEmployees);
 
+function localWorkDate(){
+  return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());
+}
+function setRepairWorkMessage(message,isError=false){
+  const el=document.getElementById("repairWorkMessage");
+  if(!el) return;
+  el.textContent=message;
+  el.style.color=isError?"#fecaca":"#bbf7d0";
+}
+function renderRepairWorkOrders(rows){
+  const list=document.getElementById("repairWorkOrderList");
+  const summary=document.getElementById("repairDailySummary");
+  list.replaceChildren();
+  summary.replaceChildren();
+  if(!rows.length){
+    list.textContent=tr("noRepairOrders");
+    summary.textContent=tr("noRepairOrders");
+    return;
+  }
+  const typeNames={101:tr("sprayRepair"),102:tr("handRepair")};
+  const totals=new Map();
+  for(const row of rows){
+    const key=row.workDate+"|"+row.repairTypeId;
+    const value=totals.get(key)||{date:row.workDate,type:row.repairTypeId,quantity:0,batches:0};
+    value.quantity+=row.quantity;
+    value.batches+=1;
+    totals.set(key,value);
+  }
+  [...totals.values()].sort((a,b)=>b.date.localeCompare(a.date)||a.type-b.type).forEach(item=>{
+    const line=document.createElement("div");
+    line.className="work-summary-row";
+    line.textContent=item.date+" · "+typeNames[item.type]+" · "+item.quantity+" · "+item.batches;
+    summary.append(line);
+  });
+  rows.sort((a,b)=>(b.workDate||"").localeCompare(a.workDate||"")||(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  rows.slice(0,50).forEach(row=>{
+    const item=document.createElement("article");
+    item.className="work-record";
+    const heading=document.createElement("strong");
+    heading.textContent=(row.workDate||"")+" · "+(typeNames[row.repairTypeId]||String(row.repairTypeId))+" · "+row.quantity;
+    const details=document.createElement("div");
+    details.className="small";
+    const parts=[row.orderNo,row.styleNo,row.color].filter(Boolean);
+    details.textContent=parts.join(" / ")+(currentRole==="admin"?" · UID "+row.employeeUid:"");
+    const note=document.createElement("div");
+    note.className="small";
+    note.textContent=row.note||"";
+    item.append(heading,details,note);
+    list.append(item);
+  });
+}
+async function loadRepairWorkOrders(){
+  if(!currentRole||!currentDept||currentDept!=="repair") return;
+  const button=document.getElementById("refreshRepairOrders");
+  if(button) button.disabled=true;
+  try{
+    const base=collection(db,"repairWorkOrders");
+    const q=currentRole==="admin"
+      ? query(base,limit(100))
+      : query(base,where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",1),limit(100));
+    const snapshot=await getDocs(q);
+    renderRepairWorkOrders(snapshot.docs.map(item=>({id:item.id,...item.data()})));
+  }catch(error){
+    console.error("SIGMA repair work order read error:",error);
+    document.getElementById("repairWorkOrderList").textContent=tr("workOrderError")+(error.code||error.message||"unknown");
+  }finally{if(button) button.disabled=false;}
+}
+document.getElementById("repairWorkOrderForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(currentRole!=="employee"||!currentProfile?.departmentIds?.includes(1)||!auth.currentUser) return;
+  const typeId=Number(document.getElementById("repairTypeId").value);
+  if(!currentProfile.repairTypeIds?.includes(typeId)){setRepairWorkMessage(tr("employeeInvalid"),true);return;}
+  const quantity=Number(document.getElementById("repairQuantity").value);
+  if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000){setRepairWorkMessage(tr("workOrderError"),true);return;}
+  const button=document.getElementById("submitRepairOrder");
+  button.disabled=true;
+  button.textContent=tr("submittingWorkOrder");
+  setRepairWorkMessage("");
+  try{
+    await addDoc(collection(db,"repairWorkOrders"),{
+      employeeUid:auth.currentUser.uid,
+      createdBy:auth.currentUser.uid,
+      departmentId:1,
+      repairTypeId:typeId,
+      workDate:document.getElementById("repairWorkDate").value,
+      orderNo:document.getElementById("repairOrderNo").value.trim(),
+      styleNo:document.getElementById("repairStyleNo").value.trim(),
+      color:document.getElementById("repairColor").value.trim(),
+      quantity,
+      note:document.getElementById("repairNote").value.trim(),
+      status:"submitted",
+      createdAt:serverTimestamp()
+    });
+    document.getElementById("repairOrderNo").value="";
+    document.getElementById("repairStyleNo").value="";
+    document.getElementById("repairColor").value="";
+    document.getElementById("repairQuantity").value="";
+    document.getElementById("repairNote").value="";
+    setRepairWorkMessage(tr("workOrderSaved"));
+    await loadRepairWorkOrders();
+  }catch(error){
+    console.error("SIGMA repair work order submit error:",error);
+    setRepairWorkMessage(tr("workOrderError")+(error.code||error.message||"unknown"),true);
+  }finally{button.disabled=false;button.textContent=tr("submitWorkOrder");}
+});
+document.getElementById("refreshRepairOrders").addEventListener("click",loadRepairWorkOrders);
+
 async function resolveUserRole(user){
   const adminSnap = await getDoc(doc(db, "admins", user.uid));
   if(adminSnap.exists()){
@@ -619,7 +765,12 @@ window.openDept = function(key){
   currentDept = key;
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.remove("hidden");
+  document.getElementById("repairWorkbench").classList.toggle("hidden",key!=="repair");
+  document.getElementById("otherDeptNotice").classList.toggle("hidden",key==="repair");
+  document.getElementById("repairEntryPanel").classList.toggle("hidden",currentRole!=="employee"||key!=="repair");
+  if(key==="repair") document.getElementById("repairWorkDate").value=localWorkDate();
   showDeptTitle();
+  if(key==="repair") loadRepairWorkOrders();
 };
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
