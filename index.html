@@ -1007,15 +1007,6 @@ function renderRepairTrend(rows,startKey,endKey){
 const expenseCategoryKeys=["transport","utilities","maintenance","office","meals","other"];
 function expenseCategoryLabel(key){return tr(({transport:"expenseTransport",utilities:"expenseUtilities",maintenance:"expenseMaintenance",office:"expenseOffice",meals:"expenseMeals",other:"expenseOther"})[key]||"expenseOther");}
 function expenseDepartmentLabel(id){return Number(id)===0?tr("expenseCompanyLabel"):departmentLabel(Number(id));}
-async function loadExpenses(){
- if(currentRole!=="admin")return;
- const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
- try{
-  const snap=await getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">="),limit(50)));
- }catch(error){
-  console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");
- }
-}
 
 let wageRatesCache=[];
 const departmentNames={1:"修色部门",2:"清洗部门",3:"修织部门"};
