@@ -288,6 +288,12 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.unqualifiedQuantity == data.quantity
         && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.employeeUid == data.employeeUid
         && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.departmentId == data.departmentId
+        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.workOrderId == data.sourceWorkOrderId
+        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.sourceCollection == data.sourceCollection
+        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.orderNo == data.orderNo
+        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.styleNo == data.styleNo
+        && (!getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.keys().hasAny(['color']) || getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.color == data.color)
+        && (!getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.keys().hasAny(['repairTypeId']) || getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.repairTypeId == data.repairTypeId)
         && data.sourceWorkOrderId is string && data.sourceCollection is string
         && data.departmentId in [1, 2, 3]
         && data.employeeUid is string && data.orderNo is string && data.styleNo is string && data.color is string
