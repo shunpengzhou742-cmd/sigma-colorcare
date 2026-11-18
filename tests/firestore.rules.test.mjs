@@ -232,6 +232,42 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("rejects consuming an invitation without creating the employee profile", async () => {
+    const db = googleDb();
+    await assertFails(runTransaction(db, async transaction => {
+      const inviteRef = doc(db, "employeeInvites/invite-valid");
+      const inviteSnap = await transaction.get(inviteRef);
+      assert.equal(inviteSnap.exists(), true);
+      transaction.update(inviteRef, {
+        status: "used",
+        usedBy: "employee-1",
+        usedAt: serverTimestamp()
+      });
+    }));
+  });
+
+  it("rejects creating an employee profile without consuming the invitation", async () => {
+    const db = googleDb();
+    await assertFails(setDoc(
+      doc(db, "employees/employee-1"),
+      employeeData("employee-1", "employee@example.com")
+    ));
+  });
+
+  it("rejects employees deleting their own profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1",
+        roleType: 1,
+        status: "active",
+        departmentIds: [1]
+      });
+    });
+    const db = googleDb();
+    const { deleteDoc } = await import("firebase/firestore");
+    await assertFails(deleteDoc(doc(db, "employees/employee-1")));
+  });
+
   it("rejects employees updating their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
