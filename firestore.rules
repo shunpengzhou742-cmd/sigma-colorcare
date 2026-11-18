@@ -255,22 +255,28 @@ service cloud.firestore {
         && data.note is string && data.note.size() <= 500
         && data.status == 'submitted' && data.createdAt == request.time
         && (!data.keys().hasAny(['color']) || (data.color is string && data.color.size() <= 80))
-        && (!data.keys().hasAny(['repairTypeId']) || data.repairTypeId in [101, 102])
-        && (data.departmentId == 1
-            ? data.sourceCollection == 'repairWorkOrders'
-              && exists(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId))
-              && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-              && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
-              && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.repairTypeId == data.repairTypeId
-            : data.departmentId == 2
-              ? data.sourceCollection == 'cleanWorkOrders'
-                && exists(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId))
-                && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-                && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
-              : data.sourceCollection == 'weaveWorkOrders'
-                && exists(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId))
-                && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-                && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity == data.quantity);
+        && (!data.keys().hasAny(['repairTypeId']) || data.repairTypeId == null || data.repairTypeId in [101, 102])
+        && (
+          (data.sourceCollection == 'reworkWorkOrders'
+            && exists(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.status == 'pending_rework')
+          || (data.departmentId == 1 && data.sourceCollection == 'repairWorkOrders'
+            && exists(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.repairTypeId == data.repairTypeId)
+          || (data.departmentId == 2 && data.sourceCollection == 'cleanWorkOrders'
+            && exists(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity == data.quantity)
+          || (data.departmentId == 3 && data.sourceCollection == 'weaveWorkOrders'
+            && exists(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity == data.quantity)
+        );
     }
 
     function validRework(data, reworkId) {
