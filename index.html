@@ -1169,23 +1169,27 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
  if(!expenseDate||!expenseCategoryKeys.includes(category)||![0,1,2,3].includes(departmentId)||!Number.isFinite(amount)||amount<=0){message.textContent=tr("expenseInvalid");return;}
  button.disabled=true;message.textContent=tr("accountingLoading");
  try{
-  const payload={expenseDate,category,departmentId,entryMode,amount,note,currency:"VND",createdBy:editingExpenseId?editingExpenseCreatedBy:auth.currentUser.uid,createdAt:editingExpenseId?editingExpenseCreatedAt:serverTimestamp(),updatedAt:serverTimestamp()};
-  if(editingExpenseId){
+  const wasEditing=Boolean(editingExpenseId);
+  const payload={expenseDate,category,departmentId,entryMode,amount,note,currency:"VND",createdBy:wasEditing?editingExpenseCreatedBy:auth.currentUser.uid,createdAt:wasEditing?editingExpenseCreatedAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  if(wasEditing){
    await updateDoc(doc(db,"operatingExpenses",editingExpenseId),payload);
-   message.textContent=tr("expenseUpdated");cancelExpenseEdit();
-  }else if(entryMode==="dailySummary"){
-  if(entryMode==="dailySummary"){
-   const recordId="summary_"+expenseDate+"_"+departmentId+"_"+category;
-   const ref=doc(db,"operatingExpenses",recordId);
-   await runTransaction(db,async transaction=>{
-    const existing=await transaction.get(ref);
-    if(existing.exists())throw new Error("EXPENSE_SUMMARY_EXISTS");
-    transaction.set(ref,payload);
-   });
+   cancelExpenseEdit();message.textContent=tr("expenseUpdated");
   }else{
-   await addDoc(collection(db,"operatingExpenses"),payload);
+   if(entryMode==="dailySummary"){
+    const recordId="summary_"+expenseDate+"_"+departmentId+"_"+category;
+    const ref=doc(db,"operatingExpenses",recordId);
+    await runTransaction(db,async transaction=>{
+     const existing=await transaction.get(ref);
+     if(existing.exists())throw new Error("EXPENSE_SUMMARY_EXISTS");
+     transaction.set(ref,payload);
+    });
+   }else{
+    await addDoc(collection(db,"operatingExpenses"),payload);
+   }
+   document.getElementById("expenseAmount").value="";
+   document.getElementById("expenseNote").value="";
+   message.textContent=tr("expenseSaved");
   }
-  if(!editingExpenseId){document.getElementById("expenseAmount").value="";document.getElementById("expenseNote").value="";message.textContent=tr("expenseSaved");}
   await refreshExpenseList();
  }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
