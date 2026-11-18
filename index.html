@@ -302,6 +302,25 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <p id="wageRateMessage" class="small" role="status" aria-live="polite"></p>
       </form>
       <div id="wageRateHistory" class="work-panel"><p class="small" data-i18n="wageHistoryLoading">正在读取日薪历史……</p></div>
+
+      <div class="dashboard-section-title"><h3 data-i18n="expenseTitle">其他经营费用登记</h3><span data-i18n="expenseAdminOnly">仅负责人录入</span></div>
+      <form id="expenseForm" class="work-panel">
+        <label data-i18n="expenseMode">登记方式</label>
+        <select id="expenseMode" required><option value="item" data-i18n="expenseModeItem">逐笔登记</option><option value="dailySummary" data-i18n="expenseModeDaily">每日汇总登记</option></select>
+        <label data-i18n="expenseDate">费用日期</label><input id="expenseDate" type="date" required>
+        <label data-i18n="expenseCategory">费用类别</label>
+        <select id="expenseCategory" required>
+          <option value="transport" data-i18n="expenseTransport">运输交通</option><option value="utilities" data-i18n="expenseUtilities">水电杂费</option><option value="maintenance" data-i18n="expenseMaintenance">设备维修</option><option value="office" data-i18n="expenseOffice">办公用品</option><option value="meals" data-i18n="expenseMeals">餐饮伙食</option><option value="other" data-i18n="expenseOther">其他</option>
+        </select>
+        <label data-i18n="expenseDepartment">归属范围</label>
+        <select id="expenseDepartment"><option value="0" data-i18n="expenseCompany">公司公共</option><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="expenseAmount">金额（VND）</label><input id="expenseAmount" type="number" min="0.01" step="any" required placeholder="0">
+        <label data-i18n="expenseNote">备注</label><input id="expenseNote" type="text" maxlength="300" placeholder="—">
+        <button id="saveExpenseBtn" class="primary" type="submit" data-i18n="saveExpense">保存费用</button>
+        <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
+      </form>
+      <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
+      <div id="expenseList" class="work-panel"><p class="small" data-i18n="expenseLoading">正在读取费用记录……</p></div>
       <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
@@ -505,6 +524,36 @@ const translations = {
     wageSaveError:"保存日薪失败：",
     wageAutoApplied:"已按生效日期自动带入对应部门日薪。",
     wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",
+    expenseTitle:"其他经营费用登记",
+    expenseAdminOnly:"仅负责人录入",
+    expenseMode:"登记方式",
+    expenseModeItem:"逐笔登记",
+    expenseModeDaily:"每日汇总登记",
+    expenseDate:"费用日期",
+    expenseCategory:"费用类别",
+    expenseTransport:"运输交通",
+    expenseUtilities:"水电杂费",
+    expenseMaintenance:"设备维修",
+    expenseOffice:"办公用品",
+    expenseMeals:"餐饮伙食",
+    expenseOther:"其他",
+    expenseDepartment:"归属范围",
+    expenseCompany:"公司公共",
+    expenseAmount:"金额（VND）",
+    expenseNote:"备注",
+    saveExpense:"保存费用",
+    expenseRecent:"近期费用记录",
+    refreshExpenses:"刷新费用",
+    expenseLoading:"正在读取费用记录……",
+    expenseSaved:"费用记录已保存。",
+    expenseSaveError:"保存费用失败：",
+    expenseDuplicate:"该日期、类别和归属范围的每日汇总已存在。",
+    expenseInvalid:"请填写有效的日期和大于0的金额。",
+    expenseListEmpty:"暂无费用记录。",
+    expenseRecordItem:"逐笔",
+    expenseRecordDaily:"日汇总",
+    expenseAdminOnlyDenied:"只有负责人可以管理经营费用。",
+    expenseCompanyLabel:"公司公共",
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -597,6 +646,36 @@ const translations = {
     wageSaveError:"Lưu mức lương thất bại: ",
     wageAutoApplied:"Đã tự động điền lương theo bộ phận và ngày hiệu lực.",
     wageAutoMissing:"Chưa có mức lương trước ngày này. Vui lòng nhập lương ngày thủ công.",
+    expenseTitle:"Ghi nhận chi phí kinh doanh khác",
+    expenseAdminOnly:"Chỉ quản lý nhập",
+    expenseMode:"Hình thức ghi nhận",
+    expenseModeItem:"Ghi từng khoản",
+    expenseModeDaily:"Tổng hợp theo ngày",
+    expenseDate:"Ngày phát sinh",
+    expenseCategory:"Loại chi phí",
+    expenseTransport:"Vận chuyển, đi lại",
+    expenseUtilities:"Điện nước và chi phí lặt vặt",
+    expenseMaintenance:"Sửa chữa thiết bị",
+    expenseOffice:"Văn phòng phẩm",
+    expenseMeals:"Ăn uống",
+    expenseOther:"Khác",
+    expenseDepartment:"Phạm vi chi phí",
+    expenseCompany:"Chi phí chung công ty",
+    expenseAmount:"Số tiền (VND)",
+    expenseNote:"Ghi chú",
+    saveExpense:"Lưu chi phí",
+    expenseRecent:"Các khoản chi gần đây",
+    refreshExpenses:"Làm mới chi phí",
+    expenseLoading:"Đang tải dữ liệu chi phí…",
+    expenseSaved:"Đã lưu khoản chi.",
+    expenseSaveError:"Không thể lưu chi phí: ",
+    expenseDuplicate:"Đã có tổng hợp theo ngày cho ngày, loại và phạm vi này.",
+    expenseInvalid:"Vui lòng nhập ngày hợp lệ và số tiền lớn hơn 0.",
+    expenseListEmpty:"Chưa có khoản chi nào.",
+    expenseRecordItem:"Từng khoản",
+    expenseRecordDaily:"Tổng hợp ngày",
+    expenseAdminOnlyDenied:"Chỉ người quản lý được quản lý chi phí kinh doanh.",
+    expenseCompanyLabel:"Chi phí chung công ty",
   }
 };
 
@@ -661,7 +740,7 @@ function showApp(user, identity){
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); }
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); }
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -924,6 +1003,20 @@ function renderRepairTrend(rows,startKey,endKey){
 
 
 
+
+const expenseCategoryKeys=["transport","utilities","maintenance","office","meals","other"];
+function expenseCategoryLabel(key){return tr(({transport:"expenseTransport",utilities:"expenseUtilities",maintenance:"expenseMaintenance",office:"expenseOffice",meals:"expenseMeals",other:"expenseOther"})[key]||"expenseOther");}
+function expenseDepartmentLabel(id){return Number(id)===0?tr("expenseCompanyLabel"):departmentLabel(Number(id));}
+async function loadExpenses(){
+ if(currentRole!=="admin")return;
+ const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
+ try{
+  const snap=await getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">="),limit(50)));
+ }catch(error){
+  console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");
+ }
+}
+
 let wageRatesCache=[];
 const departmentNames={1:"修色部门",2:"清洗部门",3:"修织部门"};
 function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Bộ phận Sửa màu",2:"Bộ phận Giặt",3:"Bộ phận Sửa dệt"}[id]||String(id));}
@@ -985,6 +1078,55 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
  }catch(error){console.error("Wage rate save error",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):tr("wageSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
+
+document.getElementById("expenseDate").value=localWorkDate();
+async function refreshExpenseList(){
+ const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
+ try{
+  const snap=await getDocs(query(collection(db,"operatingExpenses"),limit(50)));
+  const rows=snap.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>String(b.expenseDate).localeCompare(String(a.expenseDate)));
+  target.replaceChildren();
+  if(!rows.length){target.textContent=tr("expenseListEmpty");return;}
+  rows.forEach(row=>{
+   const line=document.createElement("div");line.className="work-summary-row";
+   const mode=row.entryMode==="dailySummary"?tr("expenseRecordDaily"):tr("expenseRecordItem");
+   line.textContent=[row.expenseDate,expenseCategoryLabel(row.category),expenseDepartmentLabel(row.departmentId),mode,Number(row.amount).toLocaleString()+" VND",row.note||""].filter(Boolean).join(" · ");
+   target.append(line);
+  });
+ }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
+}
+document.getElementById("refreshExpensesBtn").addEventListener("click",refreshExpenseList);
+document.getElementById("expenseForm").addEventListener("submit",async event=>{
+ event.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
+ const expenseDate=document.getElementById("expenseDate").value;
+ const category=document.getElementById("expenseCategory").value;
+ const departmentId=Number(document.getElementById("expenseDepartment").value);
+ const entryMode=document.getElementById("expenseMode").value;
+ const amount=Number(document.getElementById("expenseAmount").value);
+ const note=document.getElementById("expenseNote").value.trim();
+ const message=document.getElementById("expenseMessage"),button=document.getElementById("saveExpenseBtn");
+ if(!expenseDate||!expenseCategoryKeys.includes(category)||![0,1,2,3].includes(departmentId)||!Number.isFinite(amount)||amount<=0){message.textContent=tr("expenseInvalid");return;}
+ button.disabled=true;message.textContent=tr("accountingLoading");
+ try{
+  const payload={expenseDate,category,departmentId,entryMode,amount,note,currency:"VND",createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  if(entryMode==="dailySummary"){
+   const recordId="summary_"+expenseDate+"_"+departmentId+"_"+category;
+   const ref=doc(db,"operatingExpenses",recordId);
+   await runTransaction(db,async transaction=>{
+    const existing=await transaction.get(ref);
+    if(existing.exists())throw new Error("EXPENSE_SUMMARY_EXISTS");
+    transaction.set(ref,payload);
+   });
+  }else{
+   await addDoc(collection(db,"operatingExpenses"),payload);
+  }
+  document.getElementById("expenseAmount").value="";
+  document.getElementById("expenseNote").value="";
+  message.textContent=tr("expenseSaved");await refreshExpenseList();
+ }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ finally{button.disabled=false;}
+});
+
 document.getElementById("accountingDate").addEventListener("change",applyEffectiveWage);
 document.getElementById("accountingDepartment").addEventListener("change",applyEffectiveWage);
 
