@@ -318,7 +318,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <select id="expenseDepartment"><option value="0" data-i18n="expenseCompany">公司公共</option><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
         <label data-i18n="expenseAmount">金额（VND）</label><input id="expenseAmount" type="number" min="0.01" step="any" required placeholder="0">
         <label data-i18n="expenseNote">备注</label><input id="expenseNote" type="text" maxlength="300" placeholder="—">
-        <button id="saveExpenseBtn" class="primary" type="submit" data-i18n="saveExpense">保存费用</button>
+        <button id="saveExpenseBtn" class="primary" type="submit" data-i18n="saveExpense">保存费用</button><button id="cancelExpenseEditBtn" class="dark hidden" type="button" data-i18n="cancelEdit">取消修改</button>
         <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
       </form>
       <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
@@ -562,7 +562,7 @@ const translations = {
     wageSaveError:"保存日薪失败：",
     wageAutoApplied:"已按生效日期自动带入对应部门日薪。",
     wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",
-    expenseTitle:"其他经营费用登记",
+    expenseTitle:"其他经营费用登记",editExpense:"修改",cancelEdit:"取消修改",expenseUpdated:"费用记录已更新。",
     expenseAdminOnly:"仅负责人录入",
     expenseMode:"登记方式",
     expenseModeItem:"逐笔登记",
@@ -1112,6 +1112,7 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
 });
 
 document.getElementById("expenseDate").value=localWorkDate();
+let editingExpenseId=null,editingExpenseCreatedAt=null,editingExpenseCreatedBy=null;
 async function refreshExpenseList(){
  const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
  try{
@@ -1123,8 +1124,9 @@ async function refreshExpenseList(){
   rows.forEach(row=>{
    const line=document.createElement("div");line.className="work-summary-row";
    const mode=row.entryMode==="dailySummary"?tr("expenseRecordDaily"):tr("expenseRecordItem");
-   line.textContent=[row.expenseDate,expenseCategoryLabel(row.category),expenseDepartmentLabel(row.departmentId),mode,Number(row.amount).toLocaleString()+" VND",row.note||""].filter(Boolean).join(" · ");
-   target.append(line);
+   const detail=document.createElement("span");detail.textContent=[row.expenseDate,expenseCategoryLabel(row.category),expenseDepartmentLabel(row.departmentId),mode,Number(row.amount).toLocaleString()+" VND",row.note||""].filter(Boolean).join(" · ");
+   const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
+   line.append(detail,edit);target.append(line);
   });
  }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
 }
@@ -1144,6 +1146,17 @@ function renderExpensePeriodSummary(rows){
 }
 document.getElementById("expensePeriodType").addEventListener("change",refreshExpenseList);
 document.getElementById("refreshExpensesBtn").addEventListener("click",refreshExpenseList);
+function beginExpenseEdit(row){
+ editingExpenseId=row.id;editingExpenseCreatedAt=row.createdAt;editingExpenseCreatedBy=row.createdBy;
+ document.getElementById("expenseDate").value=row.expenseDate;document.getElementById("expenseCategory").value=row.category;document.getElementById("expenseDepartment").value=String(row.departmentId);document.getElementById("expenseMode").value=row.entryMode;document.getElementById("expenseAmount").value=String(row.amount);document.getElementById("expenseNote").value=row.note||"";
+ document.getElementById("saveExpenseBtn").textContent=tr("editExpense");document.getElementById("cancelExpenseEditBtn").classList.remove("hidden");document.getElementById("expenseMessage").textContent=tr("editExpense");
+ document.getElementById("expenseForm").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function cancelExpenseEdit(){
+ editingExpenseId=null;editingExpenseCreatedAt=null;editingExpenseCreatedBy=null;
+ document.getElementById("expenseForm").reset();document.getElementById("expenseDate").value=localWorkDate();document.getElementById("saveExpenseBtn").textContent=tr("saveExpense");document.getElementById("cancelExpenseEditBtn").classList.add("hidden");document.getElementById("expenseMessage").textContent="";
+}
+document.getElementById("cancelExpenseEditBtn").addEventListener("click",cancelExpenseEdit);
 document.getElementById("expenseForm").addEventListener("submit",async event=>{
  event.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
  const expenseDate=document.getElementById("expenseDate").value;
@@ -1156,7 +1169,11 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
  if(!expenseDate||!expenseCategoryKeys.includes(category)||![0,1,2,3].includes(departmentId)||!Number.isFinite(amount)||amount<=0){message.textContent=tr("expenseInvalid");return;}
  button.disabled=true;message.textContent=tr("accountingLoading");
  try{
-  const payload={expenseDate,category,departmentId,entryMode,amount,note,currency:"VND",createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  const payload={expenseDate,category,departmentId,entryMode,amount,note,currency:"VND",createdBy:editingExpenseId?editingExpenseCreatedBy:auth.currentUser.uid,createdAt:editingExpenseId?editingExpenseCreatedAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  if(editingExpenseId){
+   await updateDoc(doc(db,"operatingExpenses",editingExpenseId),payload);
+   message.textContent=tr("expenseUpdated");cancelExpenseEdit();
+  }else if(entryMode==="dailySummary"){
   if(entryMode==="dailySummary"){
    const recordId="summary_"+expenseDate+"_"+departmentId+"_"+category;
    const ref=doc(db,"operatingExpenses",recordId);
@@ -1168,9 +1185,8 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
   }else{
    await addDoc(collection(db,"operatingExpenses"),payload);
   }
-  document.getElementById("expenseAmount").value="";
-  document.getElementById("expenseNote").value="";
-  message.textContent=tr("expenseSaved");await refreshExpenseList();
+  if(!editingExpenseId){document.getElementById("expenseAmount").value="";document.getElementById("expenseNote").value="";message.textContent=tr("expenseSaved");}
+  await refreshExpenseList();
  }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
