@@ -878,6 +878,7 @@ async function completeEmployeeInvite(user){
         departmentIds:invite.departmentIds,
         repairTypeIds:invite.repairTypeIds || [],
         specialRole:false,
+        qcAuthorized:false,
         invitationId:inviteId,
         createdAt:serverTimestamp(),
         createdBy:invite.createdBy,
