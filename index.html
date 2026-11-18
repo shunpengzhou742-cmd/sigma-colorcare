@@ -1018,6 +1018,7 @@ function renderEmployeeList(employees){
         await updateDoc(doc(db,"employees",employee.id),{
           departmentIds:selected,
           repairTypeIds:selected.includes(1) ? [101,102] : [],
+          qcAuthorized:qcCheckbox.checked,
           updatedAt:serverTimestamp()
         });
         setEmployeeManageMessage(tr("accessSaved"));
