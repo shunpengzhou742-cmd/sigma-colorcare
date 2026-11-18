@@ -594,3 +594,55 @@ describe("SIGMA operating expense edit permissions", () => {
     }));
   });
 });
+
+describe("SIGMA QC and scrap request Firestore rules", () => {
+  async function seedDeptEmployee(uid, departmentId) {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), `employees/${uid}`), {
+        uid, roleType: 1, status: "active", departmentIds: [departmentId]
+      });
+    });
+  }
+  function requestData(uid, departmentId, scrap = false) {
+    const data = {
+      requestDate: "2026-11-19", departmentId, employeeUid: uid,
+      createdBy: uid, orderNo: "ORD-QC-01", styleNo: "STYLE-01",
+      quantity: 12, note: "Batch ready", status: "submitted",
+      createdAt: serverTimestamp()
+    };
+    if (scrap) data.reason = "Fabric damage";
+    return data;
+  }
+
+  it("allows an employee to submit a QC request for their authorized department", async () => {
+    await seedDeptEmployee("employee-1", 1);
+    const db = googleDb();
+    const { addDoc, collection, getDocs, query, where } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "qcRequests"), requestData("employee-1", 1)));
+    await assertSucceeds(getDocs(query(collection(db, "qcRequests"), where("employeeUid", "==", "employee-1"), where("departmentId", "==", 1))));
+    await assertFails(addDoc(collection(db, "qcRequests"), requestData("employee-1", 2)));
+  });
+
+  it("allows an employee to submit a scrap request and requires a reason", async () => {
+    await seedDeptEmployee("employee-1", 2);
+    const db = googleDb();
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "scrapRequests"), requestData("employee-1", 2, true)));
+    const invalid = requestData("employee-1", 2, true);
+    invalid.reason = "";
+    await assertFails(addDoc(collection(db, "scrapRequests"), invalid));
+  });
+
+  it("allows only an admin to approve or reject a submitted request", async () => {
+    await seedDeptEmployee("employee-1", 3);
+    const employeeDb = googleDb();
+    const { addDoc, collection, updateDoc } = await import("firebase/firestore");
+    const created = await assertSucceeds(addDoc(collection(employeeDb, "scrapRequests"), requestData("employee-1", 3, true)));
+    await assertFails(updateDoc(doc(employeeDb, "scrapRequests", created.id), {
+      status: "approved", reviewedBy: "employee-1", reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+    await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", created.id), {
+      status: "approved", reviewedBy: "admin-1", reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+  });
+});
