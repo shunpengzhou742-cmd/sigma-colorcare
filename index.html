@@ -1112,7 +1112,7 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
 });
 
 document.getElementById("expenseDate").value=localWorkDate();
-let editingExpenseId=null,editingExpenseCreatedAt=null,editingExpenseCreatedBy=null;
+let editingExpenseId=null,editingExpenseCreatedAt=null,editingExpenseCreatedBy=null,editingExpenseIsSummary=false;
 async function refreshExpenseList(){
  const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
  try{
@@ -1147,13 +1147,13 @@ function renderExpensePeriodSummary(rows){
 document.getElementById("expensePeriodType").addEventListener("change",refreshExpenseList);
 document.getElementById("refreshExpensesBtn").addEventListener("click",refreshExpenseList);
 function beginExpenseEdit(row){
- editingExpenseId=row.id;editingExpenseCreatedAt=row.createdAt;editingExpenseCreatedBy=row.createdBy;
+ editingExpenseId=row.id;editingExpenseCreatedAt=row.createdAt;editingExpenseCreatedBy=row.createdBy;editingExpenseIsSummary=row.entryMode==="dailySummary";\n ["expenseDate","expenseCategory","expenseDepartment","expenseMode"].forEach(id=>document.getElementById(id).disabled=editingExpenseIsSummary);
  document.getElementById("expenseDate").value=row.expenseDate;document.getElementById("expenseCategory").value=row.category;document.getElementById("expenseDepartment").value=String(row.departmentId);document.getElementById("expenseMode").value=row.entryMode;document.getElementById("expenseAmount").value=String(row.amount);document.getElementById("expenseNote").value=row.note||"";
  document.getElementById("saveExpenseBtn").textContent=tr("editExpense");document.getElementById("cancelExpenseEditBtn").classList.remove("hidden");document.getElementById("expenseMessage").textContent=tr("editExpense");
  document.getElementById("expenseForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
 function cancelExpenseEdit(){
- editingExpenseId=null;editingExpenseCreatedAt=null;editingExpenseCreatedBy=null;
+ editingExpenseId=null;editingExpenseCreatedAt=null;editingExpenseCreatedBy=null;editingExpenseIsSummary=false;\n ["expenseDate","expenseCategory","expenseDepartment","expenseMode"].forEach(id=>document.getElementById(id).disabled=false);
  document.getElementById("expenseForm").reset();document.getElementById("expenseDate").value=localWorkDate();document.getElementById("saveExpenseBtn").textContent=tr("saveExpense");document.getElementById("cancelExpenseEditBtn").classList.add("hidden");document.getElementById("expenseMessage").textContent="";
 }
 document.getElementById("cancelExpenseEditBtn").addEventListener("click",cancelExpenseEdit);
