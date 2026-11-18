@@ -45,6 +45,73 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
 @media(min-width:700px){main{margin-top:55px}#loginView{padding:38px}.card{border-radius:28px}}
 @media(max-width:420px){header{padding:17px 15px 8px}main{width:calc(100% - 24px);margin-top:22px}.status{font-size:9px;padding:4px 7px}h1{font-size:17px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+
+/* SIGMA ColorCare UI refresh v7 — clean blue factory workspace */
+:root{color-scheme:light;--brand:#1557a6;--brand-deep:#123f79;--accent:#2478df;--ink:#172b45;--muted:#6b7f98;--line:#dce6f2;--surface:#fff;--soft:#f3f7fc}
+html,body{background:#f2f6fb!important;color:var(--ink)!important}
+body{font-family:Inter,"Noto Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:linear-gradient(180deg,#eaf2fc 0,#f5f8fc 230px,#f4f7fb 100%)!important;background-attachment:scroll!important}
+body:before,body:after{display:none}
+header{max-width:1180px;margin:0 auto;padding:17px 22px 15px;background:linear-gradient(115deg,#164f94,#2168b6);color:#fff;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(21,67,120,.18)}
+header>div:first-child{display:flex;align-items:center;gap:12px}
+header>div:first-child:before{content:"Σ";display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#ffcf42,#f08b25);color:#123f79;font-size:27px;font-weight:900;box-shadow:0 3px 10px #0c376455}
+h1{font-size:20px;letter-spacing:.2px}header p{color:#dbeafe;font-size:12px}
+main{width:min(100% - 32px,1120px);margin:24px auto 0;padding-bottom:36px}
+.card{background:#fff!important;border:1px solid #e1e9f3!important;border-radius:18px!important;padding:22px!important;box-shadow:0 5px 20px rgba(27,62,102,.07)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:var(--ink)!important}
+#appView>.card:first-child{border-top:3px solid #2478df!important}
+#loginView{max-width:480px;margin:38px auto}
+#loginView:before{background:#2478df}
+#loginView h2{color:#173f70}
+#loginView h2:after{background:#2478df}
+#loginView:has(form):after{color:#7890aa}
+label{color:#415a77}
+input{background:#f8fafd!important;border:1px solid #d5e0ed!important;color:#172b45!important;border-radius:11px!important}
+input::placeholder{color:#91a0b3}
+input:focus{border-color:#4388df!important;box-shadow:0 0 0 3px #2478df1c!important;background:#fff!important}
+button{border-radius:11px}
+.primary{background:linear-gradient(105deg,#1766c2,#267fe0)!important;box-shadow:0 5px 13px #1766c226!important}
+.google-login{background:#fff!important;border:1px solid #d7e1ed!important;color:#24415f!important}
+.google-mark{border:1px solid #e3e9f0}
+#langBtn{background:#ffffff20;border:1px solid #ffffff55;color:#fff}
+.status{background:#ffffff1c;border-color:#ffffff40;color:#eff6ff}
+.statusrow{margin-bottom:7px}
+#userEmail{color:#163f70;font-size:15px}
+#logoutBtn,.dark{background:#edf3fa!important;border:1px solid #d7e2ef!important;color:#315577!important}
+.google-link{background:#f2f7fd!important;border:1px solid #d8e5f3!important;color:#2864a5!important}
+#appView h3{color:#1d4f85;margin:22px 2px 12px;font-size:17px}
+#appView>.dept{width:calc((100% - 24px)/3);min-height:132px;display:inline-flex;vertical-align:top;margin:10px 8px 0 0;padding:18px;background:#fff!important;border:1px solid #dfe8f3!important;border-left:4px solid #2b75c9!important;border-radius:16px!important;box-shadow:0 5px 16px #1e4e8010!important;color:#173f70!important;backdrop-filter:none!important}
+#appView>.dept:nth-of-type(3n){margin-right:0}
+#appView>.dept strong{font-size:16px}
+#appView>.dept .small{color:#71849b!important}
+#appView>.dept b{color:#2878cf;font-size:25px}
+#deptRepair{border-left-color:#2776d2!important}#deptClean{border-left-color:#18a6b5!important}#deptWeave{border-left-color:#8265c7!important}
+#deptView{max-width:900px;margin:0 auto}
+#deptView h2{color:#174b83}
+.work-panel{margin:14px 0!important;padding:18px!important;border:1px solid #e1e9f3!important;border-radius:15px!important;background:#f9fbfe!important}
+.work-panel h3{color:#1c568f!important;margin:2px 0 12px!important}
+.work-panel .small{color:#687f99}
+.work-panel form input,.work-panel form select,.work-panel form textarea{background:#fff!important;border:1px solid #d5e0ed!important;color:#1d3551!important;border-radius:10px!important;padding:12px!important}
+.work-panel form label{color:#49627d}
+.work-record{border-bottom:1px solid #e6edf5}
+.work-summary-row{border-bottom:1px dashed #dce6f1}
+.employee-card{background:#f8fbff!important;border:1px solid #e0e9f4!important;border-radius:13px!important;color:#213c5b}
+.employee-card .small{color:#6d8097}
+.employee-depts label{color:#3c5877;border-color:#dce6f1}
+footer{color:#8394a9;padding:22px}
+.warning{background:#fff8e8;color:#8a5a00;border-color:#f4d99b}
+@media(max-width:720px){
+ header{border-radius:0 0 17px 17px;padding:14px 15px}
+ header>div:first-child:before{width:39px;height:39px;font-size:23px}
+ h1{font-size:18px}
+ main{width:calc(100% - 24px);margin-top:16px}
+ .card{padding:17px!important;border-radius:15px!important}
+ #appView>.dept{width:100%;min-height:78px;display:flex;margin:9px 0 0;padding:15px}
+ #appView>.dept:nth-of-type(3n){margin-right:0}
+ #appView>.dept b{font-size:22px}
+ #appView>.card:first-child{align-items:flex-start!important}
+ #logoutBtn{white-space:nowrap;padding:10px 12px}
+}
+@media(min-width:721px){#appView{display:block}#invitePanel,#employeeManagePanel{max-width:100%}}
+
 </style>
 </head>
 <body>
