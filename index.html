@@ -264,7 +264,9 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <article class="metric-card metric-blue"><span data-i18n="todayRepairQty">今日修色完成录入</span><strong id="metricTodayQty">—</strong><small data-i18n="unitPieces">件</small></article>
         <article class="metric-card metric-teal"><span data-i18n="todaySprayQty">今日喷色</span><strong id="metricSprayQty">—</strong><small data-i18n="unitPieces">件</small></article>
         <article class="metric-card metric-violet"><span data-i18n="todayHandQty">今日手工描绘</span><strong id="metricHandQty">—</strong><small data-i18n="unitPieces">件</small></article>
-        <article class="metric-card metric-amber"><span data-i18n="todayBatchCount">今日工单批次</span><strong id="metricBatchCount">—</strong><small data-i18n="unitBatches">批</small></article>
+        <article class="metric-card metric-amber"><span data-i18n="todayBatchCount">今日修色工单批次</span><strong id="metricBatchCount">—</strong><small data-i18n="unitBatches">批</small></article>
+        <article class="metric-card metric-teal"><span data-i18n="todayCleanQty">今日清洗录入</span><strong id="metricCleanQty">—</strong><small data-i18n="unitPieces">件</small></article>
+        <article class="metric-card metric-violet"><span data-i18n="todayWeaveQty">今日修织录入</span><strong id="metricWeaveQty">—</strong><small data-i18n="unitPieces">件</small></article>
       </div>
       <div class="dashboard-section-title"><h3 data-i18n="weeklyTrend">近7天修色产量趋势</h3><span data-i18n="weeklyTrendHint">按实际提交工单统计</span></div>
       <div id="repairTrend" class="trend-list" aria-live="polite"><p class="small">—</p></div>
@@ -503,7 +505,7 @@ const translations = {
     todayRepairQty:"今日修色完成录入",
     todaySprayQty:"今日喷色",
     todayHandQty:"今日手工描绘",
-    todayBatchCount:"今日工单批次",
+    todayBatchCount:"今日修色工单批次",todayCleanQty:"今日清洗录入",todayWeaveQty:"今日修织录入",
     unitPieces:"件",
     unitBatches:"批",
     businessFinance:"经营财务概览",
@@ -627,7 +629,7 @@ const translations = {
     todayRepairQty:"Sửa màu đã ghi nhận hôm nay",
     todaySprayQty:"Phun màu hôm nay",
     todayHandQty:"Vẽ thủ công hôm nay",
-    todayBatchCount:"Số lô hôm nay",
+    todayBatchCount:"Số lô sửa màu hôm nay",todayCleanQty:"Số lượng giặt ghi nhận hôm nay",todayWeaveQty:"Số lượng sửa dệt ghi nhận hôm nay",
     unitPieces:"sản phẩm",
     unitBatches:"lô",
     businessFinance:"Tổng quan tài chính",
@@ -1296,8 +1298,16 @@ async function loadDashboard(){
     const startDate=new Date();startDate.setDate(startDate.getDate()-6);
     const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
     const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
-    const snapshot=await getDocs(q);
+    const [snapshot,cleanSnapshot,weaveSnapshot]=await Promise.all([
+      getDocs(q),
+      getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==",today),limit(500))),
+      getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==",today),limit(500)))
+    ]);
     dashboardRowsCache=snapshot.docs.map(item=>item.data());
+    const cleanQty=cleanSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
+    const weaveQty=weaveSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
+    document.getElementById("metricCleanQty").textContent=cleanQty.toLocaleString();
+    document.getElementById("metricWeaveQty").textContent=weaveQty.toLocaleString();
     const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
     const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
     const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
@@ -1310,7 +1320,7 @@ async function loadDashboard(){
     await loadFinanceOverview();
   }catch(error){
     console.error("SIGMA dashboard load error:",error);
-    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount"].forEach(id=>document.getElementById(id).textContent="—");
+    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
     document.getElementById("repairTrend").innerHTML='<p class="small">'+tr("trendError")+(error.code||error.message||"unknown")+"</p>";
     message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
   }finally{if(button) button.disabled=false;}
