@@ -199,6 +199,7 @@ let currentProfile = null;
 let handlingAuthState = false;
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
+let inviteCompletedUid = null;
 
 function tr(key){ return translations[lang][key] || key; }
 function setMessage(message, isError=false){
@@ -289,16 +290,16 @@ async function completeEmployeeInvite(user){
   inviteCompletionPromise = (async () => {
     if(!user.providerData?.some(provider => provider.providerId === "google.com")) throw new Error("INVITE_GOOGLE_REQUIRED");
     const adminSnap = await getDoc(doc(db,"admins",user.uid));
-    if(adminSnap.exists()) throw new Error("INVITE_ADMIN_NOT_ALLOWED");
+    if(adminSnap.exists()) return false;
     const inviteRef = doc(db, "employeeInvites", inviteId);
     const employeeRef = doc(db, "employees", user.uid);
+    let employeeAlreadyExists = false;
     await runTransaction(db, async transaction => {
       const inviteSnap = await transaction.get(inviteRef);
       const employeeSnap = await transaction.get(employeeRef);
       if(employeeSnap.exists()){
-        const existing = employeeSnap.data();
-        if(existing.status === "active" && existing.invitationId === inviteId) return;
-        throw new Error("INVITE_ALREADY_USED");
+        employeeAlreadyExists = true;
+        return;
       }
       if(!inviteSnap.exists()) throw new Error("INVITE_INVALID");
       const invite = inviteSnap.data();
@@ -324,6 +325,8 @@ async function completeEmployeeInvite(user){
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("invite");
     window.history.replaceState({}, "", cleanUrl.toString());
+    if(employeeAlreadyExists) return false;
+    inviteCompletedUid = user.uid;
     return true;
   })();
   try { return await inviteCompletionPromise; }
@@ -434,7 +437,7 @@ getRedirectResult(auth).then(async result => {
     if(joined) setMessage(tr("inviteDone"));
     const identity = await resolveUserRole(result.user);
     showApp(result.user, identity);
-    setMessage(result.operationType === "signIn" ? tr("googleLoginSuccess") : tr("googleLinkSuccess"));
+    setMessage(joined || inviteCompletedUid === result.user.uid ? tr("inviteDone") : (result.operationType === "signIn" ? tr("googleLoginSuccess") : tr("googleLinkSuccess")));
   }catch(error){
     console.error("SIGMA ColorCare post-link admin check error:", error);
     setMessage(identityErrorMessage(error), true);
@@ -519,9 +522,9 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     const joined = await completeEmployeeInvite(user);
-    if(joined) setMessage(tr("inviteDone"));
     const identity = await resolveUserRole(user);
     showApp(user, identity);
+    if(joined || inviteCompletedUid === user.uid) setMessage(tr("inviteDone"));
   }catch(error){
     console.error("SIGMA ColorCare admin check error:", error);
     try{ await signOut(auth); }catch(signOutError){ console.error(signOutError); }
