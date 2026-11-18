@@ -293,6 +293,8 @@ async function completeEmployeeInvite(user){
     if(adminSnap.exists()) return false;
     const inviteRef = doc(db, "employeeInvites", inviteId);
     const employeeRef = doc(db, "employees", user.uid);
+    const existingEmployee = await getDoc(employeeRef);
+    if(existingEmployee.exists()) return false;
     let employeeAlreadyExists = false;
     await runTransaction(db, async transaction => {
       const inviteSnap = await transaction.get(inviteRef);
