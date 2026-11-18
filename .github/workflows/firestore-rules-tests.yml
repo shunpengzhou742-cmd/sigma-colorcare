@@ -8,6 +8,8 @@ on:
       - "firebase.json"
       - "package.json"
       - "tests/**"
+      - "index.html"
+      - "scripts/**"
       - ".github/workflows/firestore-rules-tests.yml"
   pull_request:
     paths:
@@ -29,5 +31,7 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Check client JavaScript syntax
+        run: npm run check:client
       - name: Run Firestore rules tests
         run: npm run test:rules
