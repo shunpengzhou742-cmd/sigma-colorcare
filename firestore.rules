@@ -193,17 +193,7 @@ service cloud.firestore {
           'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
         ])
         && data.expenseDate is string
-        && data.expenseDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-      allow get, list, create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+        && data.expenseDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && data.category in ['transport', 'utilities', 'maintenance', 'office', 'meals', 'other']
         && data.departmentId in [0, 1, 2, 3]
         && data.entryMode in ['item', 'dailySummary']
