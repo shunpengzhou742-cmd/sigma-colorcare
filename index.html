@@ -1371,23 +1371,26 @@ async function loadDeptRequests(){
  const sourceCollection=currentDept==="repair"?"repairWorkOrders":currentDept==="clean"?"cleanWorkOrders":"weaveWorkOrders";
  root.textContent=tr("accountingLoading");
  try{
-  const [qc,scrap,orders]=await Promise.all([
+  const [qc,scrap,orders,rework]=await Promise.all([
    getDocs(query(collection(db,"qcRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
    getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
-   getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
+   getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
+   getDocs(query(collection(db,"reworkWorkOrders"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
   ]);
   const submittedWorkOrders=new Set(qc.docs.map(x=>x.data().workOrderId).filter(Boolean));
   qcWorkOrderCache=new Map();const select=document.getElementById("qcRequestWorkOrder");select.replaceChildren();
   const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=tr("qcNoBatch");select.append(placeholder);
-  orders.docs.forEach(docSnap=>{
+  const addQcOption=(docSnap,collectionName,isRework=false)=>{
    if(submittedWorkOrders.has(docSnap.id))return;
-   const row=docSnap.data();qcWorkOrderCache.set(docSnap.id,{...row,id:docSnap.id,sourceCollection});
-   const option=document.createElement("option");option.value=docSnap.id;option.textContent=[row.workDate,row.orderNo||row.styleNo,row.quantity].filter(Boolean).join(" · ");select.append(option);
-  });
+   const row=docSnap.data();qcWorkOrderCache.set(docSnap.id,{...row,id:docSnap.id,sourceCollection:collectionName});
+   const option=document.createElement("option");option.value=docSnap.id;option.textContent=[isRework?tr("reworkCreated"):"",row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.quantity].filter(Boolean).join(" · ");select.append(option);
+  };
+  orders.docs.forEach(docSnap=>addQcOption(docSnap,sourceCollection));
+  rework.docs.forEach(docSnap=>addQcOption(docSnap,"reworkWorkOrders",true));
   select.value=select.options.length>1?select.options[1].value:"";
   document.getElementById("qcRequestQuantity").value=qcWorkOrderCache.get(select.value)?.quantity||"";
   root.replaceChildren();
-  [{label:tr("qcRequestTitle"),rows:qc.docs.map(x=>x.data())},{label:tr("scrapRequestTitle"),rows:scrap.docs.map(x=>x.data())}].forEach(group=>{
+  [{label:tr("qcRequestTitle"),rows:qc.docs.map(x=>x.data())},{label:tr("scrapRequestTitle"),rows:scrap.docs.map(x=>x.data())},{label:tr("reworkCreated"),rows:rework.docs.map(x=>x.data())}].forEach(group=>{
    const h=document.createElement("strong");h.textContent=group.label;root.append(h);
    if(!group.rows.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
    group.rows.sort((a,b)=>(b.requestDate||"").localeCompare(a.requestDate||"")).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.requestDate,row.orderNo,row.styleNo,row.quantity,row.qualifiedQuantity!==undefined?tr("qcQualified")+": "+row.qualifiedQuantity:"",row.unqualifiedQuantity!==undefined?tr("qcUnqualified")+": "+row.unqualifiedQuantity:"",requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
