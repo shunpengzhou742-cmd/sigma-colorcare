@@ -521,3 +521,56 @@ describe("SIGMA operating expense Firestore rules", () => {
   });
 });
 
+
+describe("SIGMA washing and weaving work order Firestore rules", () => {
+  async function seedEmployee(uid, departmentId) {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), `employees/${uid}`), {
+        uid, roleType: 1, status: "active", departmentIds: [departmentId]
+      });
+    });
+  }
+
+  function workOrderData(uid, departmentId) {
+    return {
+      employeeUid: uid, createdBy: uid, departmentId,
+      workDate: "2026-11-19", orderNo: "ORD-01", styleNo: "STYLE-01",
+      color: "Navy", quantity: 80, note: "", status: "submitted",
+      createdAt: serverTimestamp()
+    };
+  }
+
+  it("allows a cleaning employee to submit and read only cleaning work orders", async () => {
+    await seedEmployee("employee-1", 2);
+    const db = googleDb();
+    const { addDoc, collection, getDocs, query, where } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "cleanWorkOrders"), workOrderData("employee-1", 2)));
+    await assertSucceeds(getDocs(query(collection(db, "cleanWorkOrders"), where("employeeUid", "==", "employee-1"), where("departmentId", "==", 2))));
+    await assertFails(addDoc(collection(db, "weaveWorkOrders"), workOrderData("employee-1", 3)));
+  });
+
+  it("allows a weaving employee to submit and read only weaving work orders", async () => {
+    await seedEmployee("employee-1", 3);
+    const db = googleDb();
+    const { addDoc, collection, getDocs, query, where } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "weaveWorkOrders"), workOrderData("employee-1", 3)));
+    await assertSucceeds(getDocs(query(collection(db, "weaveWorkOrders"), where("employeeUid", "==", "employee-1"), where("departmentId", "==", 3))));
+    await assertFails(addDoc(collection(db, "cleanWorkOrders"), workOrderData("employee-1", 2)));
+  });
+
+  it("rejects zero quantity and editing submitted cleaning work orders", async () => {
+    await seedEmployee("employee-1", 2);
+    const db = googleDb();
+    const { addDoc, collection, updateDoc, getDocs } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "cleanWorkOrders"), {
+      ...workOrderData("employee-1", 2), quantity: 0
+    }));
+    const ref = doc(db, "cleanWorkOrders", "existing-order");
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/existing-order"), {
+        ...workOrderData("employee-1", 2), createdAt: Timestamp.now()
+      });
+    });
+    await assertFails(updateDoc(ref, { quantity: 90 }));
+  });
+});
