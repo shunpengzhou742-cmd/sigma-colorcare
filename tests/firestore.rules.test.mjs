@@ -73,6 +73,7 @@ function employeeData(uid, email, departments = [1], repairTypes = [101, 102]) {
     departmentIds: departments,
     repairTypeIds: repairTypes,
     specialRole: false,
+    qcAuthorized: false,
     invitationId: "invite-valid",
     createdAt: serverTimestamp(),
     createdBy: "admin-1",
@@ -643,6 +644,55 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     }));
     await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", created.id), {
       status: "approved", reviewedBy: "admin-1", reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+  });
+});
+
+describe("SIGMA manager-assigned QC reviewer permissions", () => {
+  it("allows an active QC-authorized employee to review QC requests but not scrap requests", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/qc-inspector"), {
+        uid: "qc-inspector", roleType: 1, status: "active",
+        departmentIds: [1], qcAuthorized: true
+      });
+      await setDoc(doc(context.firestore(), "qcRequests/qc-pending"), {
+        requestDate: "2026-11-19", departmentId: 1, employeeUid: "employee-1",
+        createdBy: "employee-1", orderNo: "QC-1", styleNo: "S-1",
+        quantity: 10, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "scrapRequests/scrap-pending"), {
+        requestDate: "2026-11-19", departmentId: 1, employeeUid: "employee-1",
+        createdBy: "employee-1", orderNo: "SC-1", styleNo: "S-1",
+        quantity: 2, note: "", reason: "Damage", status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const db = googleDb("qc-inspector", "qc@example.com");
+    const { collection, getDocs, updateDoc } = await import("firebase/firestore");
+    await assertSucceeds(getDocs(collection(db, "qcRequests")));
+    await assertFails(getDocs(collection(db, "scrapRequests")));
+    await assertSucceeds(updateDoc(doc(db, "qcRequests/qc-pending"), {
+      status: "approved", reviewedBy: "qc-inspector",
+      reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+    await assertFails(updateDoc(doc(db, "scrapRequests/scrap-pending"), {
+      status: "approved", reviewedBy: "qc-inspector",
+      reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+  });
+
+  it("allows only an admin to grant QC reviewer permission", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "active",
+        departmentIds: [1], repairTypeIds: [101, 102], qcAuthorized: false
+      });
+    });
+    const { updateDoc } = await import("firebase/firestore");
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      qcAuthorized: true, updatedAt: serverTimestamp()
+    }));
+    await assertFails(updateDoc(doc(googleDb(), "employees/employee-1"), {
+      qcAuthorized: false, updatedAt: serverTimestamp()
     }));
   });
 });
