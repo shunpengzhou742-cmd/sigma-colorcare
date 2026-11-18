@@ -153,6 +153,50 @@ body.theme-dark .warning{background:#4a371b;color:#ffe4a3;border-color:#8b692e}
 body.theme-dark #loginView:has(form):after{color:#9fc8f3}
 @media(max-width:420px){#themeToggle{font-size:11px;padding:7px 9px}}
 
+
+/* v10 management dashboard */
+.dashboard-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.dashboard-heading h2{font-size:23px;margin:4px 0;color:#174b83}
+.dashboard-kicker{font-size:10px;font-weight:800;letter-spacing:1.7px;color:#3980bd}
+.dashboard-heading .small{margin:3px 0}
+.dashboard-refresh{width:auto;min-width:100px}
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.metric-card{padding:16px;border-radius:15px;min-height:122px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;box-shadow:0 7px 17px #173d6618}
+.metric-card span{font-size:12px;font-weight:650;opacity:.96}
+.metric-card strong{font-size:29px;line-height:1.1;font-weight:850;letter-spacing:-.6px}
+.metric-card small{font-size:11px;opacity:.85}
+.metric-blue{background:linear-gradient(135deg,#2369bb,#3e91df)}
+.metric-teal{background:linear-gradient(135deg,#098c9c,#27b7b0)}
+.metric-violet{background:linear-gradient(135deg,#6655b7,#9277dc)}
+.metric-amber{background:linear-gradient(135deg,#c17b23,#e5ad43)}
+.dashboard-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:22px 0 10px}
+.dashboard-section-title h3{margin:0!important;color:#214f80!important;font-size:16px!important}
+.dashboard-section-title span{font-size:10px;color:#7890a8}
+.finance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.finance-grid article{padding:14px;border:1px solid #e0e9f3;border-radius:13px;background:linear-gradient(145deg,#f8fbff,#edf4fc);display:flex;flex-direction:column;gap:10px}
+.finance-grid article span{font-size:12px;color:#5d7590}
+.finance-grid article strong{font-size:16px;color:#8094aa}
+.dashboard-note{font-size:11px;line-height:1.6;color:#7489a1;margin:10px 2px}
+.dept-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dept-overview{padding:14px;border:1px solid #dce7f3;border-radius:14px;display:flex;flex-direction:column;gap:8px;min-height:112px}
+.dept-overview b{font-size:14px;color:#234d78}
+.dept-overview strong{font-size:12px;color:#2771b5}
+.dept-overview small{font-size:10px;line-height:1.5;color:#7489a1}
+.repair-overview{background:linear-gradient(145deg,#eaf4ff,#f7fbff);border-top:3px solid #3284d0}
+.clean-overview{background:linear-gradient(145deg,#e9fbfa,#f7fdfd);border-top:3px solid #22a9aa}
+.weave-overview{background:linear-gradient(145deg,#f3efff,#fbfaff);border-top:3px solid #8871ce}
+body.theme-dark .dashboard-heading h2,body.theme-dark .dashboard-section-title h3{color:#dcecff!important}
+body.theme-dark .dashboard-kicker{color:#8fc6f5}
+body.theme-dark .dashboard-section-title span,body.theme-dark .dashboard-note{color:#a9bfd8}
+body.theme-dark .finance-grid article{background:linear-gradient(145deg,#1a3151,#203958);border-color:#3c5778}
+body.theme-dark .finance-grid article span{color:#b6cce5}
+body.theme-dark .finance-grid article strong{color:#d4e3f5}
+body.theme-dark .dept-overview{background:linear-gradient(145deg,#1c3453,#1b2d49);border-color:#3b5576}
+body.theme-dark .dept-overview b{color:#e0edff}
+body.theme-dark .dept-overview strong{color:#9bd4ff}
+body.theme-dark .dept-overview small{color:#adc2da}
+@media(max-width:720px){.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-card{min-height:105px;padding:13px}.metric-card strong{font-size:26px}.finance-grid{grid-template-columns:1fr}.finance-grid article{flex-direction:row;align-items:center;justify-content:space-between}.dept-overview-grid{grid-template-columns:1fr}.dept-overview{min-height:unset}.dashboard-heading h2{font-size:20px}.dashboard-refresh{min-width:86px;padding:10px;font-size:12px}}
+
 </style>
 </head>
 <body>
@@ -188,6 +232,33 @@ body.theme-dark #loginView:has(form):after{color:#9fc8f3}
       </div>
       <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
     </div>
+
+    <section id="dashboardPanel" class="card hidden" style="margin-top:18px">
+      <div class="dashboard-heading">
+        <div><div class="dashboard-kicker" data-i18n="dashboardKicker">SIGMA · BUSINESS OVERVIEW</div><h2 data-i18n="dashboardTitle">经营总览</h2><p id="dashboardDate" class="small"></p></div>
+        <button id="refreshDashboardBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshDashboard">刷新数据</button>
+      </div>
+      <div class="dashboard-grid">
+        <article class="metric-card metric-blue"><span data-i18n="todayRepairQty">今日修色完成录入</span><strong id="metricTodayQty">—</strong><small data-i18n="unitPieces">件</small></article>
+        <article class="metric-card metric-teal"><span data-i18n="todaySprayQty">今日喷色</span><strong id="metricSprayQty">—</strong><small data-i18n="unitPieces">件</small></article>
+        <article class="metric-card metric-violet"><span data-i18n="todayHandQty">今日手工描绘</span><strong id="metricHandQty">—</strong><small data-i18n="unitPieces">件</small></article>
+        <article class="metric-card metric-amber"><span data-i18n="todayBatchCount">今日工单批次</span><strong id="metricBatchCount">—</strong><small data-i18n="unitBatches">批</small></article>
+      </div>
+      <div class="dashboard-section-title"><h3 data-i18n="businessFinance">经营财务概览</h3><span data-i18n="financePending">等待接入真实核算数据</span></div>
+      <div class="finance-grid">
+        <article><span data-i18n="totalRevenue">总收入</span><strong data-i18n="notConnected">暂未接入</strong></article>
+        <article><span data-i18n="totalCost">总成本</span><strong data-i18n="notConnected">暂未接入</strong></article>
+        <article><span data-i18n="netProfit">公司净利润</span><strong data-i18n="notConnected">暂未接入</strong></article>
+      </div>
+      <p class="dashboard-note" data-i18n="financeNote">财务指标将在部门日记录、工资单价、材料费用和其他支出数据结构完成核对后启用；不会显示虚构金额。</p>
+      <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
+      <div class="dept-overview-grid">
+        <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
+        <article class="dept-overview clean-overview"><b data-i18n="clean">清洗部门</b><strong data-i18n="moduleInDevelopment">业务模块开发中</strong><small data-i18n="moduleNotCounted">暂不计入产量与利润</small></article>
+        <article class="dept-overview weave-overview"><b data-i18n="weave">修织部门</b><strong data-i18n="moduleInDevelopment">业务模块开发中</strong><small data-i18n="moduleNotCounted">暂不计入产量与利润</small></article>
+      </div>
+      <p id="dashboardMessage" class="small" role="status" aria-live="polite"></p>
+    </section>
     <section id="invitePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="inviteTitle">员工邀请</h3>
       <p class="small" data-i18n="inviteDesc">生成24小时有效、只能使用一次的员工邀请。</p>
@@ -318,7 +389,33 @@ const translations = {
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
     googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
-    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
+    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用",
+    dashboardKicker:"SIGMA · BUSINESS OVERVIEW",
+    dashboardTitle:"经营总览",
+    refreshDashboard:"刷新数据",
+    todayRepairQty:"今日修色完成录入",
+    todaySprayQty:"今日喷色",
+    todayHandQty:"今日手工描绘",
+    todayBatchCount:"今日工单批次",
+    unitPieces:"件",
+    unitBatches:"批",
+    businessFinance:"经营财务概览",
+    financePending:"等待接入真实核算数据",
+    totalRevenue:"总收入",
+    totalCost:"总成本",
+    netProfit:"公司净利润",
+    notConnected:"暂未接入",
+    financeNote:"财务指标将在部门日记录、工资单价、材料费用和其他支出数据结构完成核对后启用；不会显示虚构金额。",
+    deptOverview:"部门运营进度",
+    threeDeptIndependent:"三个部门独立核算",
+    repairModuleLive:"工单录入模块已上线",
+    repairModuleDetail:"今日数量以实际提交工单统计",
+    moduleInDevelopment:"业务模块开发中",
+    moduleNotCounted:"暂不计入产量与利润",
+    dashboardLoading:"正在读取今日修色工单……",
+    dashboardLoaded:"数据来自今日已提交的修色工单。",
+    dashboardError:"读取今日数据失败：",
+    dashboardLimit:"今日记录超过500批，当前统计最多读取500批。"
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
