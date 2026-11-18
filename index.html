@@ -914,18 +914,20 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  }
  button.disabled=true;message.textContent=tr("accountingLoading");
  try{
-  const existing=query(collection(db,"dailyRecords"),where("workDate","==",date),where("departmentId","==",departmentId),limit(1));
-  const found=await getDocs(existing);
-  if(!found.empty){message.textContent=tr("accountingDuplicate");return;}
-  await addDoc(collection(db,"dailyRecords"),{
-   workDate:date,departmentId,headcount:v.accountingHeadcount,outputQuantity:v.accountingOutput,
-   unitPrice:v.accountingUnitPrice,dailyWagePerPerson:v.accountingDailyWage,
-   materialCost:v.accountingMaterialCost,otherCost:v.accountingOtherCost,
-   revenue,laborCost:labor,netProfit:profit,currency:"VND",
-   createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+  const recordRef=doc(db,"dailyRecords",date+"_dept_"+departmentId);
+  await runTransaction(db,async transaction=>{
+   const existing=await transaction.get(recordRef);
+   if(existing.exists()) throw new Error("ACCOUNTING_RECORD_EXISTS");
+   transaction.set(recordRef,{
+    workDate:date,departmentId,headcount:v.accountingHeadcount,outputQuantity:v.accountingOutput,
+    unitPrice:v.accountingUnitPrice,dailyWagePerPerson:v.accountingDailyWage,
+    materialCost:v.accountingMaterialCost,otherCost:v.accountingOtherCost,
+    revenue,laborCost:labor,netProfit:profit,currency:"VND",
+    createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+   });
   });
   message.textContent=tr("accountingSaved");await loadDashboard();
- }catch(error){console.error("Daily accounting save error",error);message.textContent=tr("accountingSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("Daily accounting save error",error);message.textContent=error.message==="ACCOUNTING_RECORD_EXISTS"?tr("accountingDuplicate"):tr("accountingSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
 
