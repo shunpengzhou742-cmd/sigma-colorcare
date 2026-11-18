@@ -110,7 +110,22 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      allow update, delete: if false;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'departmentIds', 'repairTypeIds', 'status', 'updatedAt'
+        ])
+        && request.resource.data.departmentIds is list
+        && request.resource.data.departmentIds.size() >= 1
+        && request.resource.data.departmentIds.size() <= 3
+        && request.resource.data.departmentIds.hasOnly([1, 2, 3])
+        && request.resource.data.repairTypeIds is list
+        && (request.resource.data.departmentIds.hasAny([1])
+            ? request.resource.data.repairTypeIds == [101, 102]
+            : request.resource.data.repairTypeIds == [])
+        && request.resource.data.status in ['active', 'disabled']
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
     }
 
     match /appSettings/departmentWages {
