@@ -307,9 +307,6 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
       </form>
       <div id="wageRateHistory" class="work-panel"><p class="small" data-i18n="wageHistoryLoading">正在读取日薪历史……</p></div>
 
-      <div class="dashboard-section-title"><h3 data-i18n="reviewQueueTitle">QC与报废待审核</h3></div>
-      <div class="work-panel"><h4 data-i18n="qcPending">待处理QC申请</h4><div id="qcReviewQueue"></div></div>
-      <div class="work-panel"><h4 data-i18n="scrapPending">待处理报废申请</h4><div id="scrapReviewQueue"></div></div>
       <div class="dashboard-section-title"><h3 data-i18n="expenseTitle">其他经营费用登记</h3><span data-i18n="expenseAdminOnly">仅负责人录入</span></div>
       <form id="expenseForm" class="work-panel">
         <label data-i18n="expenseMode">登记方式</label>
@@ -336,6 +333,11 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <article class="dept-overview weave-overview"><b data-i18n="weave">修织部门</b><strong data-i18n="weaveModuleLive">修织工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
       </div>
       <p id="dashboardMessage" class="small" role="status" aria-live="polite"></p>
+    </section>
+    <section id="qcReviewPanel" class="card hidden" style="margin-top:18px">
+      <h3 data-i18n="reviewQueueTitle">QC与报废审核</h3>
+      <div class="work-panel"><h4 data-i18n="qcPending">待处理QC申请</h4><div id="qcReviewQueue"></div></div>
+      <div id="scrapReviewPanel" class="work-panel hidden"><h4 data-i18n="scrapPending">待处理报废申请</h4><div id="scrapReviewQueue"></div></div>
     </section>
     <section id="invitePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="inviteTitle">员工邀请</h3>
@@ -809,8 +811,10 @@ function showApp(user, identity){
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("qcReviewPanel").classList.toggle("hidden",identity.role!=="admin"&&identity.profile?.qcAuthorized!==true);
+  document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); }
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); }else if(identity.profile?.qcAuthorized===true){loadReviewQueues();}
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -1394,8 +1398,9 @@ function bindDepartmentRequestForm(type){
 }
 bindDepartmentRequestForm("qc");bindDepartmentRequestForm("scrap");
 async function loadReviewQueues(){
- if(currentRole!=="admin")return;
- for(const [type,name,rootId] of [["qc","qcRequests","qcReviewQueue"],["scrap","scrapRequests","scrapReviewQueue"]]){
+ if(currentRole!=="admin"&&currentProfile?.qcAuthorized!==true)return;
+ const queues=currentRole==="admin"?[["qc","qcRequests","qcReviewQueue"],["scrap","scrapRequests","scrapReviewQueue"]]:[["qc","qcRequests","qcReviewQueue"]];
+ for(const [type,name,rootId] of queues){
   const root=document.getElementById(rootId);root.textContent=tr("accountingLoading");
   try{
    const snap=await getDocs(query(collection(db,name),where("status","==","submitted"),limit(100)));root.replaceChildren();
