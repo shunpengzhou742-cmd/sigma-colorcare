@@ -1147,7 +1147,8 @@ function renderExpensePeriodSummary(rows){
 document.getElementById("expensePeriodType").addEventListener("change",refreshExpenseList);
 document.getElementById("refreshExpensesBtn").addEventListener("click",refreshExpenseList);
 function beginExpenseEdit(row){
- editingExpenseId=row.id;editingExpenseCreatedAt=row.createdAt;editingExpenseCreatedBy=row.createdBy;editingExpenseIsSummary=row.entryMode==="dailySummary";\n ["expenseDate","expenseCategory","expenseDepartment"].forEach(id=>document.getElementById(id).disabled=editingExpenseIsSummary);document.getElementById("expenseMode").disabled=true;
+ editingExpenseId=row.id;editingExpenseCreatedAt=row.createdAt;editingExpenseCreatedBy=row.createdBy;editingExpenseIsSummary=row.entryMode==="dailySummary";
+ ["expenseDate","expenseCategory","expenseDepartment"].forEach(id=>document.getElementById(id).disabled=editingExpenseIsSummary);document.getElementById("expenseMode").disabled=true;
  document.getElementById("expenseDate").value=row.expenseDate;document.getElementById("expenseCategory").value=row.category;document.getElementById("expenseDepartment").value=String(row.departmentId);document.getElementById("expenseMode").value=row.entryMode;document.getElementById("expenseAmount").value=String(row.amount);document.getElementById("expenseNote").value=row.note||"";
  document.getElementById("saveExpenseBtn").textContent=tr("editExpense");document.getElementById("cancelExpenseEditBtn").classList.remove("hidden");document.getElementById("expenseMessage").textContent=tr("editExpense");
  document.getElementById("expenseForm").scrollIntoView({behavior:"smooth",block:"center"});
