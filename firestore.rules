@@ -154,22 +154,7 @@ service cloud.firestore {
         && request.resource.data.repairTypeId in [101, 102]
         && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.repairTypeIds.hasAny([request.resource.data.repairTypeId])
         && request.resource.data.workDate is string
-        && request.resource.data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-      allow get, create, update: if isAdmin();
-      allow list, delete: if false;
-    }
-
-    match /dailyRecords/{recordId} {
-      allow get, list, create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+        && request.resource.data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && request.resource.data.orderNo is string
         && request.resource.data.orderNo.size() <= 80
         && request.resource.data.styleNo is string
