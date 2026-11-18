@@ -118,7 +118,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -145,7 +145,7 @@ const translations = {
     weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
-    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个部门。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。",
+    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个部门。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
     signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
     loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
@@ -172,7 +172,7 @@ const translations = {
     weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
-    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một bộ phận.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.",
+    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một bộ phận.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
     signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
     loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
@@ -272,6 +272,7 @@ function mapAuthError(error){
 function identityErrorMessage(error){
   if(error.message === "INVITE_INVALID" || error.message === "INVITE_ALREADY_USED") return tr("inviteInvalid");
   if(error.message === "INVITE_GOOGLE_REQUIRED") return tr("inviteGoogleOnly");
+  if(error.message === "INVITE_ADMIN_NOT_ALLOWED") return tr("inviteAdminDenied");
   if(error.message === "ADMIN_PROFILE_MISSING") return tr("noAdmin");
   if(error.message === "ADMIN_ROLE_INVALID") return tr("notAdmin");
   if(error.message === "ADMIN_INACTIVE") return tr("inactive");
@@ -287,6 +288,8 @@ async function completeEmployeeInvite(user){
   if(inviteCompletionPromise) return inviteCompletionPromise;
   inviteCompletionPromise = (async () => {
     if(!user.providerData?.some(provider => provider.providerId === "google.com")) throw new Error("INVITE_GOOGLE_REQUIRED");
+    const adminSnap = await getDoc(doc(db,"admins",user.uid));
+    if(adminSnap.exists()) throw new Error("INVITE_ADMIN_NOT_ALLOWED");
     const inviteRef = doc(db, "employeeInvites", inviteId);
     const employeeRef = doc(db, "employees", user.uid);
     await runTransaction(db, async transaction => {
@@ -354,8 +357,11 @@ async function createEmployeeInvite(){
     inviteUrl.searchParams.set("invite",inviteId);
     latestInviteUrl = inviteUrl.toString();
     document.getElementById("inviteQr").innerHTML = "";
-    if(!window.QRCode) throw new Error("QR_LIBRARY_UNAVAILABLE");
-    new window.QRCode(document.getElementById("inviteQr"),{text:latestInviteUrl,width:220,height:220,colorDark:"#111827",colorLight:"#ffffff",correctLevel:window.QRCode.CorrectLevel.M});
+    if(window.QRCode){
+      new window.QRCode(document.getElementById("inviteQr"),{text:latestInviteUrl,width:220,height:220,colorDark:"#111827",colorLight:"#ffffff",correctLevel:window.QRCode.CorrectLevel.M});
+    }else{
+      document.getElementById("inviteQr").textContent = "QR unavailable";
+    }
     document.getElementById("inviteLinkText").textContent = latestInviteUrl;
     document.getElementById("inviteResult").classList.remove("hidden");
     msg.textContent = tr("inviteReady");
