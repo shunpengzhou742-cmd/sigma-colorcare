@@ -54,6 +54,7 @@ service cloud.firestore {
         && request.resource.data.usedAt == null;
 
       allow update: if isGoogleUser()
+        && !isAdmin()
         && resource.data.status == 'active'
         && resource.data.expiresAt > request.time
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -76,6 +77,7 @@ service cloud.firestore {
       allow list: if isAdmin();
 
       allow create: if isGoogleUser()
+        && !exists(/databases/$(database)/documents/admins/$(request.auth.uid))
         && request.auth.uid == userId
         && request.resource.data.keys().hasAll([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
