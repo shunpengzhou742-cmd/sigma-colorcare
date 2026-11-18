@@ -960,7 +960,7 @@ function applyEffectiveWage(){
  const wageInput=document.getElementById("accountingDailyWage");
  const message=document.getElementById("accountingMessage");
  if(match){wageInput.value=String(match.dailyWage);message.textContent=tr("wageAutoApplied");}
- else{message.textContent=tr("wageAutoMissing");}
+ else{wageInput.value="";message.textContent=tr("wageAutoMissing");}
  updateAccountingPreview();
 }
 document.getElementById("wageDepartment").addEventListener("change",()=>{});
