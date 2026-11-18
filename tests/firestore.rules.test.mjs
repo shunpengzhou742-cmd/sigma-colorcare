@@ -309,6 +309,28 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("allows an active admin to list the employee directory", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1",
+        name: "Test Employee",
+        email: "employee@example.com",
+        roleType: 1,
+        status: "active",
+        departmentIds: [1],
+        repairTypeIds: [101, 102],
+        specialRole: false,
+        invitationId: "invite-valid",
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        updatedAt: Timestamp.now()
+      });
+    });
+    const { collection, getDocs } = await import("firebase/firestore");
+    const snapshot = await assertSucceeds(getDocs(collection(adminDb(), "employees")));
+    assert.equal(snapshot.size, 1);
+  });
+
   it("rejects employees listing the employee directory", async () => {
     const { collection, getDocs } = await import("firebase/firestore");
     await assertFails(getDocs(collection(googleDb(), "employees")));
