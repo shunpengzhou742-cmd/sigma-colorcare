@@ -327,8 +327,8 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
       <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
-        <article class="dept-overview clean-overview"><b data-i18n="clean">清洗部门</b><strong data-i18n="moduleInDevelopment">业务模块开发中</strong><small data-i18n="moduleNotCounted">暂不计入产量与利润</small></article>
-        <article class="dept-overview weave-overview"><b data-i18n="weave">修织部门</b><strong data-i18n="moduleInDevelopment">业务模块开发中</strong><small data-i18n="moduleNotCounted">暂不计入产量与利润</small></article>
+        <article class="dept-overview clean-overview"><b data-i18n="clean">清洗部门</b><strong data-i18n="cleanModuleLive">清洗工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
+        <article class="dept-overview weave-overview"><b data-i18n="weave">修织部门</b><strong data-i18n="weaveModuleLive">修织工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
       </div>
       <p id="dashboardMessage" class="small" role="status" aria-live="polite"></p>
     </section>
@@ -402,6 +402,40 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <button id="refreshRepairOrders" class="dark" type="button" data-i18n="refreshRecords">刷新记录</button>
         <div id="repairWorkOrderList"></div>
       </div>
+    </section>
+    <section id="cleanWorkbench" class="hidden">
+      <div class="work-panel">
+        <h3 data-i18n="cleanEntryTitle">清洗工单录入（按批次）</h3>
+        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看部门汇总。</p>
+        <form id="cleanWorkOrderForm">
+          <label data-i18n="workDate">作业日期</label><input id="cleanWorkDate" type="date" required>
+          <label data-i18n="orderNo">订单号（选填）</label><input id="cleanOrderNo" maxlength="80">
+          <label data-i18n="styleNo">款号（选填）</label><input id="cleanStyleNo" maxlength="80">
+          <label data-i18n="color">颜色（选填）</label><input id="cleanColor" maxlength="80">
+          <label data-i18n="quantity">本批数量</label><input id="cleanQuantity" type="number" min="1" max="1000000" step="1" required>
+          <label data-i18n="workNote">备注（选填）</label><textarea id="cleanNote" rows="2" maxlength="500"></textarea>
+          <button id="submitCleanOrder" class="primary" type="submit" data-i18n="submitWorkOrder">提交本批工单</button>
+        </form><p id="cleanWorkMessage" class="small" role="status" aria-live="polite"></p>
+      </div>
+      <div class="work-panel"><h3 data-i18n="dailyWorkSummary">每日清洗汇总</h3><div id="cleanDailySummary" class="small"></div></div>
+      <div class="work-panel"><h3 data-i18n="workOrderRecords">工单记录</h3><button id="refreshCleanOrders" class="dark" type="button" data-i18n="refreshRecords">刷新记录</button><div id="cleanWorkOrderList"></div></div>
+    </section>
+    <section id="weaveWorkbench" class="hidden">
+      <div class="work-panel">
+        <h3 data-i18n="weaveEntryTitle">修织工单录入（按批次）</h3>
+        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看部门汇总。</p>
+        <form id="weaveWorkOrderForm">
+          <label data-i18n="workDate">作业日期</label><input id="weaveWorkDate" type="date" required>
+          <label data-i18n="orderNo">订单号（选填）</label><input id="weaveOrderNo" maxlength="80">
+          <label data-i18n="styleNo">款号（选填）</label><input id="weaveStyleNo" maxlength="80">
+          <label data-i18n="color">颜色（选填）</label><input id="weaveColor" maxlength="80">
+          <label data-i18n="quantity">本批数量</label><input id="weaveQuantity" type="number" min="1" max="1000000" step="1" required>
+          <label data-i18n="workNote">备注（选填）</label><textarea id="weaveNote" rows="2" maxlength="500"></textarea>
+          <button id="submitWeaveOrder" class="primary" type="submit" data-i18n="submitWorkOrder">提交本批工单</button>
+        </form><p id="weaveWorkMessage" class="small" role="status" aria-live="polite"></p>
+      </div>
+      <div class="work-panel"><h3 data-i18n="dailyWeaveSummary">每日修织汇总</h3><div id="weaveDailySummary" class="small"></div></div>
+      <div class="work-panel"><h3 data-i18n="workOrderRecords">工单记录</h3><button id="refreshWeaveOrders" class="dark" type="button" data-i18n="refreshRecords">刷新记录</button><div id="weaveWorkOrderList"></div></div>
     </section>
     <section id="otherDeptNotice" class="work-panel hidden">
       <p data-i18n="otherDeptComing">该部门工单页面将在修色模块验证后继续开发。</p>
@@ -482,7 +516,7 @@ const translations = {
     financeNote:"统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。",
     deptOverview:"部门运营进度",
     threeDeptIndependent:"三个部门独立核算",
-    repairModuleLive:"工单录入模块已上线",
+    repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
     repairModuleDetail:"今日数量以实际提交工单统计",
     moduleInDevelopment:"业务模块开发中",
     moduleNotCounted:"暂不计入产量与利润",
@@ -606,7 +640,7 @@ const translations = {
     financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày và chi phí kinh doanh; không ghi trùng chi phí khác ở cả hai nơi.",
     deptOverview:"Tiến độ hoạt động các bộ phận",
     threeDeptIndependent:"Ba bộ phận hạch toán độc lập",
-    repairModuleLive:"Đã có chức năng nhập phiếu",
+    repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp bộ phận.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
     moduleInDevelopment:"Đang phát triển module",
     moduleNotCounted:"Chưa tính vào sản lượng và lợi nhuận",
@@ -1365,6 +1399,44 @@ document.getElementById("repairWorkOrderForm").addEventListener("submit",async e
 });
 document.getElementById("refreshRepairOrders").addEventListener("click",loadRepairWorkOrders);
 
+const genericDepartments={
+ clean:{id:2,collection:"cleanWorkOrders",prefix:"clean"},
+ weave:{id:3,collection:"weaveWorkOrders",prefix:"weave"}
+};
+async function loadGenericWorkOrders(key){
+ const cfg=genericDepartments[key];if(!cfg||currentDept!==key)return;
+ const list=document.getElementById(cfg.prefix+"WorkOrderList"),summary=document.getElementById(cfg.prefix+"DailySummary");
+ try{
+  const base=collection(db,cfg.collection);
+  const q=currentRole==="admin"?query(base,limit(100)):query(base,where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",cfg.id),limit(100));
+  const snap=await getDocs(q),rows=snap.docs.map(d=>d.data());
+  list.replaceChildren();summary.replaceChildren();
+  if(!rows.length){list.textContent=tr("noRepairOrders");summary.textContent=tr("noRepairOrders");return;}
+  const totals=new Map();
+  rows.forEach(row=>{const val=totals.get(row.workDate)||{quantity:0,batches:0};val.quantity+=Number(row.quantity||0);val.batches++;totals.set(row.workDate,val);});
+  [...totals.entries()].sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,val])=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=date+" · "+val.quantity.toLocaleString()+" · "+val.batches+" "+tr("unitBatches");summary.append(line);});
+  rows.sort((a,b)=>(b.workDate||"").localeCompare(a.workDate||"")||(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  rows.slice(0,50).forEach(row=>{const item=document.createElement("article");item.className="work-record";const head=document.createElement("strong");head.textContent=(row.workDate||"")+" · "+Number(row.quantity||0).toLocaleString();const detail=document.createElement("div");detail.className="small";detail.textContent=[row.orderNo,row.styleNo,row.color].filter(Boolean).join(" / ")+(currentRole==="admin"?" · UID "+row.employeeUid:"");const note=document.createElement("div");note.className="small";note.textContent=row.note||"";item.append(head,detail,note);list.append(item);});
+ }catch(error){console.error(key+" work orders",error);list.textContent=tr("workOrderError")+(error.code||error.message||"unknown");}
+}
+function bindGenericWorkOrder(key){
+ const cfg=genericDepartments[key],p=cfg.prefix;
+ document.getElementById(p+"WorkOrderForm").addEventListener("submit",async event=>{
+  event.preventDefault();if(currentRole!=="employee"||!currentProfile?.departmentIds?.includes(cfg.id)||!auth.currentUser)return;
+  const quantity=Number(document.getElementById(p+"Quantity").value);
+  if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)return;
+  const button=document.getElementById("submit"+(key==="clean"?"Clean":"Weave")+"Order");button.disabled=true;
+  const msg=document.getElementById(p+"WorkMessage");msg.textContent=tr("submittingWorkOrder");
+  try{
+   await addDoc(collection(db,cfg.collection),{employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,departmentId:cfg.id,workDate:document.getElementById(p+"WorkDate").value,orderNo:document.getElementById(p+"OrderNo").value.trim(),styleNo:document.getElementById(p+"StyleNo").value.trim(),color:document.getElementById(p+"Color").value.trim(),quantity,note:document.getElementById(p+"Note").value.trim(),status:"submitted",createdAt:serverTimestamp()});
+   ["OrderNo","StyleNo","Color","Quantity","Note"].forEach(s=>document.getElementById(p+s).value="");msg.textContent=tr("workOrderSaved");await loadGenericWorkOrders(key);
+  }catch(error){console.error(key+" work order submit",error);msg.textContent=tr("workOrderError")+(error.code||error.message||"unknown");}
+  finally{button.disabled=false;}
+ });
+ document.getElementById("refresh"+(key==="clean"?"Clean":"Weave")+"Orders").addEventListener("click",()=>loadGenericWorkOrders(key));
+}
+bindGenericWorkOrder("clean");bindGenericWorkOrder("weave");
+
 async function resolveUserRole(user){
   const adminSnap = await getDoc(doc(db, "admins", user.uid));
   if(adminSnap.exists()){
@@ -1483,11 +1555,15 @@ window.openDept = function(key){
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.remove("hidden");
   document.getElementById("repairWorkbench").classList.toggle("hidden",key!=="repair");
-  document.getElementById("otherDeptNotice").classList.toggle("hidden",key==="repair");
+  document.getElementById("cleanWorkbench").classList.toggle("hidden",key!=="clean");
+  document.getElementById("weaveWorkbench").classList.toggle("hidden",key!=="weave");
+  document.getElementById("otherDeptNotice").classList.add("hidden");
   document.getElementById("repairEntryPanel").classList.toggle("hidden",currentRole!=="employee"||key!=="repair");
+  ["clean","weave"].forEach(dept=>{const p=genericDepartments[dept].prefix;document.getElementById(p+"WorkOrderForm").classList.toggle("hidden",currentRole!=="employee"||key!==dept);});
   if(key==="repair") document.getElementById("repairWorkDate").value=localWorkDate();
+  if(key==="clean"||key==="weave")document.getElementById(genericDepartments[key].prefix+"WorkDate").value=localWorkDate();
   showDeptTitle();
-  if(key==="repair") loadRepairWorkOrders();
+  if(key==="repair") loadRepairWorkOrders();else loadGenericWorkOrders(key);
 };
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
