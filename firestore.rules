@@ -107,6 +107,7 @@ service cloud.firestore {
         && request.resource.data.departmentIds is list
         && request.resource.data.repairTypeIds is list
         && request.resource.data.specialRole == false
+        && request.resource.data.qcAuthorized == false
         && request.resource.data.invitationId is string
         && exists(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId))
         && get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId)).data.status == 'active'
@@ -132,6 +133,7 @@ service cloud.firestore {
             ? request.resource.data.repairTypeIds == [101, 102]
             : request.resource.data.repairTypeIds == [])
         && request.resource.data.status in ['active', 'disabled']
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['qcAuthorized']) || request.resource.data.qcAuthorized is bool)
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
