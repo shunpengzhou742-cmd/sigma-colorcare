@@ -466,7 +466,7 @@ const translations = {
     dashboardLoading:"正在读取今日修色工单……",
     dashboardLoaded:"数据来自今日已提交的修色工单。",
     dashboardError:"读取今日数据失败：",
-    dashboardLimit:"今日记录超过500批，当前统计最多读取500批。",
+    dashboardLimit:"近7天记录超过500批，趋势统计最多读取500批。",
     weeklyTrend:"近7天修色产量趋势",
     weeklyTrendHint:"按实际提交工单统计",
     trendLoading:"正在读取近7天工单……",
@@ -558,7 +558,7 @@ const translations = {
     dashboardLoading:"Đang tải phiếu sửa màu hôm nay…",
     dashboardLoaded:"Dữ liệu lấy từ phiếu sửa màu đã gửi hôm nay.",
     dashboardError:"Không thể tải dữ liệu hôm nay: ",
-    dashboardLimit:"Hơn 500 lô hôm nay; thống kê hiện chỉ đọc tối đa 500 lô.",
+    dashboardLimit:"Hơn 500 lô trong 7 ngày; biểu đồ xu hướng chỉ đọc tối đa 500 lô.",
     weeklyTrend:"Xu hướng sản lượng sửa màu 7 ngày",
     weeklyTrendHint:"Thống kê từ phiếu đã gửi thực tế",
     trendLoading:"Đang tải phiếu sửa màu 7 ngày…",
@@ -1044,17 +1044,18 @@ async function loadDashboard(){
   const today=localWorkDate();
   document.getElementById("dashboardDate").textContent=today;
   try{
-    const startDate=new Date(Date.now()-6*86400000);
+    const startDate=new Date();startDate.setDate(startDate.getDate()-6);
     const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
     const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
     const snapshot=await getDocs(q);
     dashboardRowsCache=snapshot.docs.map(item=>item.data());
-    const spray=dashboardRowsCache.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    const hand=dashboardRowsCache.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+    const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
+    const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+    const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
     document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
     document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
     document.getElementById("metricHandQty").textContent=hand.toLocaleString();
-    document.getElementById("metricBatchCount").textContent=dashboardRowsCache.length.toLocaleString();
+    document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
     message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
     renderRepairTrend(dashboardRowsCache,startKey,today);
   }catch(error){
