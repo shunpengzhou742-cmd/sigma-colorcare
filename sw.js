@@ -1,4 +1,4 @@
-const CACHE_NAME = "sigma-colorcare-v14";
+const CACHE_NAME = "sigma-colorcare-v15";
 
 const APP_FILES = [
   "./",
