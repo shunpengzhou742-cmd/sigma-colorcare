@@ -713,6 +713,41 @@ describe("SIGMA manager-assigned QC reviewer permissions", () => {
 });
 
 describe("SIGMA QC rework batch creation", () => {
+  it("rejects a rework batch whose source work-order link differs from the QC request", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/qc-inspector"), {
+        uid: "qc-inspector", roleType: 1, status: "active",
+        departmentIds: [1], qcAuthorized: true
+      });
+      await setDoc(doc(context.firestore(), "qcRequests/qc-pending"), {
+        requestDate: "2026-11-19", departmentId: 1, employeeUid: "employee-1",
+        createdBy: "employee-1", orderNo: "ORD-1", styleNo: "S-1",
+        quantity: 10, note: "", workOrderId: "order-1",
+        sourceCollection: "repairWorkOrders", color: "Navy", repairTypeId: 101,
+        status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const db = googleDb("qc-inspector", "qc@example.com");
+    const { runTransaction } = await import("firebase/firestore");
+    await assertFails(runTransaction(db, async tx => {
+      const qcRef = doc(db, "qcRequests/qc-pending");
+      await tx.get(qcRef);
+      tx.update(qcRef, {
+        status: "inspected", qualifiedQuantity: 7, unqualifiedQuantity: 3,
+        qcResult: "partial", reviewedBy: "qc-inspector",
+        reviewedAt: serverTimestamp(), reviewNote: ""
+      });
+      tx.set(doc(db, "reworkWorkOrders/rework_qc-pending"), {
+        sourceQcRequestId: "qc-pending", sourceWorkOrderId: "wrong-order",
+        sourceCollection: "repairWorkOrders", departmentId: 1,
+        employeeUid: "employee-1", orderNo: "ORD-1", styleNo: "S-1",
+        color: "Navy", repairTypeId: 101, quantity: 3,
+        status: "pending_rework", createdBy: "qc-inspector",
+        createdAt: serverTimestamp()
+      });
+    }));
+  });
+
   it("creates a deterministic rework batch atomically with QC results", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/qc-inspector"), {
