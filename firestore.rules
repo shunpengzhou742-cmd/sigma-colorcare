@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        ).data.role == 'admin'
+        && get(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        ).data.status == 'active';
+    }
+
+    match /admins/{userId} {
+      allow get: if request.auth != null
+                 && request.auth.uid == userId;
+
+      allow list, create, update, delete: if false;
+    }
+
+    match /appSettings/departmentWages {
+      allow get, create, update: if isAdmin();
+      allow list, delete: if false;
+    }
+
+    match /dailyRecords/{recordId} {
+      allow get, list, create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
