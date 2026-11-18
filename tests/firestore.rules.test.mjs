@@ -469,3 +469,55 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 });
+
+describe("SIGMA operating expense Firestore rules", () => {
+  function expenseData(uid = "admin-1") {
+    return {
+      expenseDate: "2026-11-19",
+      category: "utilities",
+      departmentId: 0,
+      entryMode: "item",
+      amount: 250000,
+      note: "Factory electricity",
+      currency: "VND",
+      createdBy: uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+  }
+
+  it("allows an active admin to create and read operating expenses", async () => {
+    const db = adminDb();
+    const { addDoc, collection, getDocs } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "operatingExpenses"), expenseData()));
+    const snapshot = await assertSucceeds(getDocs(collection(db, "operatingExpenses")));
+    assert.equal(snapshot.size, 1);
+  });
+
+  it("rejects employees from creating or reading operating expenses", async () => {
+    const db = googleDb();
+    const { addDoc, collection, getDocs } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "operatingExpenses"), expenseData("employee-1")));
+    await assertFails(getDocs(collection(db, "operatingExpenses")));
+  });
+
+  it("rejects invalid operating expense categories and non-positive amounts", async () => {
+    const db = adminDb();
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "operatingExpenses"), {
+      ...expenseData(),
+      category: "unapproved"
+    }));
+    await assertFails(addDoc(collection(db, "operatingExpenses"), {
+      ...expenseData(),
+      amount: 0
+    }));
+  });
+
+  it("rejects an admin creating an expense in another user's name", async () => {
+    const db = adminDb();
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "operatingExpenses"), expenseData("someone-else")));
+  });
+});
+
