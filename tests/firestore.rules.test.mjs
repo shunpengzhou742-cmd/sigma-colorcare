@@ -615,13 +615,27 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     return data;
   }
 
-  it("allows an employee to submit a QC request for their authorized department", async () => {
+  it("allows an employee to submit a QC request linked to their own repair batch", async () => {
     await seedDeptEmployee("employee-1", 1);
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "repairWorkOrders/order-1"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-19", orderNo: "ORD-QC-01",
+        styleNo: "STYLE-01", color: "Navy", quantity: 12, note: "",
+        status: "submitted", createdAt: Timestamp.now()
+      });
+    });
     const db = googleDb();
-    const { addDoc, collection, getDocs, query, where } = await import("firebase/firestore");
-    await assertSucceeds(addDoc(collection(db, "qcRequests"), requestData("employee-1", 1)));
+    const { setDoc, getDocs, query, collection, where } = await import("firebase/firestore");
+    const payload = {
+      ...requestData("employee-1", 1), workOrderId: "order-1",
+      sourceCollection: "repairWorkOrders", color: "Navy", repairTypeId: 101
+    };
+    await assertSucceeds(setDoc(doc(db, "qcRequests/qc_order-1"), payload));
     await assertSucceeds(getDocs(query(collection(db, "qcRequests"), where("employeeUid", "==", "employee-1"), where("departmentId", "==", 1))));
-    await assertFails(addDoc(collection(db, "qcRequests"), requestData("employee-1", 2)));
+    await assertFails(setDoc(doc(db, "qcRequests/qc_wrong"), {
+      ...payload, departmentId: 2, sourceCollection: "cleanWorkOrders"
+    }));
   });
 
   it("allows an employee to submit a scrap request and requires a reason", async () => {
@@ -671,7 +685,8 @@ describe("SIGMA manager-assigned QC reviewer permissions", () => {
     await assertSucceeds(getDocs(collection(db, "qcRequests")));
     await assertFails(getDocs(collection(db, "scrapRequests")));
     await assertSucceeds(updateDoc(doc(db, "qcRequests/qc-pending"), {
-      status: "approved", reviewedBy: "qc-inspector",
+      status: "inspected", qualifiedQuantity: 10, unqualifiedQuantity: 0,
+      qcResult: "passed", reviewedBy: "qc-inspector",
       reviewedAt: serverTimestamp(), reviewNote: ""
     }));
     await assertFails(updateDoc(doc(db, "scrapRequests/scrap-pending"), {
@@ -693,6 +708,44 @@ describe("SIGMA manager-assigned QC reviewer permissions", () => {
     }));
     await assertFails(updateDoc(doc(googleDb(), "employees/employee-1"), {
       qcAuthorized: false, updatedAt: serverTimestamp()
+    }));
+  });
+});
+
+describe("SIGMA QC rework batch creation", () => {
+  it("creates a deterministic rework batch atomically with QC results", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/qc-inspector"), {
+        uid: "qc-inspector", roleType: 1, status: "active",
+        departmentIds: [1], qcAuthorized: true
+      });
+      await setDoc(doc(context.firestore(), "qcRequests/qc-pending"), {
+        requestDate: "2026-11-19", departmentId: 1, employeeUid: "employee-1",
+        createdBy: "employee-1", orderNo: "ORD-1", styleNo: "S-1",
+        quantity: 10, note: "", workOrderId: "order-1",
+        sourceCollection: "repairWorkOrders", color: "Navy", repairTypeId: 101,
+        status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const db = googleDb("qc-inspector", "qc@example.com");
+    const { runTransaction } = await import("firebase/firestore");
+    await assertSucceeds(runTransaction(db, async tx => {
+      const qcRef = doc(db, "qcRequests/qc-pending");
+      const current = await tx.get(qcRef);
+      assert.equal(current.data().status, "submitted");
+      tx.update(qcRef, {
+        status: "inspected", qualifiedQuantity: 7, unqualifiedQuantity: 3,
+        qcResult: "partial", reviewedBy: "qc-inspector",
+        reviewedAt: serverTimestamp(), reviewNote: ""
+      });
+      tx.set(doc(db, "reworkWorkOrders/rework_qc-pending"), {
+        sourceQcRequestId: "qc-pending", sourceWorkOrderId: "order-1",
+        sourceCollection: "repairWorkOrders", departmentId: 1,
+        employeeUid: "employee-1", orderNo: "ORD-1", styleNo: "S-1",
+        color: "Navy", repairTypeId: 101, quantity: 3,
+        status: "pending_rework", createdBy: "qc-inspector",
+        createdAt: serverTimestamp()
+      });
     }));
   });
 });
