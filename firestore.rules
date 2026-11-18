@@ -213,6 +213,49 @@ service cloud.firestore {
       allow get, list: if isAdmin() || (isActiveDepartmentEmployee(3) && resource.data.employeeUid == request.auth.uid && resource.data.departmentId == 3);
       allow update, delete: if false;
     }
+    function validDepartmentRequest(data, departmentId, isScrap) {
+      return data.keys().hasAll(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt'])
+        && (isScrap ? data.keys().hasAll(['reason']) : true)
+        && (isScrap ? data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt', 'reason']) : data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt']))
+        && data.requestDate is string && data.requestDate.size() == 10
+        && data.requestDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && data.departmentId == departmentId && data.departmentId in [1, 2, 3]
+        && data.employeeUid == request.auth.uid && data.createdBy == request.auth.uid
+        && data.orderNo is string && data.orderNo.size() <= 80
+        && data.styleNo is string && data.styleNo.size() <= 80
+        && data.quantity is int && data.quantity > 0 && data.quantity <= 1000000
+        && data.note is string && data.note.size() <= 500
+        && data.status == 'submitted' && data.createdAt == request.time
+        && (isScrap ? (data.reason is string && data.reason.size() > 0 && data.reason.size() <= 300) : true);
+    }
+
+    function validRequestReview() {
+      return isAdmin()
+        && resource.data.status == 'submitted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'reviewNote'])
+        && request.resource.data.status in ['approved', 'rejected']
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time
+        && request.resource.data.reviewNote is string
+        && request.resource.data.reviewNote.size() <= 300;
+    }
+
+    match /qcRequests/{requestId} {
+      allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
+        && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, false);
+      allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update: if validRequestReview();
+      allow delete: if false;
+    }
+
+    match /scrapRequests/{requestId} {
+      allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
+        && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true);
+      allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update: if validRequestReview();
+      allow delete: if false;
+    }
+
     match /appSettings/departmentWages {
       allow get, create, update: if isAdmin();
       allow list, delete: if false;
