@@ -321,6 +321,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
       </form>
       <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
       <div id="expenseList" class="work-panel"><p class="small" data-i18n="expenseLoading">正在读取费用记录……</p></div>
+      <div class="work-panel"><label data-i18n="expensePeriodLabel">费用统计周期</label><select id="expensePeriodType"><option value="month" data-i18n="expensePeriodMonth">本月</option><option value="half" data-i18n="expensePeriodHalf">本半年</option><option value="year" data-i18n="expensePeriodYear">本年度</option></select><div id="expensePeriodSummary" class="small">—</div></div>
       <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
@@ -554,6 +555,7 @@ const translations = {
     expenseRecordDaily:"日汇总",
     expenseAdminOnlyDenied:"只有负责人可以管理经营费用。",
     expenseCompanyLabel:"公司公共",
+    expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -676,6 +678,7 @@ const translations = {
     expenseRecordDaily:"Tổng hợp ngày",
     expenseAdminOnlyDenied:"Chỉ người quản lý được quản lý chi phí kinh doanh.",
     expenseCompanyLabel:"Chi phí chung công ty",
+     expensePeriodLabel:"Kỳ thống kê chi phí",expensePeriodMonth:"Tháng này",expensePeriodHalf:"Nửa năm hiện tại",expensePeriodYear:"Năm nay",expensePeriodTotal:"Tổng chi phí trong kỳ",expensePeriodEmpty:"Không có chi phí trong kỳ này",expensePeriodDept:"Chi phí theo bộ phận",
   }
 };
 
@@ -1074,8 +1077,9 @@ document.getElementById("expenseDate").value=localWorkDate();
 async function refreshExpenseList(){
  const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
  try{
-  const snap=await getDocs(query(collection(db,"operatingExpenses"),limit(50)));
+  const snap=await getDocs(collection(db,"operatingExpenses"));
   const rows=snap.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>String(b.expenseDate).localeCompare(String(a.expenseDate)));
+  renderExpensePeriodSummary(rows);
   target.replaceChildren();
   if(!rows.length){target.textContent=tr("expenseListEmpty");return;}
   rows.forEach(row=>{
@@ -1086,6 +1090,21 @@ async function refreshExpenseList(){
   });
  }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
 }
+function renderExpensePeriodSummary(rows){
+ const root=document.getElementById("expensePeriodSummary");if(!root)return;
+ const mode=document.getElementById("expensePeriodType").value,today=localWorkDate(),year=today.slice(0,4),month=Number(today.slice(5,7));
+ let start=year+"-01-01",end=year+"-12-31";
+ if(mode==="month"){start=today.slice(0,7)+"-01";end=today.slice(0,7)+"-31";}
+ if(mode==="half"){start=year+(month<=6?"-01-01":"-07-01");end=year+(month<=6?"-06-30":"-12-31");}
+ const selected=rows.filter(row=>row.expenseDate>=start&&row.expenseDate<=end);
+ if(!selected.length){root.textContent=tr("expensePeriodEmpty");return;}
+ const total=selected.reduce((sum,row)=>sum+Number(row.amount||0),0);
+ const labels={0:tr("expenseCompanyLabel"),1:tr("repair"),2:tr("clean"),3:tr("weave")};
+ root.replaceChildren();const heading=document.createElement("strong");heading.textContent=tr("expensePeriodTotal")+": "+Math.round(total).toLocaleString()+" VND";root.append(heading);
+ const detail=document.createElement("div");detail.textContent=tr("expensePeriodDept");detail.style.marginTop="8px";root.append(detail);
+ [0,1,2,3].forEach(id=>{const amount=selected.filter(row=>Number(row.departmentId)===id).reduce((sum,row)=>sum+Number(row.amount||0),0);if(amount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=labels[id]+" · "+Math.round(amount).toLocaleString()+" VND";root.append(line);}});
+}
+document.getElementById("expensePeriodType").addEventListener("change",refreshExpenseList);
 document.getElementById("refreshExpensesBtn").addEventListener("click",refreshExpenseList);
 document.getElementById("expenseForm").addEventListener("submit",async event=>{
  event.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
