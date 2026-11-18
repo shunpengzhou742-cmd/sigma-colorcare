@@ -191,9 +191,9 @@ body.theme-dark #loginView:has(form):after{color:#9fc8f3}
     <section id="invitePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="inviteTitle">员工邀请</h3>
       <p class="small" data-i18n="inviteDesc">生成24小时有效、只能使用一次的员工邀请。</p>
-      <label><input class="invite-dept" type="checkbox" value="1"> <span data-i18n="repair">修色部门 (1)</span></label>
-      <label><input class="invite-dept" type="checkbox" value="2"> <span data-i18n="clean">清洗部门 (2)</span></label>
-      <label><input class="invite-dept" type="checkbox" value="3"> <span data-i18n="weave">修织部门 (3)</span></label>
+      <label><input class="invite-dept" type="checkbox" value="1"> <span data-i18n="repair">修色部门</span></label>
+      <label><input class="invite-dept" type="checkbox" value="2"> <span data-i18n="clean">清洗部门</span></label>
+      <label><input class="invite-dept" type="checkbox" value="3"> <span data-i18n="weave">修织部门</span></label>
       <button id="createInviteBtn" class="primary" type="button" data-i18n="createInvite">生成员工邀请二维码</button>
       <div id="inviteResult" class="hidden" style="margin-top:16px;text-align:center">
         <div id="inviteQr" style="display:inline-block;background:white;padding:12px;border-radius:12px"></div>
@@ -211,13 +211,13 @@ body.theme-dark #loginView:has(form):after{color:#9fc8f3}
     </section>
     <h3 data-i18n="selectDept">请选择部门</h3>
     <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
-      <span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
+      <span><strong data-i18n="repair">修色部门</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
     </button>
     <button id="deptClean" class="dept clean" type="button" onclick="openDept('clean')">
-      <span><strong data-i18n="clean">清洗部门 (2)</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
+      <span><strong data-i18n="clean">清洗部门</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
     </button>
     <button id="deptWeave" class="dept weave" type="button" onclick="openDept('weave')">
-      <span><strong data-i18n="weave">修织部门 (3)</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
+      <span><strong data-i18n="weave">修织部门</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
     </button>
   </section>
 
@@ -232,8 +232,8 @@ body.theme-dark #loginView:has(form):after{color:#9fc8f3}
           <input id="repairWorkDate" type="date" required>
           <label for="repairTypeId" data-i18n="repairType">修色类型</label>
           <select id="repairTypeId" required>
-            <option value="101" data-i18n="sprayRepair">喷色（101）</option>
-            <option value="102" data-i18n="handRepair">手工描绘（102）</option>
+            <option value="101" data-i18n="sprayRepair">喷色</option>
+            <option value="102" data-i18n="handRepair">手工描绘</option>
           </select>
           <label for="repairOrderNo" data-i18n="orderNo">订单号（选填）</label>
           <input id="repairOrderNo" maxlength="80" autocomplete="off">
@@ -296,8 +296,8 @@ const translations = {
     subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
-    selectDept:"请选择部门", repair:"修色部门 (1)", repairDesc:"喷色 / 手工描绘",
-    clean:"清洗部门 (2)", cleanDesc:"清洗工序管理", weave:"修织部门 (3)",
+    selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
+    clean:"清洗部门", cleanDesc:"清洗工序管理", weave:"修织部门",
     weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
@@ -318,14 +318,14 @@ const translations = {
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
     googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
-    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色（101）", handRepair:"手工描绘（102）", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
+    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
-    selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu (1)", repairDesc:"Phun màu / vẽ thủ công",
-    clean:"Bộ phận Giặt (2)", cleanDesc:"Quản lý công đoạn giặt", weave:"Bộ phận Sửa dệt (3)",
+    selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
+    clean:"Bộ phận Giặt", cleanDesc:"Quản lý công đoạn giặt", weave:"Bộ phận Sửa dệt",
     weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
@@ -346,7 +346,7 @@ const translations = {
     linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
     googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
-    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu (101)", handRepair:"Vẽ thủ công (102)", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa"
+    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa"
   }
 };
 
@@ -884,8 +884,8 @@ window.openDept = function(key){
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
   const labels = {
-    zh:{deptRepair:"修色部门 (编码: 1)",deptClean:"清洗部门 (编码: 2)",deptWeave:"修织部门 (编码: 3)"},
-    vi:{deptRepair:"Bộ phận Sửa màu (mã: 1)",deptClean:"Bộ phận Giặt (mã: 2)",deptWeave:"Bộ phận Sửa dệt (mã: 3)"}
+    zh:{deptRepair:"修色部门",deptClean:"清洗部门",deptWeave:"修织部门"},
+    vi:{deptRepair:"Bộ phận Sửa màu",deptClean:"Bộ phận Giặt",deptWeave:"Bộ phận Sửa dệt"}
   };
   document.getElementById("deptTitle").textContent = labels[lang][keys[currentDept]];
 }
