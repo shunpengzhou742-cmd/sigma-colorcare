@@ -95,7 +95,7 @@ service cloud.firestore {
         ])
         && request.resource.data.keys().hasOnly([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'qcAuthorized', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.uid == request.auth.uid
