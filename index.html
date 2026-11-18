@@ -40,6 +40,7 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
 #logoutBtn,.dark{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:white}
 .dept{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:18px;margin-top:12px;border:1px solid rgba(255,255,255,.23);border-radius:18px;color:#fff;background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,.06));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 12px 30px rgba(0,0,0,.16);min-height:76px}.dept .small{color:#cbd5e1}.dept b{font-size:22px;color:#a5f3fc}.repair{border-left:3px solid #60a5fa}.clean{border-left:3px solid #22d3ee}.weave{border-left:3px solid #a78bfa}
 #deptView h2{margin-top:0}.dark{width:100%}footer{text-align:center;color:#94a3b8;font-size:11px;padding:18px 12px 28px}
+.employee-card{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.18);border-radius:16px;background:rgba(8,15,40,.34)}.employee-card strong{display:block;overflow-wrap:anywhere}.employee-card .small{margin:4px 0 10px}.employee-depts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.employee-depts label{display:flex;align-items:center;gap:5px;margin:0;padding:7px 9px;border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px}.employee-depts input{width:auto;margin:0}.employee-actions{display:flex;gap:8px;flex-wrap:wrap}.employee-actions button{flex:1;min-width:120px}.employee-status{font-size:11px;color:#a5f3fc;margin:4px 0 8px}
 @media(min-width:700px){main{margin-top:55px}#loginView{padding:38px}.card{border-radius:28px}}
 @media(max-width:420px){header{padding:17px 15px 8px}main{width:calc(100% - 24px);margin-top:22px}.status{font-size:9px;padding:4px 7px}h1{font-size:17px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
@@ -91,6 +92,13 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
       </div>
       <p id="inviteMsg" class="small" role="status" aria-live="polite"></p>
     </section>
+    <section id="employeeManagePanel" class="card hidden" style="margin-top:18px">
+      <h3 data-i18n="employeeManageTitle">员工管理</h3>
+      <p class="small" data-i18n="employeeManageDesc">查看员工资料、调整部门权限或停用系统访问。</p>
+      <button id="refreshEmployeesBtn" class="dark" type="button" data-i18n="refreshEmployees">刷新员工名单</button>
+      <p id="employeeManageMsg" class="small" role="status" aria-live="polite"></p>
+      <div id="employeeList"></div>
+    </section>
     <h3 data-i18n="selectDept">请选择部门</h3>
     <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
       <span><strong data-i18n="repair">修色部门 (1)</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
@@ -118,7 +126,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -161,7 +169,8 @@ const translations = {
     googleLink:"绑定 Google 登录", googleLinked:"Google 登录已绑定到当前账号", googleSigningIn:"正在跳转 Google 登录…", googleLoginSuccess:"Google 登录成功。",
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
-    googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。"
+    googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
+    employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用"
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -188,7 +197,8 @@ const translations = {
     googleLink:"Liên kết đăng nhập Google", googleLinked:"Google đã được liên kết với tài khoản này", googleSigningIn:"Đang chuyển đến Google để đăng nhập…", googleLoginSuccess:"Đăng nhập Google thành công.",
     linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
     googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
-    googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google."
+    googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
+    employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa"
   }
 };
 
@@ -200,6 +210,7 @@ let handlingAuthState = false;
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
 let inviteCompletedUid = null;
+let employeeCache = [];
 
 function tr(key){ return translations[lang][key] || key; }
 function setMessage(message, isError=false){
@@ -228,6 +239,7 @@ window.switchLang = function(){
   document.getElementById("langBtn").textContent = tr("lang");
   updateNet();
   if(currentDept) showDeptTitle();
+  if(currentRole === "admin") renderEmployeeList(employeeCache);
 };
 
 function showLogin(){
@@ -248,7 +260,9 @@ function showApp(user, identity){
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
+  if(identity.role === "admin") loadEmployees();
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -382,6 +396,111 @@ document.getElementById("copyInviteBtn").addEventListener("click",async()=>{
   try{ await navigator.clipboard.writeText(latestInviteUrl); document.getElementById("inviteMsg").textContent = tr("inviteCopied"); }
   catch(error){ document.getElementById("inviteMsg").textContent = latestInviteUrl; }
 });
+
+
+function setEmployeeManageMessage(message, isError=false){
+  const el = document.getElementById("employeeManageMsg");
+  if(!el) return;
+  el.textContent = message;
+  el.style.color = isError ? "#fecaca" : "#bbf7d0";
+}
+
+async function loadEmployees(){
+  if(currentRole !== "admin") return;
+  setEmployeeManageMessage(tr("loadingEmployees"));
+  const button = document.getElementById("refreshEmployeesBtn");
+  button.disabled = true;
+  try{
+    const snapshot = await getDocs(collection(db,"employees"));
+    employeeCache = snapshot.docs.map(item => ({id:item.id,...item.data()}))
+      .sort((a,b)=>(a.name || a.email || a.uid || "").localeCompare(b.name || b.email || b.uid || ""));
+    renderEmployeeList(employeeCache);
+    setEmployeeManageMessage(employeeCache.length ? "" : tr("noEmployees"));
+  }catch(error){
+    console.error("SIGMA employee directory error:",error);
+    setEmployeeManageMessage(tr("employeeLoadError") + (error.code || error.message || "unknown"),true);
+  }finally{ button.disabled = false; }
+}
+
+function renderEmployeeList(employees){
+  const root = document.getElementById("employeeList");
+  if(!root) return;
+  root.replaceChildren();
+  if(!employees.length) return;
+  const deptNames = {1:tr("repair"),2:tr("clean"),3:tr("weave")};
+  for(const employee of employees){
+    const card = document.createElement("article");
+    card.className = "employee-card";
+    const name = document.createElement("strong");
+    name.textContent = employee.name || employee.email || employee.uid;
+    const email = document.createElement("div");
+    email.className = "small";
+    email.textContent = employee.email || employee.uid;
+    const status = document.createElement("div");
+    status.className = "employee-status";
+    status.textContent = employee.status === "disabled" ? tr("statusDisabled") : tr("statusActive");
+    const deptWrap = document.createElement("div");
+    deptWrap.className = "employee-depts";
+    for(const id of [1,2,3]){
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "employee-dept-check";
+      checkbox.value = String(id);
+      checkbox.checked = Array.isArray(employee.departmentIds) && employee.departmentIds.includes(id);
+      label.append(checkbox,document.createTextNode(deptNames[id]));
+      deptWrap.append(label);
+    }
+    const actions = document.createElement("div");
+    actions.className = "employee-actions";
+    const save = document.createElement("button");
+    save.type = "button";
+    save.className = "primary";
+    save.textContent = tr("saveAccess");
+    save.addEventListener("click",async()=>{
+      const selected = [...deptWrap.querySelectorAll("input:checked")].map(el=>Number(el.value));
+      if(!selected.length){ setEmployeeManageMessage(tr("inviteSelect"),true); return; }
+      save.disabled = true;
+      save.textContent = tr("savingAccess");
+      try{
+        await updateDoc(doc(db,"employees",employee.id),{
+          departmentIds:selected,
+          repairTypeIds:selected.includes(1) ? [101,102] : [],
+          updatedAt:serverTimestamp()
+        });
+        setEmployeeManageMessage(tr("accessSaved"));
+        await loadEmployees();
+      }catch(error){
+        console.error("SIGMA employee access update error:",error);
+        setEmployeeManageMessage(tr("employeeSaveError")+(error.code || error.message || "unknown"),true);
+      }finally{ save.disabled = false; save.textContent = tr("saveAccess"); }
+    });
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "dark";
+    const nextStatus = employee.status === "disabled" ? "active" : "disabled";
+    toggle.textContent = nextStatus === "disabled" ? tr("disableEmployee") : tr("enableEmployee");
+    toggle.addEventListener("click",async()=>{
+      toggle.disabled = true;
+      try{
+        await updateDoc(doc(db,"employees",employee.id),{
+          status:nextStatus,
+          updatedAt:serverTimestamp()
+        });
+        setEmployeeManageMessage(nextStatus === "disabled" ? tr("employeeDisabled") : tr("employeeEnabled"));
+        await loadEmployees();
+      }catch(error){
+        console.error("SIGMA employee status update error:",error);
+        setEmployeeManageMessage(tr("employeeSaveError")+(error.code || error.message || "unknown"),true);
+      }finally{ toggle.disabled = false; }
+    });
+    actions.append(save,toggle);
+    card.append(name,email,status,deptWrap,actions);
+    root.append(card);
+  }
+}
+
+document.getElementById("refreshEmployeesBtn").addEventListener("click",loadEmployees);
 
 async function resolveUserRole(user){
   const adminSnap = await getDoc(doc(db, "admins", user.uid));
