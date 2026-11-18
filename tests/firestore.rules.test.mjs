@@ -192,6 +192,46 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(getDoc(doc(db, "employees/employee-2")));
   });
 
+  it("rejects reading an expired invitation", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employeeInvites/invite-expired"), {
+        departmentIds: [1],
+        repairTypeIds: [101, 102],
+        status: "active",
+        expiresAt: Timestamp.fromDate(new Date(Date.now() - 60 * 1000)),
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        usedBy: null,
+        usedAt: null
+      });
+    });
+    await assertFails(getDoc(doc(googleDb(), "employeeInvites/invite-expired")));
+  });
+
+  it("rejects an employee profile whose department differs from the invitation", async () => {
+    const db = googleDb();
+    const inviteRef = doc(db, "employeeInvites/invite-valid");
+    const employeeRef = doc(db, "employees/employee-1");
+    await assertFails(runTransaction(db, async transaction => {
+      const inviteSnap = await transaction.get(inviteRef);
+      assert.equal(inviteSnap.exists(), true);
+      transaction.update(inviteRef, {
+        status: "used",
+        usedBy: "employee-1",
+        usedAt: serverTimestamp()
+      });
+      transaction.set(employeeRef, employeeData("employee-1", "employee@example.com", [1, 2, 3]));
+    }));
+  });
+
+  it("rejects an administrator account attempting to claim an employee invitation", async () => {
+    const db = adminDb();
+    await assertFails(getDoc(doc(db, "employeeInvites/invite-valid")));
+    await assertFails(setDoc(doc(db, "employees/admin-1"), {
+      ...employeeData("admin-1", "admin@example.com")
+    }));
+  });
+
   it("rejects employees updating their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
