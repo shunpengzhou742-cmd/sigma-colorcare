@@ -505,9 +505,10 @@ function showApp(user, identity){
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin") loadEmployees();
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); }
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -750,6 +751,35 @@ document.getElementById("refreshEmployeesBtn").addEventListener("click",loadEmpl
 function localWorkDate(){
   return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date());
 }
+
+let dashboardRowsCache=[];
+async function loadDashboard(){
+  if(currentRole!=="admin") return;
+  const button=document.getElementById("refreshDashboardBtn");
+  const message=document.getElementById("dashboardMessage");
+  if(button) button.disabled=true;
+  message.textContent=tr("dashboardLoading");
+  const today=localWorkDate();
+  document.getElementById("dashboardDate").textContent=today;
+  try{
+    const q=query(collection(db,"repairWorkOrders"),where("workDate","==",today),limit(500));
+    const snapshot=await getDocs(q);
+    dashboardRowsCache=snapshot.docs.map(item=>item.data());
+    const spray=dashboardRowsCache.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+    const hand=dashboardRowsCache.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+    document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
+    document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
+    document.getElementById("metricHandQty").textContent=hand.toLocaleString();
+    document.getElementById("metricBatchCount").textContent=dashboardRowsCache.length.toLocaleString();
+    message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
+  }catch(error){
+    console.error("SIGMA dashboard load error:",error);
+    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount"].forEach(id=>document.getElementById(id).textContent="—");
+    message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
+  }finally{if(button) button.disabled=false;}
+}
+document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);
+
 function setRepairWorkMessage(message,isError=false){
   const el=document.getElementById("repairWorkMessage");
   if(!el) return;
