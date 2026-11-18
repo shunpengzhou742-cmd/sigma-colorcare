@@ -1364,33 +1364,58 @@ document.getElementById("refreshDashboardBtn").addEventListener("click",loadDash
 
 const requestDepartments={repair:1,clean:2,weave:3};
 function requestStatusLabel(status){return tr(status==="approved"?"statusApproved":status==="rejected"?"statusRejected":"statusSubmitted");}
+let qcWorkOrderCache=new Map();
 async function loadDeptRequests(){
  if(!currentDept||currentRole!=="employee"||!auth.currentUser)return;
- const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests");root.textContent=tr("accountingLoading");
+ const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests");
+ const sourceCollection=currentDept==="repair"?"repairWorkOrders":currentDept==="clean"?"cleanWorkOrders":"weaveWorkOrders";
+ root.textContent=tr("accountingLoading");
  try{
-  const [qc,scrap]=await Promise.all([
+  const [qc,scrap,orders]=await Promise.all([
    getDocs(query(collection(db,"qcRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
-   getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
+   getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
+   getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
   ]);
+  const submittedWorkOrders=new Set(qc.docs.map(x=>x.data().workOrderId).filter(Boolean));
+  qcWorkOrderCache=new Map();const select=document.getElementById("qcRequestWorkOrder");select.replaceChildren();
+  const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=tr("qcNoBatch");select.append(placeholder);
+  orders.docs.forEach(docSnap=>{
+   if(submittedWorkOrders.has(docSnap.id))return;
+   const row=docSnap.data();qcWorkOrderCache.set(docSnap.id,{...row,id:docSnap.id,sourceCollection});
+   const option=document.createElement("option");option.value=docSnap.id;option.textContent=[row.workDate,row.orderNo||row.styleNo,row.quantity].filter(Boolean).join(" · ");select.append(option);
+  });
+  select.value=select.options.length>1?select.options[1].value:"";
+  document.getElementById("qcRequestQuantity").value=qcWorkOrderCache.get(select.value)?.quantity||"";
   root.replaceChildren();
   [{label:tr("qcRequestTitle"),rows:qc.docs.map(x=>x.data())},{label:tr("scrapRequestTitle"),rows:scrap.docs.map(x=>x.data())}].forEach(group=>{
    const h=document.createElement("strong");h.textContent=group.label;root.append(h);
    if(!group.rows.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
-   group.rows.sort((a,b)=>(b.requestDate||"").localeCompare(a.requestDate||"")).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.requestDate,row.orderNo,row.styleNo,row.quantity,requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
+   group.rows.sort((a,b)=>(b.requestDate||"").localeCompare(a.requestDate||"")).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.requestDate,row.orderNo,row.styleNo,row.quantity,row.qualifiedQuantity!==undefined?tr("qcQualified")+": "+row.qualifiedQuantity:"",row.unqualifiedQuantity!==undefined?tr("qcUnqualified")+": "+row.unqualifiedQuantity:"",requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
   });
  }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
 }
+document.getElementById("qcRequestWorkOrder").addEventListener("change",()=>{document.getElementById("qcRequestQuantity").value=qcWorkOrderCache.get(document.getElementById("qcRequestWorkOrder").value)?.quantity||"";});
 function bindDepartmentRequestForm(type){
  const isQc=type==="qc",prefix=isQc?"qcRequest":"scrapRequest",collectionName=isQc?"qcRequests":"scrapRequests";
  document.getElementById(prefix+"Form").addEventListener("submit",async event=>{
   event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
-  const quantity=Number(document.getElementById(prefix+"Quantity").value),date=document.getElementById(prefix+"Date").value;
-  if(!date||!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)return;
+  const date=document.getElementById(prefix+"Date").value;
+  const workOrder=isQc?qcWorkOrderCache.get(document.getElementById("qcRequestWorkOrder").value):null;
+  const quantity=isQc?Number(workOrder?.quantity):Number(document.getElementById(prefix+"Quantity").value);
+  if(!date||!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000||(isQc&&!workOrder))return;
   const button=document.getElementById(isQc?"submitQcRequest":"submitScrapRequest"),message=document.getElementById(prefix+"Message");button.disabled=true;
   try{
-   const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:document.getElementById(prefix+"OrderNo").value.trim(),styleNo:document.getElementById(prefix+"StyleNo").value.trim(),quantity,note:document.getElementById(prefix+"Note").value.trim(),status:"submitted",createdAt:serverTimestamp()};
-   if(!isQc)payload.reason=document.getElementById(prefix+"Reason").value.trim();
-   await addDoc(collection(db,collectionName),payload);document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
+   const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:isQc?(workOrder.orderNo||""):document.getElementById(prefix+"OrderNo").value.trim(),styleNo:isQc?(workOrder.styleNo||""):document.getElementById(prefix+"StyleNo").value.trim(),quantity,note:document.getElementById(prefix+"Note").value.trim(),status:"submitted",createdAt:serverTimestamp()};
+   if(isQc){
+    payload.workOrderId=workOrder.id;payload.sourceCollection=workOrder.sourceCollection;
+    if(workOrder.color)payload.color=workOrder.color;
+    if(workOrder.repairTypeId)payload.repairTypeId=workOrder.repairTypeId;
+    await setDoc(doc(db,"qcRequests","qc_"+workOrder.id),payload);
+   }else{
+    payload.reason=document.getElementById(prefix+"Reason").value.trim();
+    await addDoc(collection(db,collectionName),payload);
+   }
+   document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
   }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
   finally{button.disabled=false;}
  });
