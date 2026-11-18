@@ -1154,7 +1154,8 @@ function beginExpenseEdit(row){
  document.getElementById("expenseForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
 function cancelExpenseEdit(){
- editingExpenseId=null;editingExpenseCreatedAt=null;editingExpenseCreatedBy=null;editingExpenseIsSummary=false;\n ["expenseDate","expenseCategory","expenseDepartment","expenseMode"].forEach(id=>document.getElementById(id).disabled=false);
+ editingExpenseId=null;editingExpenseCreatedAt=null;editingExpenseCreatedBy=null;editingExpenseIsSummary=false;
+ ["expenseDate","expenseCategory","expenseDepartment","expenseMode"].forEach(id=>document.getElementById(id).disabled=false);
  document.getElementById("expenseForm").reset();document.getElementById("expenseDate").value=localWorkDate();document.getElementById("saveExpenseBtn").textContent=tr("saveExpense");document.getElementById("cancelExpenseEditBtn").classList.add("hidden");document.getElementById("expenseMessage").textContent="";
 }
 document.getElementById("cancelExpenseEditBtn").addEventListener("click",cancelExpenseEdit);
