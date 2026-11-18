@@ -10,6 +10,15 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active';
     }
 
+    function isQcReviewer() {
+      return isAdmin()
+        || (request.auth != null
+            && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
+            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
+            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.roleType == 1
+            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.get('qcAuthorized', false) == true);
+    }
+
     function isGoogleUser() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'google.com'
@@ -81,7 +90,7 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.keys().hasAll([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'qcAuthorized', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.keys().hasOnly([
@@ -112,7 +121,7 @@ service cloud.firestore {
 
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'departmentIds', 'repairTypeIds', 'status', 'updatedAt'
+          'departmentIds', 'repairTypeIds', 'status', 'qcAuthorized', 'updatedAt'
         ])
         && request.resource.data.departmentIds is list
         && request.resource.data.departmentIds.size() >= 1
@@ -229,7 +238,18 @@ service cloud.firestore {
         && (isScrap ? (data.reason is string && data.reason.size() > 0 && data.reason.size() <= 300) : true);
     }
 
-    function validRequestReview() {
+    function validQcReview() {
+      return isQcReviewer()
+        && resource.data.status == 'submitted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'reviewNote'])
+        && request.resource.data.status in ['approved', 'rejected']
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time
+        && request.resource.data.reviewNote is string
+        && request.resource.data.reviewNote.size() <= 300;
+    }
+
+    function validScrapReview() {
       return isAdmin()
         && resource.data.status == 'submitted'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'reviewNote'])
