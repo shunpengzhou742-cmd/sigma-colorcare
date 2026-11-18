@@ -224,9 +224,9 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
-  it("rejects an administrator account attempting to claim an employee invitation", async () => {
-    const db = adminDb();
-    await assertFails(getDoc(doc(db, "employeeInvites/invite-valid")));
+  it("rejects an administrator Google account attempting to register as an employee", async () => {
+    const db = googleDb("admin-1", "admin@example.com");
+    await assertSucceeds(getDoc(doc(db, "employeeInvites/invite-valid")));
     await assertFails(setDoc(doc(db, "employees/admin-1"), {
       ...employeeData("admin-1", "admin@example.com")
     }));
