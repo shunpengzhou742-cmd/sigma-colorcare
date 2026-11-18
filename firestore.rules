@@ -176,6 +176,111 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function isActiveDepartmentEmployee(departmentId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.roleType == 1
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.departmentIds.hasAny([departmentId]);
+    }
+
+    function validGenericWorkOrder(data, departmentId) {
+      return data.keys().hasAll([
+        'employeeUid', 'createdBy', 'departmentId', 'workDate',
+        'orderNo', 'styleNo', 'color', 'quantity', 'note', 'status', 'createdAt'
+      ])
+      && data.keys().hasOnly([
+        'employeeUid', 'createdBy', 'departmentId', 'workDate',
+        'orderNo', 'styleNo', 'color', 'quantity', 'note', 'status', 'createdAt'
+      ])
+      && data.employeeUid == request.auth.uid
+      && data.createdBy == request.auth.uid
+      && data.departmentId == departmentId
+      && data.workDate is string
+      && data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
+      allow get, create, update: if isAdmin();
+      allow list, delete: if false;
+    }
+
+
+    match /operatingExpenses/{expenseId} {
+      function validExpense(data) {
+        return data.keys().hasAll([
+          'expenseDate', 'category', 'departmentId', 'entryMode',
+          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'expenseDate', 'category', 'departmentId', 'entryMode',
+          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.expenseDate is string
+        && data.expenseDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.category in ['transport', 'utilities', 'maintenance', 'office', 'meals', 'other']
+        && data.departmentId in [0, 1, 2, 3]
+        && data.entryMode in ['item', 'dailySummary']
+        && data.amount is number
+        && data.amount > 0
+        && data.note is string
+        && data.note.size() <= 300
+        && data.currency == 'VND'
+        && data.createdBy is string
+        && data.createdBy.size() > 0;
+      }
+
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+        && validExpense(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && validExpense(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /dailyRecords/{recordId} {
+      allow get, list, create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+)
+      && data.orderNo is string && data.orderNo.size() <= 80
+      && data.styleNo is string && data.styleNo.size() <= 80
+      && data.color is string && data.color.size() <= 80
+      && data.quantity is int && data.quantity > 0 && data.quantity <= 1000000
+      && data.note is string && data.note.size() <= 500
+      && data.status == 'submitted'
+      && data.createdAt == request.time;
+    }
+
+    match /cleanWorkOrders/{workOrderId} {
+      allow create: if isActiveDepartmentEmployee(2)
+        && validGenericWorkOrder(request.resource.data, 2);
+      allow get, list: if isAdmin()
+        || (isActiveDepartmentEmployee(2)
+            && resource.data.employeeUid == request.auth.uid
+            && resource.data.departmentId == 2);
+      allow update, delete: if false;
+    }
+
+    match /weaveWorkOrders/{workOrderId} {
+      allow create: if isActiveDepartmentEmployee(3)
+        && validGenericWorkOrder(request.resource.data, 3);
+      allow get, list: if isAdmin()
+        || (isActiveDepartmentEmployee(3)
+            && resource.data.employeeUid == request.auth.uid
+            && resource.data.departmentId == 3);
+      allow update, delete: if false;
+    }
+
     match /appSettings/departmentWages {
       allow get, create, update: if isAdmin();
       allow list, delete: if false;
