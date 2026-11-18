@@ -291,6 +291,17 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <button id="saveAccountingBtn" class="primary" type="submit" data-i18n="saveAccounting">保存每日核算</button>
         <p id="accountingMessage" class="small" role="status" aria-live="polite"></p>
       </form>
+
+      <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">部门日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
+      <form id="wageRateForm" class="work-panel">
+        <label data-i18n="wageDepartment">部门</label>
+        <select id="wageDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="wageEffectiveDate">生效日期</label><input id="wageEffectiveDate" type="date" required>
+        <label data-i18n="wageAmount">每人日薪（VND）</label><input id="wageAmount" type="number" min="0" step="any" required placeholder="0">
+        <button id="saveWageRateBtn" class="primary" type="submit" data-i18n="saveWageRate">保存日薪标准</button>
+        <p id="wageRateMessage" class="small" role="status" aria-live="polite"></p>
+      </form>
+      <div id="wageRateHistory" class="work-panel"><p class="small" data-i18n="wageHistoryLoading">正在读取日薪历史……</p></div>
       <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
@@ -479,7 +490,21 @@ const translations = {
     accountingSaveError:"保存核算失败：",
     accountingDuplicate:"该部门当天已有核算记录；为避免重复计算，请先核对已有记录。",
     accountingInvalid:"请填写有效的非负数字。",
-    accountingLoading:"正在保存……"
+    accountingLoading:"正在保存……",
+    wageSettingsTitle:"部门日薪设置",
+    effectiveDateRule:"按生效日期执行，不追溯修改历史",
+    wageDepartment:"部门",
+    wageEffectiveDate:"生效日期",
+    wageAmount:"每人日薪（VND）",
+    saveWageRate:"保存日薪标准",
+    wageHistoryLoading:"正在读取日薪历史……",
+    wageHistoryEmpty:"暂未设置日薪标准。",
+    wageHistoryError:"读取日薪历史失败：",
+    wageSaved:"日薪标准已保存。",
+    wageDuplicate:"该部门在这个生效日期已有日薪记录，请选择其他日期。",
+    wageSaveError:"保存日薪失败：",
+    wageAutoApplied:"已按生效日期自动带入对应部门日薪。",
+    wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -558,7 +583,21 @@ const translations = {
     accountingSaveError:"Lưu hạch toán thất bại: ",
     accountingDuplicate:"Bộ phận này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
     accountingInvalid:"Vui lòng nhập số hợp lệ không âm.",
-    accountingLoading:"Đang lưu…"
+    accountingLoading:"Đang lưu…",
+    wageSettingsTitle:"Thiết lập lương ngày theo bộ phận",
+    effectiveDateRule:"Áp dụng theo ngày hiệu lực, không sửa ngược dữ liệu lịch sử",
+    wageDepartment:"Bộ phận",
+    wageEffectiveDate:"Ngày bắt đầu áp dụng",
+    wageAmount:"Lương ngày mỗi người (VND)",
+    saveWageRate:"Lưu mức lương ngày",
+    wageHistoryLoading:"Đang tải lịch sử lương ngày…",
+    wageHistoryEmpty:"Chưa thiết lập mức lương ngày.",
+    wageHistoryError:"Không thể tải lịch sử lương: ",
+    wageSaved:"Đã lưu mức lương ngày.",
+    wageDuplicate:"Bộ phận này đã có mức lương vào ngày hiệu lực đó. Vui lòng chọn ngày khác.",
+    wageSaveError:"Lưu mức lương thất bại: ",
+    wageAutoApplied:"Đã tự động điền lương theo bộ phận và ngày hiệu lực.",
+    wageAutoMissing:"Chưa có mức lương trước ngày này. Vui lòng nhập lương ngày thủ công.",
   }
 };
 
@@ -623,7 +662,7 @@ function showApp(user, identity){
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); }
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); }
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -884,6 +923,71 @@ function renderRepairTrend(rows,startKey,endKey){
   }).join("");
 }
 
+
+
+let wageRatesCache=[];
+const departmentNames={1:"修色部门",2:"清洗部门",3:"修织部门"};
+function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Bộ phận Sửa màu",2:"Bộ phận Giặt",3:"Bộ phận Sửa dệt"}[id]||String(id));}
+function renderWageHistory(){
+ const target=document.getElementById("wageRateHistory");
+ const rows=[...wageRatesCache].sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate)||a.departmentId-b.departmentId);
+ if(!rows.length){target.textContent=tr("wageHistoryEmpty");return;}
+ target.replaceChildren();
+ rows.forEach(rate=>{
+  const line=document.createElement("div");line.className="work-summary-row";
+  line.textContent=rate.effectiveDate+" · "+departmentLabel(rate.departmentId)+" · "+Number(rate.dailyWage).toLocaleString()+" VND/人/天";
+  target.append(line);
+ });
+}
+async function loadWageRates(){
+ if(currentRole!=="admin")return;
+ const target=document.getElementById("wageRateHistory");
+ target.textContent=tr("wageHistoryLoading");
+ try{
+  const snap=await getDoc(doc(db,"appSettings","departmentWages"));
+  wageRatesCache=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
+  renderWageHistory();applyEffectiveWage();
+ }catch(error){
+  console.error("Wage history load error",error);
+  target.textContent=tr("wageHistoryError")+(error.code||error.message||"unknown");
+ }
+}
+function applyEffectiveWage(){
+ const date=document.getElementById("accountingDate")?.value;
+ const departmentId=Number(document.getElementById("accountingDepartment")?.value);
+ if(!date||!departmentId)return;
+ const match=wageRatesCache.filter(x=>Number(x.departmentId)===departmentId&&x.effectiveDate<=date).sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate))[0];
+ const wageInput=document.getElementById("accountingDailyWage");
+ const message=document.getElementById("accountingMessage");
+ if(match){wageInput.value=String(match.dailyWage);message.textContent=tr("wageAutoApplied");}
+ else{message.textContent=tr("wageAutoMissing");}
+ updateAccountingPreview();
+}
+document.getElementById("wageDepartment").addEventListener("change",()=>{});
+document.getElementById("wageRateForm").addEventListener("submit",async event=>{
+ event.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
+ const departmentId=Number(document.getElementById("wageDepartment").value);
+ const effectiveDate=document.getElementById("wageEffectiveDate").value;
+ const dailyWage=Number(document.getElementById("wageAmount").value);
+ const message=document.getElementById("wageRateMessage"),button=document.getElementById("saveWageRateBtn");
+ if(!effectiveDate||!Number.isFinite(dailyWage)||dailyWage<0){message.textContent=tr("accountingInvalid");return;}
+ button.disabled=true;message.textContent=tr("accountingLoading");
+ try{
+  const ref=doc(db,"appSettings","departmentWages");
+  await runTransaction(db,async transaction=>{
+   const snap=await transaction.get(ref);
+   const current=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
+   if(current.some(x=>Number(x.departmentId)===departmentId&&x.effectiveDate===effectiveDate))throw new Error("WAGE_RATE_EXISTS");
+   const rates=[...current,{departmentId,effectiveDate,dailyWage,createdBy:auth.currentUser.uid}];
+   transaction.set(ref,{rates,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
+  });
+  const snap=await getDoc(ref);wageRatesCache=snap.exists()?snap.data().rates||[]:[];
+  renderWageHistory();message.textContent=tr("wageSaved");applyEffectiveWage();
+ }catch(error){console.error("Wage rate save error",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):tr("wageSaveError")+(error.code||error.message||"unknown");}
+ finally{button.disabled=false;}
+});
+document.getElementById("accountingDate").addEventListener("change",applyEffectiveWage);
+document.getElementById("accountingDepartment").addEventListener("change",applyEffectiveWage);
 
 const accountingInputs=["accountingHeadcount","accountingOutput","accountingUnitPrice","accountingDailyWage","accountingMaterialCost","accountingOtherCost"];
 function accountingValues(){
