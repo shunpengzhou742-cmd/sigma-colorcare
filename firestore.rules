@@ -263,8 +263,8 @@ service cloud.firestore {
     match /qcRequests/{requestId} {
       allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
         && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, false);
-      allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
-      allow update: if validRequestReview();
+      allow get, list: if isQcReviewer() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update: if validQcReview();
       allow delete: if false;
     }
 
@@ -272,7 +272,7 @@ service cloud.firestore {
       allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
         && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true);
       allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
-      allow update: if validRequestReview();
+      allow update: if validScrapReview();
       allow delete: if false;
     }
 
