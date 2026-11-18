@@ -112,6 +112,47 @@ footer{color:#8394a9;padding:22px}
 }
 @media(min-width:721px){#appView{display:block}#invitePanel,#employeeManagePanel{max-width:100%}}
 
+
+/* SIGMA ColorCare v8 theme system — vivid brand gradients + day/night */
+:root{--sigma-blue:#175da9;--sigma-cyan:#19a9c5;--sigma-purple:#7863c9;--sigma-gold:#f2b94b}
+body:not(.theme-dark){background:
+ radial-gradient(ellipse at 8% 18%,rgba(50,133,218,.17),transparent 32%),
+ radial-gradient(ellipse at 92% 22%,rgba(35,183,190,.16),transparent 30%),
+ radial-gradient(ellipse at 80% 88%,rgba(142,111,208,.13),transparent 34%),
+ linear-gradient(145deg,#edf5ff 0%,#f7f8fd 48%,#eef9f8 100%)!important}
+body:not(.theme-dark) main:before{content:"";position:fixed;z-index:-1;pointer-events:none;width:340px;height:340px;left:-190px;top:48%;border-radius:50%;background:linear-gradient(135deg,#4b9be8,#66d0d0);filter:blur(65px);opacity:.18}
+#themeToggle{background:#ffffff20;border:1px solid #ffffff55;color:#fff;padding:8px 11px;font-size:12px;min-height:36px;border-radius:11px;white-space:nowrap}
+header>div:last-child{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+body.theme-dark{color:#e7f0ff!important;background:
+ radial-gradient(ellipse at 12% 15%,rgba(28,102,180,.34),transparent 34%),
+ radial-gradient(ellipse at 88% 20%,rgba(112,75,174,.32),transparent 32%),
+ radial-gradient(ellipse at 70% 95%,rgba(14,145,155,.22),transparent 38%),
+ linear-gradient(145deg,#0a1730 0%,#111d3a 52%,#15162f 100%)!important}
+body.theme-dark header{background:linear-gradient(115deg,#102f59,#174f87);box-shadow:0 8px 28px #020b1e66}
+body.theme-dark .card{background:linear-gradient(145deg,rgba(32,54,86,.96),rgba(23,38,66,.96))!important;border-color:#365174!important;color:#e7f0ff!important;box-shadow:0 10px 28px #020b1e55!important}
+body.theme-dark #loginView h2,body.theme-dark #appView h3,body.theme-dark #deptView h2{color:#dcecff}
+body.theme-dark label{color:#c4d7ef}
+body.theme-dark input{background:#101e36!important;border-color:#3b5475!important;color:#f4f8ff!important}
+body.theme-dark input::placeholder{color:#8fa5c1}
+body.theme-dark input:focus{background:#142642!important;border-color:#58a9ed!important;box-shadow:0 0 0 3px #328bd32a!important}
+body.theme-dark .google-login{background:#1d3454!important;border-color:#496486!important;color:#edf5ff!important}
+body.theme-dark #logoutBtn,body.theme-dark .dark{background:#263e60!important;border-color:#456184!important;color:#e5efff!important}
+body.theme-dark .google-link{background:#1b3659!important;border-color:#45668b!important;color:#a9d4ff!important}
+body.theme-dark #appView>.dept{background:linear-gradient(120deg,#203c60,#1a2e4d)!important;border-color:#385879!important;color:#edf5ff!important;box-shadow:0 8px 22px #020b1e44!important}
+body.theme-dark #appView>.dept .small{color:#b4c8e0!important}
+body.theme-dark #appView>.dept b{color:#8bd7f3}
+body.theme-dark .work-panel{background:linear-gradient(145deg,#1a2e4c,#172741)!important;border-color:#385273!important;color:#e5efff}
+body.theme-dark .work-panel h3{color:#b9dcff!important}
+body.theme-dark .work-panel .small,body.theme-dark .employee-card .small{color:#b2c5dc}
+body.theme-dark .work-panel form input,body.theme-dark .work-panel form select,body.theme-dark .work-panel form textarea{background:#102039!important;border-color:#3c5879!important;color:#f2f7ff!important}
+body.theme-dark .work-record,body.theme-dark .work-summary-row{border-color:#38506d}
+body.theme-dark .employee-card{background:#1a2e4b!important;border-color:#3b5576!important;color:#e7f0ff}
+body.theme-dark .employee-depts label{color:#d2e4f8;border-color:#425d7d}
+body.theme-dark footer{color:#91a8c4}
+body.theme-dark .warning{background:#4a371b;color:#ffe4a3;border-color:#8b692e}
+body.theme-dark #loginView:has(form):after{color:#9fc8f3}
+@media(max-width:420px){#themeToggle{font-size:11px;padding:7px 9px}}
+
 </style>
 </head>
 <body>
@@ -120,6 +161,7 @@ footer{color:#8394a9;padding:22px}
   <div style="text-align:right">
     <div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">连接中</span></div>
     <button id="langBtn" type="button" onclick="switchLang()">Tiếng Việt</button>
+    <button id="themeToggle" type="button" aria-pressed="false" onclick="toggleSigmaTheme()">🌙 夜间模式 / Chế độ tối</button>
   </div>
 </header>
 
