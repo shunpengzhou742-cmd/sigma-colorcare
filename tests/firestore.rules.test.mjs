@@ -574,3 +574,23 @@ describe("SIGMA washing and weaving work order Firestore rules", () => {
     await assertFails(updateDoc(ref, { quantity: 90 }));
   });
 });
+
+describe("SIGMA operating expense edit permissions", () => {
+  it("allows an admin to edit an expense without changing its creator or creation time", async () => {
+    const createdAt = Timestamp.now();
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "operatingExpenses/expense-edit"), {
+        expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
+        entryMode: "item", amount: 100000, note: "Before", currency: "VND",
+        createdBy: "admin-1", createdAt, updatedAt: createdAt
+      });
+    });
+    const db = adminDb();
+    const { updateDoc } = await import("firebase/firestore");
+    await assertSucceeds(updateDoc(doc(db, "operatingExpenses/expense-edit"), {
+      expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
+      entryMode: "item", amount: 200000, note: "After", currency: "VND",
+      createdBy: "admin-1", createdAt, updatedAt: serverTimestamp()
+    }));
+  });
+});
