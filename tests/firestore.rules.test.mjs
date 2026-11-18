@@ -81,6 +81,107 @@ function employeeData(uid, email, departments = [1], repairTypes = [101, 102]) {
 }
 
 describe("SIGMA employee invitation Firestore rules", () => {
+  it("allows an active repair employee to create a batch work order", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+    });
+    const db = googleDb();
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertSucceeds(addDoc(collection(db, "repairWorkOrders"), {
+      employeeUid: "employee-1",
+      createdBy: "employee-1",
+      departmentId: 1,
+      repairTypeId: 101,
+      workDate: "2026-11-18",
+      orderNo: "AS-001",
+      styleNo: "STYLE-01",
+      color: "Navy",
+      quantity: 120,
+      note: "",
+      status: "submitted",
+      createdAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects repair work orders submitted for another employee", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+    });
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(googleDb(), "repairWorkOrders"), {
+      employeeUid: "employee-2", createdBy: "employee-1", departmentId: 1,
+      repairTypeId: 101, workDate: "2026-11-18", orderNo: "", styleNo: "",
+      color: "", quantity: 10, note: "", status: "submitted", createdAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects a repair employee submitting a department they are not authorized for", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [2], []));
+    });
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(googleDb(), "repairWorkOrders"), {
+      employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+      repairTypeId: 101, workDate: "2026-11-18", orderNo: "", styleNo: "",
+      color: "", quantity: 10, note: "", status: "submitted", createdAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects a repair employee using an unauthorized repair subtype", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1], [101]));
+    });
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(googleDb(), "repairWorkOrders"), {
+      employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+      repairTypeId: 102, workDate: "2026-11-18", orderNo: "", styleNo: "",
+      color: "", quantity: 10, note: "", status: "submitted", createdAt: serverTimestamp()
+    }));
+  });
+
+  it("rejects zero-quantity repair work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+    });
+    const { addDoc, collection } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(googleDb(), "repairWorkOrders"), {
+      employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+      repairTypeId: 101, workDate: "2026-11-18", orderNo: "", styleNo: "",
+      color: "", quantity: 0, note: "", status: "submitted", createdAt: serverTimestamp()
+    }));
+  });
+
+  it("prevents employees from editing or deleting submitted repair work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+      await setDoc(doc(context.firestore(), "repairWorkOrders/order-1"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-18", orderNo: "", styleNo: "",
+        color: "", quantity: 10, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const { deleteDoc, updateDoc } = await import("firebase/firestore");
+    const ref = doc(googleDb(), "repairWorkOrders/order-1");
+    await assertFails(updateDoc(ref, { quantity: 20 }));
+    await assertFails(deleteDoc(ref));
+  });
+
+  it("allows admins to read repair work orders but employees only their own", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+      await setDoc(doc(context.firestore(), "employees/employee-2"), employeeData("employee-2", "second@example.com"));
+      const row = { employeeUid: "employee-2", createdBy: "employee-2", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-18", orderNo: "", styleNo: "",
+        color: "", quantity: 10, note: "", status: "submitted", createdAt: Timestamp.now() };
+      await setDoc(doc(context.firestore(), "repairWorkOrders/order-2"), row);
+    });
+    const { getDoc, query, collection, where, getDocs } = await import("firebase/firestore");
+    await assertSucceeds(getDoc(doc(adminDb(), "repairWorkOrders/order-2")));
+    await assertFails(getDoc(doc(googleDb(), "repairWorkOrders/order-2")));
+    const ownQuery = query(collection(googleDb(), "repairWorkOrders"), where("employeeUid", "==", "employee-1"), where("departmentId", "==", 1));
+    await assertSucceeds(getDocs(ownQuery));
+  });
+
   it("allows an active admin to create a valid one-day invitation", async () => {
     const db = adminDb();
     await assertSucceeds(setDoc(doc(db, "employeeInvites/new-invite"), {
