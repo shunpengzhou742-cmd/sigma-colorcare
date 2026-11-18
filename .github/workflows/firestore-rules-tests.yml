@@ -17,6 +17,8 @@ on:
       - "firebase.json"
       - "package.json"
       - "tests/**"
+      - "index.html"
+      - "scripts/**"
       - ".github/workflows/firestore-rules-tests.yml"
 
 jobs:
