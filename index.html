@@ -197,6 +197,17 @@ body.theme-dark .dept-overview strong{color:#9bd4ff}
 body.theme-dark .dept-overview small{color:#adc2da}
 @media(max-width:720px){.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-card{min-height:105px;padding:13px}.metric-card strong{font-size:26px}.finance-grid{grid-template-columns:1fr}.finance-grid article{flex-direction:row;align-items:center;justify-content:space-between}.dept-overview-grid{grid-template-columns:1fr}.dept-overview{min-height:unset}.dashboard-heading h2{font-size:20px}.dashboard-refresh{min-width:86px;padding:10px;font-size:12px}}
 
+
+/* v11 seven-day production trend */
+.trend-list{display:grid;gap:10px;padding:14px 15px;border:1px solid #e0e9f3;border-radius:15px;background:linear-gradient(135deg,#f9fcff,#eef6ff)}
+.trend-row{display:grid;grid-template-columns:76px minmax(40px,1fr) 64px;align-items:center;gap:10px}
+.trend-day{font-size:11px;color:#617a96;font-weight:650}
+.trend-track{height:13px;border-radius:20px;background:#dce8f5;overflow:hidden}
+.trend-fill{height:100%;min-width:2px;border-radius:20px;background:linear-gradient(90deg,#2575cb,#25b7b3);transition:width .25s ease}
+.trend-value{text-align:right;font-size:12px;color:#244d78;font-weight:750;font-variant-numeric:tabular-nums}
+body.theme-dark .trend-list{background:linear-gradient(135deg,#1a3151,#203958);border-color:#3c5778}
+body.theme-dark .trend-day{color:#bdd0e7}body.theme-dark .trend-track{background:#314967}body.theme-dark .trend-value{color:#d8eaff}
+
 </style>
 </head>
 <body>
@@ -244,6 +255,8 @@ body.theme-dark .dept-overview small{color:#adc2da}
         <article class="metric-card metric-violet"><span data-i18n="todayHandQty">今日手工描绘</span><strong id="metricHandQty">—</strong><small data-i18n="unitPieces">件</small></article>
         <article class="metric-card metric-amber"><span data-i18n="todayBatchCount">今日工单批次</span><strong id="metricBatchCount">—</strong><small data-i18n="unitBatches">批</small></article>
       </div>
+      <div class="dashboard-section-title"><h3 data-i18n="weeklyTrend">近7天修色产量趋势</h3><span data-i18n="weeklyTrendHint">按实际提交工单统计</span></div>
+      <div id="repairTrend" class="trend-list" aria-live="polite"><p class="small">—</p></div>
       <div class="dashboard-section-title"><h3 data-i18n="businessFinance">经营财务概览</h3><span data-i18n="financePending">等待接入真实核算数据</span></div>
       <div class="finance-grid">
         <article><span data-i18n="totalRevenue">总收入</span><strong data-i18n="notConnected">暂未接入</strong></article>
@@ -417,7 +430,13 @@ const translations = {
     dashboardError:"读取今日数据失败：",
     dashboardLimit:"今日记录超过500批，当前统计最多读取500批。"
   },
-  vi: {
+,
+    weeklyTrend:"近7天修色产量趋势",
+    weeklyTrendHint:"按实际提交工单统计",
+    trendLoading:"正在读取近7天工单……",
+    trendEmpty:"近7天暂无修色工单记录。",
+    trendError:"读取趋势失败：",
+    trendPieces:"件"  vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
@@ -470,7 +489,13 @@ const translations = {
     dashboardLoaded:"Dữ liệu lấy từ phiếu sửa màu đã gửi hôm nay.",
     dashboardError:"Không thể tải dữ liệu hôm nay: ",
     dashboardLimit:"Hơn 500 lô hôm nay; thống kê hiện chỉ đọc tối đa 500 lô."
-  }
+  },
+    weeklyTrend:"Xu hướng sản lượng sửa màu 7 ngày",
+    weeklyTrendHint:"Thống kê từ phiếu đã gửi thực tế",
+    trendLoading:"Đang tải phiếu sửa màu 7 ngày…",
+    trendEmpty:"Không có phiếu sửa màu trong 7 ngày qua.",
+    trendError:"Không thể tải xu hướng: ",
+    trendPieces:"sản phẩm"
 };
 
 let lang = "zh";
@@ -779,6 +804,22 @@ function localWorkDate(){
 }
 
 let dashboardRowsCache=[];
+
+function renderRepairTrend(rows,startKey,endKey){
+  const target=document.getElementById("repairTrend");
+  const counts={};
+  const start=new Date(startKey+"T12:00:00");
+  for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");counts[key]=0;}
+  rows.forEach(row=>{if(Object.prototype.hasOwnProperty.call(counts,row.workDate))counts[row.workDate]+=Number(row.quantity||0);});
+  const values=Object.entries(counts);const max=Math.max(1,...values.map(([,v])=>v));
+  if(!rows.length){target.innerHTML='<p class="small">'+tr("trendEmpty")+'</p>';return;}
+  target.innerHTML=values.map(([day,value])=>{
+    const width=value===0?0:Math.max(2,Math.round(value/max*100));
+    const label=day.slice(5);
+    return '<div class="trend-row"><span class="trend-day">'+label+'</span><div class="trend-track"><div class="trend-fill" style="width:'+width+'%"></div></div><span class="trend-value">'+value.toLocaleString()+'</span></div>';
+  }).join("");
+}
+
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
@@ -788,7 +829,9 @@ async function loadDashboard(){
   const today=localWorkDate();
   document.getElementById("dashboardDate").textContent=today;
   try{
-    const q=query(collection(db,"repairWorkOrders"),where("workDate","==",today),limit(500));
+    const startDate=new Date(Date.now()-6*86400000);
+    const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
+    const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
     const snapshot=await getDocs(q);
     dashboardRowsCache=snapshot.docs.map(item=>item.data());
     const spray=dashboardRowsCache.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
@@ -798,9 +841,11 @@ async function loadDashboard(){
     document.getElementById("metricHandQty").textContent=hand.toLocaleString();
     document.getElementById("metricBatchCount").textContent=dashboardRowsCache.length.toLocaleString();
     message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
+    renderRepairTrend(dashboardRowsCache,startKey,today);
   }catch(error){
     console.error("SIGMA dashboard load error:",error);
     ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount"].forEach(id=>document.getElementById(id).textContent="—");
+    document.getElementById("repairTrend").innerHTML='<p class="small">'+tr("trendError")+(error.code||error.message||"unknown")+"</p>";
     message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
   }finally{if(button) button.disabled=false;}
 }
