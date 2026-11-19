@@ -72,7 +72,6 @@ function employeeData(uid, email, departments = [1], repairTypes = [101, 102]) {
     status: "active",
     departmentIds: departments,
     repairTypeIds: repairTypes,
-    specialRole: false,
     invitationId: "invite-valid",
     createdAt: serverTimestamp(),
     createdBy: "admin-1",
@@ -374,7 +373,7 @@ describe("SIGMA employee invitation Firestore rules", () => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
         uid: "employee-1", name: "Test Employee", email: "employee@example.com",
         roleType: 1, status: "active", departmentIds: [2],
-        repairTypeIds: [], specialRole: false, invitationId: "invite-valid",
+        repairTypeIds: [], invitationId: "invite-valid",
         createdAt: Timestamp.now(), createdBy: "admin-1", updatedAt: Timestamp.now()
       });
     });
@@ -385,7 +384,7 @@ describe("SIGMA employee invitation Firestore rules", () => {
       updatedAt: serverTimestamp()
     }));
     await assertFails(updateDoc(ref, {
-      status: "active", specialRole: true, updatedAt: serverTimestamp()
+      status: "active", updatedAt: serverTimestamp()
     }));
   });
 
@@ -399,7 +398,6 @@ describe("SIGMA employee invitation Firestore rules", () => {
         status: "active",
         departmentIds: [1],
         repairTypeIds: [101, 102],
-        specialRole: false,
         invitationId: "invite-valid",
         createdAt: Timestamp.now(),
         createdBy: "admin-1",
@@ -524,11 +522,11 @@ describe("SIGMA financial privacy Firestore rules", () => {
     await assertFails(getDoc(doc(googleDb(), "dailyRecords/2026-11-19_1")));
   });
 
-  it("does not allow employees to grant themselves the special role", async () => {
+  it("rejects obsolete special-role fields on employee profiles", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
         uid: "employee-1", roleType: 1, status: "active",
-        departmentIds: [1], specialRole: false
+        departmentIds: [1]
       });
     });
     const { updateDoc } = await import("firebase/firestore");
