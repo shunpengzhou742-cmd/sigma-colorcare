@@ -10,15 +10,6 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active';
     }
 
-    function isQcReviewer() {
-      return isAdmin()
-        || (request.auth != null
-            && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
-            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
-            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.roleType == 1
-            && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.get('qcAuthorized', false) == true);
-    }
-
     function isGoogleUser() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'google.com'
@@ -90,12 +81,12 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.keys().hasAll([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'specialRole', 'qcAuthorized', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.keys().hasOnly([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'specialRole', 'qcAuthorized', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.uid == request.auth.uid
@@ -107,7 +98,6 @@ service cloud.firestore {
         && request.resource.data.departmentIds is list
         && request.resource.data.repairTypeIds is list
         && request.resource.data.specialRole == false
-        && request.resource.data.qcAuthorized == false
         && request.resource.data.invitationId is string
         && exists(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId))
         && get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId)).data.status == 'active'
@@ -122,7 +112,7 @@ service cloud.firestore {
 
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'departmentIds', 'repairTypeIds', 'status', 'qcAuthorized', 'updatedAt'
+          'departmentIds', 'repairTypeIds', 'status', 'updatedAt'
         ])
         && request.resource.data.departmentIds is list
         && request.resource.data.departmentIds.size() >= 1
@@ -133,7 +123,6 @@ service cloud.firestore {
             ? request.resource.data.repairTypeIds == [101, 102]
             : request.resource.data.repairTypeIds == [])
         && request.resource.data.status in ['active', 'disabled']
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['qcAuthorized']) || request.resource.data.qcAuthorized is bool)
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
@@ -240,85 +229,6 @@ service cloud.firestore {
         && (isScrap ? (data.reason is string && data.reason.size() > 0 && data.reason.size() <= 300) : true);
     }
 
-    function validQCRequest(data, requestId) {
-      return data.keys().hasAll(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt', 'workOrderId', 'sourceCollection'])
-        && data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt', 'workOrderId', 'sourceCollection', 'color', 'repairTypeId'])
-        && requestId == 'qc_' + data.workOrderId
-        && data.workOrderId is string && data.workOrderId.size() > 0
-        && data.requestDate is string && data.requestDate.size() == 10
-        && data.requestDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}')
-        && data.departmentId in [1, 2, 3]
-        && data.employeeUid == request.auth.uid && data.createdBy == request.auth.uid
-        && data.orderNo is string && data.orderNo.size() <= 80
-        && data.styleNo is string && data.styleNo.size() <= 80
-        && data.quantity is int && data.quantity > 0 && data.quantity <= 1000000
-        && data.note is string && data.note.size() <= 500
-        && data.status == 'submitted' && data.createdAt == request.time
-        && (!data.keys().hasAny(['color']) || (data.color is string && data.color.size() <= 80))
-        && (!data.keys().hasAny(['repairTypeId']) || data.repairTypeId == null || data.repairTypeId in [101, 102])
-        && (
-          (data.sourceCollection == 'reworkWorkOrders'
-            && exists(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId))
-            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
-            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
-            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.status == 'pending_rework')
-          || (data.departmentId == 1 && data.sourceCollection == 'repairWorkOrders'
-            && exists(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId))
-            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity == data.quantity
-            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.repairTypeId == data.repairTypeId)
-          || (data.departmentId == 2 && data.sourceCollection == 'cleanWorkOrders'
-            && exists(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId))
-            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity == data.quantity)
-          || (data.departmentId == 3 && data.sourceCollection == 'weaveWorkOrders'
-            && exists(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId))
-            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
-            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity == data.quantity)
-        );
-    }
-
-    function validRework(data, reworkId) {
-      return data.keys().hasAll(['sourceQcRequestId', 'sourceWorkOrderId', 'sourceCollection', 'departmentId', 'employeeUid', 'orderNo', 'styleNo', 'color', 'repairTypeId', 'quantity', 'status', 'createdBy', 'createdAt'])
-        && data.keys().hasOnly(['sourceQcRequestId', 'sourceWorkOrderId', 'sourceCollection', 'departmentId', 'employeeUid', 'orderNo', 'styleNo', 'color', 'repairTypeId', 'quantity', 'status', 'createdBy', 'createdAt'])
-        && reworkId == 'rework_' + data.sourceQcRequestId
-        && existsAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId))
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.status == 'inspected'
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.unqualifiedQuantity == data.quantity
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.employeeUid == data.employeeUid
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.departmentId == data.departmentId
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.workOrderId == data.sourceWorkOrderId
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.sourceCollection == data.sourceCollection
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.orderNo == data.orderNo
-        && getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.styleNo == data.styleNo
-        && (!getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.keys().hasAny(['color']) || getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.color == data.color)
-        && (!getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.keys().hasAny(['repairTypeId']) || getAfter(/databases/$(database)/documents/qcRequests/$(data.sourceQcRequestId)).data.repairTypeId == data.repairTypeId)
-        && data.sourceWorkOrderId is string && data.sourceCollection is string
-        && data.departmentId in [1, 2, 3]
-        && data.employeeUid is string && data.orderNo is string && data.styleNo is string && data.color is string
-        && (data.repairTypeId == null || data.repairTypeId in [101, 102])
-        && data.quantity is int && data.quantity > 0
-        && data.status == 'pending_rework'
-        && data.createdBy == request.auth.uid && data.createdAt == request.time;
-    }
-
-    function validQcReview() {
-      return isQcReviewer()
-        && resource.data.status == 'submitted'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'qualifiedQuantity', 'unqualifiedQuantity', 'qcResult', 'reviewedBy', 'reviewedAt', 'reviewNote'])
-        && request.resource.data.status == 'inspected'
-        && request.resource.data.qualifiedQuantity is int && request.resource.data.qualifiedQuantity >= 0
-        && request.resource.data.unqualifiedQuantity is int && request.resource.data.unqualifiedQuantity >= 0
-        && request.resource.data.qualifiedQuantity + request.resource.data.unqualifiedQuantity == resource.data.quantity
-        && request.resource.data.qcResult in ['passed', 'partial', 'failed']
-        && request.resource.data.qcResult == (request.resource.data.unqualifiedQuantity == 0 ? 'passed' : request.resource.data.qualifiedQuantity == 0 ? 'failed' : 'partial')
-        && request.resource.data.reviewedBy == request.auth.uid
-        && request.resource.data.reviewedAt == request.time
-        && request.resource.data.reviewNote is string
-        && request.resource.data.reviewNote.size() <= 300;
-    }
-
     function validScrapReview() {
       return isAdmin()
         && resource.data.status == 'submitted'
@@ -328,21 +238,6 @@ service cloud.firestore {
         && request.resource.data.reviewedAt == request.time
         && request.resource.data.reviewNote is string
         && request.resource.data.reviewNote.size() <= 300;
-    }
-
-    match /qcRequests/{requestId} {
-      allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
-        && validQCRequest(request.resource.data, requestId);
-      allow get, list: if isQcReviewer() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
-      allow update: if validQcReview();
-      allow delete: if false;
-    }
-
-    match /reworkWorkOrders/{reworkId} {
-      allow create: if isQcReviewer() && validRework(request.resource.data, reworkId);
-      allow get, list: if isAdmin() || isQcReviewer()
-        || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
-      allow update, delete: if false;
     }
 
     match /scrapRequests/{requestId} {
