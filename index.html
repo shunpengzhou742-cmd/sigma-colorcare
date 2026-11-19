@@ -219,6 +219,24 @@ body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
 body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
 @media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
 
+
+/* v13 finance department comparison */
+.finance-dept-chart{display:grid;gap:12px;margin:12px 0}
+.finance-dept-card{padding:13px;border:1px solid var(--line,#d7e2ef);border-radius:14px;background:rgba(255,255,255,.58)}
+body.theme-dark .finance-dept-card{background:rgba(15,32,55,.72);border-color:#3b5575}
+.finance-dept-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;margin-bottom:9px}
+.finance-dept-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.finance-dept-metric{min-width:0;font-size:11px;color:#58708c}
+.finance-dept-metric strong{display:block;margin-top:4px;font-size:12px;color:#193d63;overflow-wrap:anywhere}
+body.theme-dark .finance-dept-metric{color:#b5c9e2}
+body.theme-dark .finance-dept-metric strong{color:#edf5ff}
+.finance-profit-track{height:9px;border-radius:99px;background:rgba(120,145,170,.2);overflow:hidden;margin-top:10px}
+.finance-profit-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2387d7,#21b7ad)}
+.finance-profit-fill.negative{background:linear-gradient(90deg,#e18b4c,#d94d62)}
+.finance-shared-note{font-size:12px;color:#60758d;margin:2px 0 0}
+body.theme-dark .finance-shared-note{color:#b4c7dd}
+@media(max-width:420px){.finance-dept-metrics{gap:5px}.finance-dept-metric strong{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -277,6 +295,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
       </div>
       <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article></div>
       <div id="financeDepartmentSummary" class="work-panel small" data-i18n="financeLoading">正在读取财务数据……</div>
+      <div id="financeDepartmentChart" class="finance-dept-chart" aria-live="polite"></div>
       <div class="dashboard-section-title"><h3 data-i18n="financeMonthlyTitle">按月经营汇总</h3></div><div id="financeMonthlyReport" class="work-panel"></div>
       <p class="dashboard-note" data-i18n="financeNote">统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
 
@@ -1319,20 +1338,45 @@ function setFinanceDates(mode){
 }
 function renderFinanceOverview(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
- const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport");
- if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();return;}
+ const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart");
+ if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();return;}
  const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end);
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
  const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount");
  document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
- root.replaceChildren();if(!rs.length&&!es.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");return;}
- const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);const names={1:tr("repair"),2:tr("clean"),3:tr("weave")};
- [1,2,3].forEach(id=>{const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);const p=sum(own,"revenue")-sum(own,"laborCost")-sum(own,"materialCost")-sum(own,"otherCost")-sum(ownE,"amount");const d=document.createElement("div");d.className="work-summary-row";d.textContent=names[id]+" · "+money(p);root.append(d);});
- const shared=sum(es.filter(x=>Number(x.departmentId)===0),"amount"),common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
+ root.replaceChildren();chart.replaceChildren();
+ if(!rs.length&&!es.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");return;}
+ const names={1:tr("repair"),2:tr("clean"),3:tr("weave")},deptResults=[];
+ [1,2,3].forEach(id=>{
+  const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);
+  const r=sum(own,"revenue"),l=sum(own,"laborCost"),m=sum(own,"materialCost"),o=sum(own,"otherCost"),e=sum(ownE,"amount"),cost=l+m+o+e,p=r-cost;
+  deptResults.push({id,name:names[id],revenue:r,cost,profit:p});
+ });
+ const shared=sum(es.filter(x=>![1,2,3].includes(Number(x.departmentId))),"amount");
+ const departmentProfit=deptResults.reduce((v,x)=>v+x.profit,0);
+ const companyProfit=departmentProfit-shared;
+ const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
+ deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=x.name+" · "+money(x.profit);root.append(d);});
+ const common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
+ const reconciliation=document.createElement("div");reconciliation.className="work-summary-row";reconciliation.textContent=tr("netProfit")+": "+money(companyProfit);root.append(reconciliation);
+ const maxProfit=Math.max(1,...deptResults.map(x=>Math.abs(x.profit)));
+ deptResults.forEach(x=>{
+  const card=document.createElement("section");card.className="finance-dept-card";
+  const head=document.createElement("div");head.className="finance-dept-head";head.textContent=x.name;
+  const profit=document.createElement("span");profit.textContent=money(x.profit);head.append(profit);card.append(head);
+  const metrics=document.createElement("div");metrics.className="finance-dept-metrics";
+  [[tr("totalRevenue"),x.revenue],[tr("totalCost"),x.cost],[tr("netProfit"),x.profit]].forEach(([label,value])=>{
+   const item=document.createElement("div");item.className="finance-dept-metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=money(value);item.append(caption,strong);metrics.append(item);
+  });
+  card.append(metrics);
+  const track=document.createElement("div");track.className="finance-profit-track";track.setAttribute("role","img");track.setAttribute("aria-label",x.name+" "+tr("netProfit")+": "+money(x.profit));
+  const fill=document.createElement("div");fill.className="finance-profit-fill"+(x.profit<0?" negative":"");fill.style.width=(Math.abs(x.profit)/maxProfit*100)+"%";track.append(fill);card.append(track);chart.append(card);
+ });
+ const sharedNote=document.createElement("p");sharedNote.className="finance-shared-note";sharedNote.textContent=tr("expenseCompanyLabel")+": "+money(shared)+" · "+tr("netProfit")+" = "+money(companyProfit);chart.append(sharedNote);
  const months=new Map();
- const addMonth=(key)=>{if(!months.has(key))months.set(key,{revenue:0,labor:0,materials:0,other:0,expenses:0,shared:0});return months.get(key);};
+ const addMonth=key=>{if(!months.has(key))months.set(key,{revenue:0,labor:0,materials:0,other:0,expenses:0});return months.get(key);};
  rs.forEach(x=>{const m=addMonth(String(x.workDate||"").slice(0,7));m.revenue+=Number(x.revenue||0);m.labor+=Number(x.laborCost||0);m.materials+=Number(x.materialCost||0);m.other+=Number(x.otherCost||0);});
- es.forEach(x=>{const m=addMonth(String(x.expenseDate||"").slice(0,7));m.expenses+=Number(x.amount||0);if(Number(x.departmentId)===0)m.shared+=Number(x.amount||0);});
+ es.forEach(x=>{const m=addMonth(String(x.expenseDate||"").slice(0,7));m.expenses+=Number(x.amount||0);});
  monthly.replaceChildren();if(!months.size){monthly.textContent=tr("financeMonthlyEmpty");return;}
  const table=document.createElement("div");table.className="table-wrap";const t=document.createElement("table");t.className="data-table";
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
