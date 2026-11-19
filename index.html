@@ -356,10 +356,8 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
       </div>
       <p id="dashboardMessage" class="small" role="status" aria-live="polite"></p>
     </section>
-    <section id="qcReviewPanel" class="card hidden" style="margin-top:18px">
-      <h3 data-i18n="reviewQueueTitle">QC与报废审核</h3>
-      <div class="work-panel"><h4 data-i18n="qcPending">待处理QC申请</h4><div id="qcReviewQueue"></div></div>
-      <div id="scrapReviewPanel" class="work-panel hidden"><h4 data-i18n="scrapPending">待处理报废申请</h4><div id="scrapReviewQueue"></div></div>
+    <section id="scrapReviewContainer" class="card hidden" style="margin-top:18px">
+      <div id="scrapReviewPanel" class="work-panel hidden"><h3 data-i18n="scrapPending">待处理报废申请</h3><div id="scrapReviewQueue"></div></div>
       <div id="scrapHistoryPanel" class="work-panel hidden"><h4 data-i18n="scrapHistoryTitle">已处理报废记录</h4><div id="scrapHistoryFilters" class="employee-actions"></div><div id="scrapHistoryList"></div></div>
     </section>
     <section id="invitePanel" class="card hidden" style="margin-top:18px">
@@ -471,15 +469,6 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
       <p data-i18n="otherDeptComing">该部门工单页面将在修色模块验证后继续开发。</p>
     </section>
     <section id="deptRequestWorkbench" class="hidden">
-      <div class="work-panel"><h3 data-i18n="qcRequestTitle">QC送检申请</h3>
-        <form id="qcRequestForm">
-          <label data-i18n="requestDate">申请日期</label><input id="qcRequestDate" type="date" required>
-          <label data-i18n="qcSelectBatch">选择需要送检的本人批次工单</label><select id="qcRequestWorkOrder" required><option value="" data-i18n="qcNoBatch">暂无可送检工单</option></select>
-          <label data-i18n="quantity">送检数量</label><input id="qcRequestQuantity" type="number" min="1" max="1000000" step="1" readonly required>
-          <label data-i18n="workNote">备注</label><textarea id="qcRequestNote" rows="2" maxlength="500"></textarea>
-          <button id="submitQcRequest" class="primary" type="submit" data-i18n="submitQcRequest">提交QC申请</button>
-        </form><p id="qcRequestMessage" class="small" role="status" aria-live="polite"></p>
-      </div>
       <div class="work-panel"><h3 data-i18n="scrapRequestTitle">报废申请</h3>
         <form id="scrapRequestForm">
           <label data-i18n="requestDate">申请日期</label><input id="scrapRequestDate" type="date" required>
@@ -493,7 +482,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
           <button id="submitScrapRequest" class="primary" type="submit" data-i18n="submitScrapRequest">提交报废申请</button>
         </form><p id="scrapRequestMessage" class="small" role="status" aria-live="polite"></p>
       </div>
-      <div class="work-panel"><h3 data-i18n="myRequests">我的QC/报废申请记录</h3><div id="myDeptRequests"></div></div>
+      <div class="work-panel"><h3 data-i18n="myRequests">我的报废申请记录</h3><div id="myDeptRequests"></div></div>
     </section>
     <button class="dark" type="button" onclick="backHome()" data-i18n="back">返回首页</button>
   </section>
@@ -551,7 +540,7 @@ const translations = {
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
     googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
-    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",qcReviewerPermission:"QC审核权限",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用",
+    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用",
     dashboardKicker:"SIGMA · BUSINESS OVERVIEW",
     dashboardTitle:"经营总览",
     refreshDashboard:"刷新数据",
@@ -676,7 +665,7 @@ const translations = {
     linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
     googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
-    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",qcReviewerPermission:"Quyền duyệt QC",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
+    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
     dashboardKicker:"SIGMA · TỔNG QUAN KINH DOANH",
     dashboardTitle:"Tổng quan kinh doanh",
     refreshDashboard:"Làm mới",
@@ -859,10 +848,10 @@ function showApp(user, identity){
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
-  document.getElementById("qcReviewPanel").classList.toggle("hidden",identity.role!=="admin"&&identity.profile?.qcAuthorized!==true);
+  document.getElementById("scrapReviewContainer").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); }else if(identity.profile?.qcAuthorized===true){loadReviewQueues();}
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); }
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -930,7 +919,6 @@ async function completeEmployeeInvite(user){
         departmentIds:invite.departmentIds,
         repairTypeIds:invite.repairTypeIds || [],
         specialRole:false,
-        qcAuthorized:false,
         invitationId:inviteId,
         createdAt:serverTimestamp(),
         createdBy:invite.createdBy,
@@ -1052,9 +1040,6 @@ function renderEmployeeList(employees){
       label.append(checkbox,document.createTextNode(deptNames[id]));
       deptWrap.append(label);
     }
-    const qcLabel=document.createElement("label");
-    const qcCheckbox=document.createElement("input");qcCheckbox.type="checkbox";qcCheckbox.className="employee-qc-check";qcCheckbox.checked=employee.qcAuthorized===true;
-    qcLabel.append(qcCheckbox,document.createTextNode(tr("qcReviewerPermission")));deptWrap.append(qcLabel);
     const actions = document.createElement("div");
     actions.className = "employee-actions";
     const save = document.createElement("button");
@@ -1070,7 +1055,6 @@ function renderEmployeeList(employees){
         await updateDoc(doc(db,"employees",employee.id),{
           departmentIds:selected,
           repairTypeIds:selected.includes(1) ? [101,102] : [],
-          qcAuthorized:qcCheckbox.checked,
           updatedAt:serverTimestamp()
         });
         setEmployeeManageMessage(tr("accessSaved"));
@@ -1455,118 +1439,37 @@ async function loadDashboard(){
 document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);
 
 const requestDepartments={repair:1,clean:2,weave:3};
-function requestStatusLabel(status){return tr(status==="approved"?"statusApproved":status==="rejected"?"statusRejected":status==="inspected"?"statusInspected":status==="pending_rework"?"statusPendingRework":"statusSubmitted");}
-let qcWorkOrderCache=new Map();
+function requestStatusLabel(status){return tr(status==="approved"?"statusApproved":status==="rejected"?"statusRejected":"statusSubmitted");}
 let scrapWorkOrderCache=new Map();
 async function loadDeptRequests(){
  if(!currentDept||currentRole!=="employee"||!auth.currentUser)return;
- const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests");
- const sourceCollection=currentDept==="repair"?"repairWorkOrders":currentDept==="clean"?"cleanWorkOrders":"weaveWorkOrders";
+ const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests"),sourceCollection=currentDept==="repair"?"repairWorkOrders":currentDept==="clean"?"cleanWorkOrders":"weaveWorkOrders";
  root.textContent=tr("accountingLoading");
  try{
-  const [qc,scrap,orders,rework]=await Promise.all([
-   getDocs(query(collection(db,"qcRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
-   getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
-   getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),
-   getDocs(query(collection(db,"reworkWorkOrders"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
-  ]);
-  const submittedWorkOrders=new Set(qc.docs.map(x=>x.data().workOrderId).filter(Boolean));
-  const scrapRequestsByBatch=new Map(scrap.docs.map(item=>[item.id,item.data()]));
-  scrapWorkOrderCache=new Map();
-  const scrapSelect=document.getElementById("scrapRequestWorkOrder");scrapSelect.replaceChildren();
-  const scrapPlaceholder=document.createElement("option");scrapPlaceholder.value="";scrapPlaceholder.textContent=tr("scrapBatchPlaceholder");scrapSelect.append(scrapPlaceholder);
-  const addScrapOption=(docSnap,collectionName,isRework=false)=>{
-   const row=docSnap.data(),key=collectionName+"/"+docSnap.id;
-   const requestId="scrap_"+collectionName+"_"+docSnap.id,existingRequest=scrapRequestsByBatch.get(requestId);
-   if(existingRequest&&existingRequest.status!=="rejected")return;
-   scrapWorkOrderCache.set(key,{...row,id:docSnap.id,sourceCollection:collectionName,existingRequest});
-   const option=document.createElement("option");option.value=key;
-   option.textContent=[isRework?tr("qcSourceRework"):tr("qcSourceBatch"),row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.color,row.quantity].filter(Boolean).join(" · ");
-   scrapSelect.append(option);
-  };
-  orders.docs.forEach(item=>addScrapOption(item,sourceCollection));
-  rework.docs.forEach(item=>addScrapOption(item,"reworkWorkOrders",true));
-  scrapSelect.value="";
-  const scrapQuantity=document.getElementById("scrapRequestQuantity");scrapQuantity.removeAttribute("max");
-  qcWorkOrderCache=new Map();const select=document.getElementById("qcRequestWorkOrder");select.replaceChildren();
-  const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=tr("qcNoBatch");select.append(placeholder);
-  const addQcOption=(docSnap,collectionName,isRework=false)=>{
-   if(submittedWorkOrders.has(docSnap.id))return;
-   const row=docSnap.data();qcWorkOrderCache.set(docSnap.id,{...row,id:docSnap.id,sourceCollection:collectionName});
-   const option=document.createElement("option");option.value=docSnap.id;option.textContent=[isRework?tr("reworkCreated"):"",row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.quantity].filter(Boolean).join(" · ");select.append(option);
-  };
-  orders.docs.forEach(docSnap=>addQcOption(docSnap,sourceCollection));
-  rework.docs.forEach(docSnap=>addQcOption(docSnap,"reworkWorkOrders",true));
-  select.value=select.options.length>1?select.options[1].value:"";
-  document.getElementById("qcRequestQuantity").value=qcWorkOrderCache.get(select.value)?.quantity||"";
-  root.replaceChildren();
-  const qcByWorkOrder=new Map(qc.docs.map(item=>{const row=item.data();return[row.workOrderId,row];}));
-   const scrapByBatch=new Map(scrap.docs.map(item=>{const row=item.data();return[(row.sourceCollection||"")+"/"+(row.workOrderId||""),row];}));
-  const traceTitle=document.createElement("strong");traceTitle.textContent=tr("batchTraceTitle");root.append(traceTitle);
-  const batches=[
-   ...orders.docs.map(item=>({id:item.id,row:item.data(),isRework:false})),
-   ...rework.docs.map(item=>({id:item.id,row:item.data(),isRework:true}))
-  ].sort((a,b)=>(b.row.workDate||b.row.createdAt?.seconds||0).toString().localeCompare((a.row.workDate||a.row.createdAt?.seconds||0).toString()));
-  if(!batches.length){const empty=document.createElement("p");empty.className="small";empty.textContent=tr("noMyRequests");root.append(empty);}
-  batches.forEach(batch=>{
-   const row=batch.row,qcRow=qcByWorkOrder.get(batch.id),scrapRow=scrapByBatch.get((batch.isRework?"reworkWorkOrders":sourceCollection)+"/"+batch.id);
-   const spawned=rework.docs.filter(item=>item.data().sourceWorkOrderId===batch.id).reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-   const line=document.createElement("div");line.className="work-summary-row";
-   const source=batch.isRework?tr("qcSourceRework"):tr("qcSourceBatch");
-   const qcStatus=qcRow?requestStatusLabel(qcRow.status):tr("qcNotSubmitted");
-   const dateLabel=row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.()||"";
-   line.textContent=[dateLabel,source,row.orderNo,row.styleNo,row.color,Number(row.quantity||0).toLocaleString(),qcStatus,qcRow?.qualifiedQuantity!==undefined?tr("qcQualified")+": "+qcRow.qualifiedQuantity:"",qcRow?.unqualifiedQuantity!==undefined?tr("qcUnqualified")+": "+qcRow.unqualifiedQuantity:"",spawned?tr("reworkQuantityLabel")+": "+spawned.toLocaleString():"",scrapRow?.status==="approved"?tr("scrapApprovedLabel")+": "+Number(scrapRow.quantity||0).toLocaleString():scrapRow?.status==="submitted"?tr("scrapPendingLabel")+": "+Number(scrapRow.quantity||0).toLocaleString():""].filter(Boolean).join(" · ");
-   root.append(line);
-  });
-  [{label:tr("qcRequestTitle"),rows:qc.docs.map(x=>x.data())},{label:tr("scrapRequestTitle"),rows:scrap.docs.map(x=>x.data())},{label:tr("reworkCreated"),rows:rework.docs.map(x=>x.data())}].forEach(group=>{
-   const h=document.createElement("strong");h.textContent=group.label;root.append(h);
-   if(!group.rows.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
-   group.rows.sort((a,b)=>(b.requestDate||b.createdAt?.seconds||0).toString().localeCompare((a.requestDate||a.createdAt?.seconds||0).toString())).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";const dateLabel=row.requestDate||row.createdAt?.toDate?.().toLocaleDateString?.()||"";const sourceLabel=group.label===tr("reworkCreated")?(row.sourceCollection==="reworkWorkOrders"?tr("qcSourceRework"):tr("qcSourceBatch")):"";line.textContent=[dateLabel,sourceLabel,row.orderNo,row.styleNo,row.quantity!==undefined?Number(row.quantity).toLocaleString():"",row.qualifiedQuantity!==undefined?tr("qcQualified")+": "+row.qualifiedQuantity:"",row.unqualifiedQuantity!==undefined?tr("qcUnqualified")+": "+row.unqualifiedQuantity:"",requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
-  });
+  const [scrap,orders]=await Promise.all([getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))]);
+  const requests=new Map(scrap.docs.map(x=>[x.id,x.data()]));scrapWorkOrderCache=new Map();
+  const select=document.getElementById("scrapRequestWorkOrder");select.replaceChildren();const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=tr("scrapBatchPlaceholder");select.append(placeholder);
+  orders.docs.forEach(item=>{const row=item.data(),key=sourceCollection+"/"+item.id,id="scrap_"+sourceCollection+"_"+item.id,existingRequest=requests.get(id);if(existingRequest&&existingRequest.status!=="rejected")return;scrapWorkOrderCache.set(key,{...row,id:item.id,sourceCollection,existingRequest});const option=document.createElement("option");option.value=key;option.textContent=[row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.color,row.quantity].filter(Boolean).join(" · ");select.append(option);});
+  select.value="";document.getElementById("scrapRequestQuantity").removeAttribute("max");root.replaceChildren();
+  const title=document.createElement("strong");title.textContent=tr("batchTraceTitle");root.append(title);
+  const byBatch=new Map(scrap.docs.map(x=>{const row=x.data();return[(row.sourceCollection||"")+"/"+(row.workOrderId||""),row];}));
+  const batches=orders.docs.map(x=>({id:x.id,row:x.data()})).sort((x,y)=>(y.row.workDate||y.row.createdAt?.seconds||0).toString().localeCompare((x.row.workDate||x.row.createdAt?.seconds||0).toString()));
+  if(!batches.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
+  batches.forEach(batch=>{const row=batch.row,s=byBatch.get(sourceCollection+"/"+batch.id),line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.()||"",row.orderNo,row.styleNo,row.color,Number(row.quantity||0).toLocaleString(),s?.status==="approved"?tr("scrapApprovedLabel")+": "+Number(s.quantity||0).toLocaleString():s?.status==="submitted"?tr("scrapPendingLabel")+": "+Number(s.quantity||0).toLocaleString():s?.status==="rejected"?tr("statusRejected"):""].filter(Boolean).join(" · ");root.append(line);});
+  const heading=document.createElement("strong");heading.textContent=tr("scrapRequestTitle");root.append(heading);
+  if(!scrap.docs.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
+  scrap.docs.map(x=>x.data()).sort((x,y)=>(y.requestDate||y.createdAt?.seconds||0).toString().localeCompare((x.requestDate||x.createdAt?.seconds||0).toString())).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.requestDate,row.orderNo,row.styleNo,Number(row.quantity||0).toLocaleString(),requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
  }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
 }
-document.getElementById("qcRequestWorkOrder").addEventListener("change",()=>{document.getElementById("qcRequestQuantity").value=qcWorkOrderCache.get(document.getElementById("qcRequestWorkOrder").value)?.quantity||"";});
-document.getElementById("scrapRequestWorkOrder").addEventListener("change",()=>{
- const batch=scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value);
- const quantity=document.getElementById("scrapRequestQuantity");quantity.max=batch?.quantity||"";
- document.getElementById("scrapRequestOrderNo").value=batch?.orderNo||"";
- document.getElementById("scrapRequestStyleNo").value=batch?.styleNo||"";
+document.getElementById("scrapRequestWorkOrder").addEventListener("change",()=>{const batch=scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value),q=document.getElementById("scrapRequestQuantity");q.max=batch?.quantity||"";document.getElementById("scrapRequestOrderNo").value=batch?.orderNo||"";document.getElementById("scrapRequestStyleNo").value=batch?.styleNo||"";});
+document.getElementById("scrapRequestForm").addEventListener("submit",async event=>{
+ event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
+ const date=document.getElementById("scrapRequestDate").value,workOrder=scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value),quantity=Number(document.getElementById("scrapRequestQuantity").value);
+ if(!date||!workOrder||!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(workOrder.quantity)||quantity>1000000)return;
+ const button=document.getElementById("submitScrapRequest"),message=document.getElementById("scrapRequestMessage");button.disabled=true;
+ try{const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:workOrder.orderNo||"",styleNo:workOrder.styleNo||"",quantity,note:document.getElementById("scrapRequestNote").value.trim(),status:"submitted",createdAt:serverTimestamp(),reason:document.getElementById("scrapRequestReason").value.trim(),workOrderId:workOrder.id,sourceCollection:workOrder.sourceCollection};const id="scrap_"+workOrder.sourceCollection+"_"+workOrder.id,ref=doc(db,"scrapRequests",id);if(workOrder.existingRequest?.status==="rejected"){const {createdAt,...data}=payload;data.updatedAt=serverTimestamp();await updateDoc(ref,data);}else await setDoc(ref,payload);document.getElementById("scrapRequestForm").reset();document.getElementById("scrapRequestDate").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();}
+ catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}finally{button.disabled=false;}
 });
-function bindDepartmentRequestForm(type){
- const isQc=type==="qc",prefix=isQc?"qcRequest":"scrapRequest",collectionName=isQc?"qcRequests":"scrapRequests";
- document.getElementById(prefix+"Form").addEventListener("submit",async event=>{
-  event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
-  const date=document.getElementById(prefix+"Date").value;
-  const workOrder=isQc?qcWorkOrderCache.get(document.getElementById("qcRequestWorkOrder").value):scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value);
-  const quantity=isQc?Number(workOrder?.quantity):Number(document.getElementById(prefix+"Quantity").value);
-  if(!date||!workOrder||!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(workOrder.quantity)||quantity>1000000)return;
-  const button=document.getElementById(isQc?"submitQcRequest":"submitScrapRequest"),message=document.getElementById(prefix+"Message");button.disabled=true;
-  try{
-   const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:workOrder.orderNo||"",styleNo:workOrder.styleNo||"",quantity,note:document.getElementById(prefix+"Note").value.trim(),status:"submitted",createdAt:serverTimestamp()};
-   if(isQc){
-    payload.workOrderId=workOrder.id;payload.sourceCollection=workOrder.sourceCollection;
-    if(workOrder.color)payload.color=workOrder.color;
-    if(workOrder.repairTypeId)payload.repairTypeId=workOrder.repairTypeId;
-    await setDoc(doc(db,"qcRequests","qc_"+workOrder.id),payload);
-   }else{
-    payload.reason=document.getElementById(prefix+"Reason").value.trim();
-    payload.workOrderId=workOrder.id;payload.sourceCollection=workOrder.sourceCollection;
-    const scrapId="scrap_"+workOrder.sourceCollection+"_"+workOrder.id;
-    const scrapRef=doc(db,collectionName,scrapId);
-    if(workOrder.existingRequest?.status==="rejected"){
-     const {createdAt,...resubmission}=payload;
-     resubmission.updatedAt=serverTimestamp();
-     await updateDoc(scrapRef,resubmission);
-    }else{
-     await setDoc(scrapRef,payload);
-    }
-   }
-   document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
-  }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
-  finally{button.disabled=false;}
- });
-}
-bindDepartmentRequestForm("qc");bindDepartmentRequestForm("scrap");
 async function loadScrapHistory(){
  const panel=document.getElementById("scrapHistoryPanel"),filters=document.getElementById("scrapHistoryFilters"),root=document.getElementById("scrapHistoryList");
  if(currentRole!=="admin"){panel.classList.add("hidden");return;}
@@ -1624,58 +1527,11 @@ async function loadScrapHistory(){
  }catch(error){root.textContent=tr("scrapHistoryError")+(error.code||error.message||"unknown");}
 }
 async function loadReviewQueues(){
- if(currentRole!=="admin"&&currentProfile?.qcAuthorized!==true)return;
- const queues=currentRole==="admin"?[["qc","qcRequests","qcReviewQueue"],["scrap","scrapRequests","scrapReviewQueue"]]:[["qc","qcRequests","qcReviewQueue"]];
- for(const [type,name,rootId] of queues){
-  const root=document.getElementById(rootId);root.textContent=tr("accountingLoading");
-  try{
-   const snap=await getDocs(query(collection(db,name),where("status","==","submitted"),limit(100)));
-   const reviewDocs=snap.docs.filter(item=>item.data().employeeUid!==auth.currentUser.uid);
-   root.replaceChildren();
-   if(!reviewDocs.length){root.textContent=tr("noPendingRequests");continue;}
-   reviewDocs.forEach(item=>{
-    const row=item.data(),line=document.createElement("article");line.className="work-record";
-    const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");
-    const note=document.createElement("div");note.className="small";
-    const sourceLabel=type==="qc"?(row.sourceCollection==="reworkWorkOrders"?tr("qcSourceRework"):tr("qcSourceBatch")):"";
-    const repairLabel=type==="qc"&&row.repairTypeId?(Number(row.repairTypeId)===101?tr("sprayRepair"):tr("handRepair")):"";
-    note.textContent=[sourceLabel,row.color||"",repairLabel,type==="scrap"?row.reason:"",row.note||""].filter(Boolean).join(" · ");
-    const actions=document.createElement("div");actions.className="employee-actions";
-    if(type==="qc"){
-     const qualified=document.createElement("input");qualified.type="number";qualified.min="0";qualified.step="1";qualified.max=String(row.quantity);qualified.placeholder=tr("qcQualified");qualified.setAttribute("aria-label",tr("qcQualified"));
-     const unqualified=document.createElement("input");unqualified.type="number";unqualified.min="0";unqualified.step="1";unqualified.max=String(row.quantity);unqualified.placeholder=tr("qcUnqualified");unqualified.setAttribute("aria-label",tr("qcUnqualified"));
-     const save=document.createElement("button");save.type="button";save.className="primary";save.textContent=tr("saveQcResult");
-     save.addEventListener("click",async()=>{
-      const q=Number(qualified.value),u=Number(unqualified.value);
-      if(!Number.isSafeInteger(q)||!Number.isSafeInteger(u)||q<0||u<0||q+u!==Number(row.quantity)){root.dataset.message=tr("qcQuantityMismatch");return;}
-      save.disabled=true;
-      try{
-       const qcRef=doc(db,"qcRequests",item.id),reworkId="rework_"+item.id,reworkRef=doc(db,"reworkWorkOrders",reworkId);
-       await runTransaction(db,async transaction=>{
-        const current=await transaction.get(qcRef);
-        if(!current.exists()||current.data().status!=="submitted")throw new Error("QC_ALREADY_REVIEWED");
-        transaction.update(qcRef,{status:"inspected",qualifiedQuantity:q,unqualifiedQuantity:u,qcResult:u===0?"passed":q===0?"failed":"partial",reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:""});
-        if(u>0)transaction.set(reworkRef,{sourceQcRequestId:item.id,sourceWorkOrderId:row.workOrderId,sourceCollection:row.sourceCollection,departmentId:row.departmentId,employeeUid:row.employeeUid,orderNo:row.orderNo||"",styleNo:row.styleNo||"",color:row.color||"",repairTypeId:row.repairTypeId||null,quantity:u,status:"pending_rework",createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});
-       });
-       await loadReviewQueues();
-      }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
-      finally{save.disabled=false;}
-     });
-     actions.append(qualified,unqualified,save);
-    }else{
-     const reviewNote=document.createElement("textarea");reviewNote.maxLength=300;reviewNote.placeholder=tr("scrapReviewNotePlaceholder");reviewNote.setAttribute("aria-label",tr("scrapReviewNotePlaceholder"));
-     actions.append(reviewNote);
-     [["approved","reviewApprove","primary"],["rejected","reviewReject","dark"]].forEach(([status,key,cls])=>{const b=document.createElement("button");b.type="button";b.className=cls;b.textContent=tr(key);b.addEventListener("click",async()=>{
-      const reason=reviewNote.value.trim();
-      if(status==="rejected"&&!reason){root.dataset.message=tr("scrapRejectReasonRequired");reviewNote.focus();return;}
-      b.disabled=true;try{await updateDoc(doc(db,name,item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:reason});await loadReviewQueues();}catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}finally{b.disabled=false;}
-     });actions.append(b);});
-    }
-    line.append(head,note,actions);root.append(line);
-   });
-  }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
- }
- if(currentRole==="admin")await loadScrapHistory();
+ if(currentRole!=="admin")return;const root=document.getElementById("scrapReviewQueue");root.textContent=tr("accountingLoading");
+ try{const snap=await getDocs(query(collection(db,"scrapRequests"),where("status","==","submitted"),limit(100)));root.replaceChildren();if(!snap.size){root.textContent=tr("noPendingRequests");return;}
+ snap.docs.forEach(item=>{const row=item.data(),line=document.createElement("article");line.className="work-record";const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");const note=document.createElement("div");note.className="small";note.textContent=[row.reason||"",row.note||""].filter(Boolean).join(" · ");const actions=document.createElement("div");actions.className="employee-actions";const reviewNote=document.createElement("textarea");reviewNote.maxLength=300;reviewNote.placeholder=tr("scrapReviewNotePlaceholder");reviewNote.setAttribute("aria-label",tr("scrapReviewNotePlaceholder"));actions.append(reviewNote);
+ [["approved","reviewApprove","primary"],["rejected","reviewReject","dark"]].forEach(([status,key,cls])=>{const button=document.createElement("button");button.type="button";button.className=cls;button.textContent=tr(key);button.addEventListener("click",async()=>{const reason=reviewNote.value.trim();if(status==="rejected"&&!reason){root.dataset.message=tr("scrapRejectReasonRequired");reviewNote.focus();return;}button.disabled=true;try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:reason});await loadReviewQueues();await loadScrapHistory();}catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}finally{button.disabled=false;}});actions.append(button);});line.append(head,note,actions);root.append(line);});
+ }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
 }
 function setRepairWorkMessage(message,isError=false){
   const el=document.getElementById("repairWorkMessage");
@@ -1946,7 +1802,7 @@ window.openDept = function(key){
   if(key==="repair") document.getElementById("repairWorkDate").value=localWorkDate();
   if(key==="clean"||key==="weave")document.getElementById(genericDepartments[key].prefix+"WorkDate").value=localWorkDate();
   showDeptTitle();
-  if(key==="repair") loadRepairWorkOrders();else loadGenericWorkOrders(key);if(currentRole==="employee"){document.getElementById("qcRequestDate").value=localWorkDate();document.getElementById("scrapRequestDate").value=localWorkDate();loadDeptRequests();}
+  if(key==="repair") loadRepairWorkOrders();else loadGenericWorkOrders(key);if(currentRole==="employee"){document.getElementById("scrapRequestDate").value=localWorkDate();loadDeptRequests();}
 };
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
