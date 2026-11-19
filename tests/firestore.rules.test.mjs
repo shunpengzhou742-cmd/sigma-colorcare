@@ -391,7 +391,8 @@ describe("SIGMA employee invitation Firestore rules", () => {
       });
       transaction.set(employeeRef, employeeData("employee-1", "employee@example.com", [2], []));
     }));
-    await assertFails(getDoc(doc(db, "employees/employee-1")));
+    const employeeAfterExpiredInvite = await assertSucceeds(getDoc(doc(db, "employees/employee-1")));
+    assert.equal(employeeAfterExpiredInvite.exists(), false);
   });
 
   it("rejects an employee profile whose department differs from the invitation", async () => {
