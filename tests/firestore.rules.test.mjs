@@ -801,6 +801,30 @@ describe("SIGMA scrap request Firestore rules", () => {
     assert.equal(own.size, 0);
   });
 
+  it("allows an active admin to query the exact pending scrap review queue", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "scrapRequests/pending-review"), {
+        requestDate: "2026-11-19",
+        departmentId: 3,
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        orderNo: "ORD-SCRAP-01",
+        styleNo: "STYLE-01",
+        quantity: 12,
+        note: "Batch damaged",
+        reason: "Fabric damage",
+        status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+    const { collection, getDocs, limit, query, where } = await import("firebase/firestore");
+    const pending = await assertSucceeds(getDocs(
+      query(collection(adminDb(), "scrapRequests"), where("status", "==", "submitted"), limit(100))
+    ));
+    assert.equal(pending.size, 1);
+    assert.equal(pending.docs[0].id, "pending-review");
+  });
+
   it("allows only an admin to approve or reject a submitted scrap request", async () => {
     await seedDeptEmployee("employee-1", 3);
     const employeeDb = googleDb();
