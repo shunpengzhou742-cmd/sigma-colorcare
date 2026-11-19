@@ -685,7 +685,6 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
       });
     });
     const db = googleDb();
-    const { setDoc } = await import("firebase/firestore");
     const id = "scrap_cleanWorkOrders_clean-1";
     const payload = {
       ...requestData("employee-1", 2, true), orderNo: "ORD-SCRAP-01", styleNo: "STYLE-01", quantity: 5,
@@ -717,7 +716,7 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
       });
     });
     const employeeDb = googleDb();
-    const { setDoc, updateDoc } = await import("firebase/firestore");
+    const { updateDoc } = await import("firebase/firestore");
     const id = "scrap_weaveWorkOrders_weave-1";
     await assertSucceeds(setDoc(doc(employeeDb, "scrapRequests", id), {
       ...requestData("employee-1", 3, true), orderNo: "ORD-SCRAP-03", styleNo: "STYLE-03", quantity: 3,
