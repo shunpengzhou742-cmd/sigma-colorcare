@@ -1472,6 +1472,16 @@ function bindScrapRequestForm(){
 }
 bindScrapRequestForm();
 
+function scrapPermissionContext(requestId=""){
+ const user=auth.currentUser;
+ const providers=user?.providerData?.map(item=>item.providerId).join(",")||"unknown";
+ return "Firebase项目："+(db.app?.options?.projectId||"unknown")
+  +"；当前角色："+(currentRole||"unknown")
+  +"；登录UID："+(user?.uid||"unknown")
+  +"；登录方式："+providers
+  +"；管理员资料："+(currentProfile?.role||"missing")+"/"+(currentProfile?.status||"missing")
+  +(requestId?"；申请ID："+requestId:"");
+}
 async function loadScrapReviewQueue(){
  if(currentRole!=="admin")return;
  const root=document.getElementById("scrapReviewQueue");root.textContent=tr("accountingLoading");
@@ -1489,13 +1499,13 @@ async function loadScrapReviewQueue(){
     button.addEventListener("click",async()=>{
      button.disabled=true;
      try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:""});await loadScrapReviewQueue();}
-     catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review failed",error);root.textContent="scrapRequests 审批失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
+     catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review failed",{requestId:item.id,uid:auth.currentUser?.uid,providers:auth.currentUser?.providerData?.map(p=>p.providerId),adminRole:currentProfile?.role,adminStatus:currentProfile?.status,error});root.textContent="scrapRequests 审批失败："+(error.code||error.message||"unknown")+"；"+scrapPermissionContext(item.id);}
      finally{button.disabled=false;}
     });actions.append(button);
    });
    line.append(head,note,actions);root.append(line);
   });
- }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review queue read failed",error);root.textContent="scrapRequests 待审批列表读取失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review queue read failed",{uid:auth.currentUser?.uid,providers:auth.currentUser?.providerData?.map(p=>p.providerId),adminRole:currentProfile?.role,adminStatus:currentProfile?.status,error});root.textContent="scrapRequests 待审批列表读取失败："+(error.code||error.message||"unknown")+"；"+scrapPermissionContext();}
 }
 
 function setRepairWorkMessage(message,isError=false){
