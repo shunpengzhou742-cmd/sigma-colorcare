@@ -688,19 +688,19 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     const { setDoc } = await import("firebase/firestore");
     const id = "scrap_cleanWorkOrders_clean-1";
     const payload = {
-      ...requestData("employee-1", 2, true), quantity: 5,
+      ...requestData("employee-1", 2, true), orderNo: "ORD-SCRAP-01", styleNo: "STYLE-01", quantity: 5,
       workOrderId: "clean-1", sourceCollection: "cleanWorkOrders"
     };
     await assertSucceeds(setDoc(doc(db, "scrapRequests", id), payload));
     await assertFails(setDoc(doc(db, "scrapRequests", id), {...payload, note: "duplicate"}));
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-other"), {
-      ...payload, workOrderId: "clean-other"
+      ...payload, orderNo: "ORD-OTHER", styleNo: "STYLE-02", workOrderId: "clean-other"
     }));
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_missing"), {
       ...payload, workOrderId: "missing"
     }));
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-2"), {
-      ...payload, workOrderId: "clean-2", quantity: 13
+      ...payload, orderNo: "ORD-SCRAP-02", styleNo: "STYLE-02", workOrderId: "clean-2", quantity: 13
     }));
     const missingLink = {...payload};delete missingLink.workOrderId;delete missingLink.sourceCollection;
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_missing-link"), missingLink));
@@ -720,7 +720,7 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     const { setDoc, updateDoc } = await import("firebase/firestore");
     const id = "scrap_weaveWorkOrders_weave-1";
     await assertSucceeds(setDoc(doc(employeeDb, "scrapRequests", id), {
-      ...requestData("employee-1", 3, true), quantity: 3,
+      ...requestData("employee-1", 3, true), orderNo: "ORD-SCRAP-03", styleNo: "STYLE-03", quantity: 3,
       workOrderId: "weave-1", sourceCollection: "weaveWorkOrders"
     }));
     await assertFails(updateDoc(doc(employeeDb, "scrapRequests", id), {
