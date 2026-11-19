@@ -304,8 +304,8 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
       <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">部门每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
       <form id="dailyAccountingForm" class="work-panel">
         <label data-i18n="accountingDate">核算日期</label><input id="accountingDate" type="date" required>
-        <label data-i18n="accountingDepartment">核算部门</label>
-        <select id="accountingDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="accountingDepartment">核算业务组</label>
+        <select id="accountingDepartment" required><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
         <label data-i18n="accountingHeadcount">当天人数</label><input id="accountingHeadcount" type="number" min="0" step="1" required placeholder="0">
         <label data-i18n="accountingOutput">当天总产量</label><input id="accountingOutput" type="number" min="0" step="1" required placeholder="0">
         <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="accountingUnitPrice" type="number" min="0" step="any" required placeholder="0">
@@ -518,12 +518,12 @@ const translations = {
     subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
-    selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
-    clean:"清洗部门", cleanDesc:"清洗工序管理", weave:"修织部门",
-    weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
+    selectDept:"修色部 · 请选择业务组", repair:"修色组", repairDesc:"喷色 / 手工描绘",
+    clean:"清洗组", cleanDesc:"清洗工序管理", weave:"修织组",
+    weaveDesc:"修织工序管理", placeholder:"修色部业务组页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
-    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个部门。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
+    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个业务组。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
     signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
     loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
@@ -555,10 +555,10 @@ const translations = {
     totalRevenue:"总收入",
     totalCost:"总成本",
     netProfit:"公司净利润",
-    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"部门利润",financeDataError:"财务数据读取失败：",
+    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
-    financeNote:"统计基于部门每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",financeScrapBreakdown:"各部门已批准报废数量",financeScrapUnassigned:"未识别部门报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：部门归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"部门编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditProfitGap:"公司总利润与部门汇总差额",
-    deptOverview:"部门运营进度",
+    financeNote:"统计基于修色部各组每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",financeScrapBreakdown:"各组已批准报废数量",financeScrapUnassigned:"未识别组别报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：组别归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"组别编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditProfitGap:"公司总利润与各组汇总差额",
+    deptOverview:"修色部各组运营进度",
     threeDeptIndependent:"三个部门独立核算",
     repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
     repairModuleDetail:"今日数量以实际提交工单统计",
@@ -574,10 +574,10 @@ const translations = {
     trendEmpty:"近7天暂无修色工单记录。",
     trendError:"读取趋势失败：",
     trendPieces:"件",
-    dailyAccountingTitle:"部门每日经营数据",
+    dailyAccountingTitle:"修色部各组每日经营数据",
     adminOnlyEntry:"仅负责人录入",
     accountingDate:"核算日期",
-    accountingDepartment:"核算部门",
+    accountingDepartment:"核算业务组",
     accountingHeadcount:"当天人数",
     accountingOutput:"当天总产量",
     accountingUnitPrice:"加工单价（越南盾/件）",
@@ -643,12 +643,12 @@ const translations = {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
-    selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
-    clean:"Bộ phận Giặt", cleanDesc:"Quản lý công đoạn giặt", weave:"Bộ phận Sửa dệt",
-    weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
+    selectDept:"Bộ phận Sửa màu · Chọn tổ", repair:"Tổ Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
+    clean:"Tổ Giặt", cleanDesc:"Quản lý công đoạn giặt", weave:"Tổ Sửa dệt",
+    weaveDesc:"Quản lý sửa dệt", placeholder:"Module các tổ thuộc Bộ phận Sửa màu đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
-    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một bộ phận.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
+    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một tổ.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
     signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
     loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
@@ -680,10 +680,10 @@ const translations = {
     totalRevenue:"Tổng doanh thu",
     totalCost:"Tổng chi phí",
     netProfit:"Lợi nhuận ròng",
-    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận bộ phận",financeDataError:"Không thể tải dữ liệu tài chính: ",
+    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
-    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo bộ phận",financeScrapUnassigned:"Số lượng báo phế chưa xác định bộ phận",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: bộ phận và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã bộ phận bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp bộ phận",
-    deptOverview:"Tiến độ hoạt động các bộ phận",
+    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",
+    deptOverview:"Tiến độ hoạt động các tổ thuộc Bộ phận Sửa màu",
     threeDeptIndependent:"Ba bộ phận hạch toán độc lập",
     repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp bộ phận.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
@@ -699,10 +699,10 @@ const translations = {
     trendEmpty:"Không có phiếu sửa màu trong 7 ngày qua.",
     trendError:"Không thể tải xu hướng: ",
     trendPieces:"sản phẩm",
-    dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của bộ phận",
+    dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của các tổ",
     adminOnlyEntry:"Chỉ quản lý nhập",
     accountingDate:"Ngày hạch toán",
-    accountingDepartment:"Bộ phận",
+    accountingDepartment:"Tổ",
     accountingHeadcount:"Số người trong ngày",
     accountingOutput:"Tổng sản lượng trong ngày",
     accountingUnitPrice:"Đơn giá gia công (VND/sản phẩm)",
@@ -1120,8 +1120,8 @@ function expenseCategoryLabel(key){return tr(({transport:"expenseTransport",util
 function expenseDepartmentLabel(id){return Number(id)===0?tr("expenseCompanyLabel"):departmentLabel(Number(id));}
 
 let wageRatesCache=[];
-const departmentNames={1:"修色部门",2:"清洗部门",3:"修织部门"};
-function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Bộ phận Sửa màu",2:"Bộ phận Giặt",3:"Bộ phận Sửa dệt"}[id]||String(id));}
+const departmentNames={1:"修色组",2:"清洗组",3:"修织组"};
+function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Tổ Sửa màu",2:"Tổ Giặt",3:"Tổ Sửa dệt"}[id]||String(id));}
 function renderWageHistory(){
  const target=document.getElementById("wageRateHistory");
  const rows=[...wageRatesCache].sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate)||a.departmentId-b.departmentId);
@@ -1800,8 +1800,8 @@ window.openDept = function(key){
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
   const labels = {
-    zh:{deptRepair:"修色部门",deptClean:"清洗部门",deptWeave:"修织部门"},
-    vi:{deptRepair:"Bộ phận Sửa màu",deptClean:"Bộ phận Giặt",deptWeave:"Bộ phận Sửa dệt"}
+    zh:{deptRepair:"修色组",deptClean:"清洗组",deptWeave:"修织组"},
+    vi:{deptRepair:"Tổ Sửa màu",deptClean:"Tổ Giặt",deptWeave:"Tổ Sửa dệt"}
   };
   document.getElementById("deptTitle").textContent = labels[lang][keys[currentDept]];
 }
