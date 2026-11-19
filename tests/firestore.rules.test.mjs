@@ -12,7 +12,12 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
-  setDoc
+  setDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+  limit
 } from "firebase/firestore";
 
 const projectId = "demo-sigma-colorcare";
@@ -893,5 +898,56 @@ describe("SIGMA department workflow isolation from QC", () => {
     await assertFails(getDocs(collection(db, "reworkWorkOrders")));
     await assertFails(setDoc(doc(db, "qcRequests/new-request"), { employeeUid: "employee-1" }));
     await assertFails(setDoc(doc(db, "reworkWorkOrders/new-rework"), { employeeUid: "employee-1" }));
+  });
+});
+
+
+describe("SIGMA employee attendance and personal payroll rules", () => {
+  it("allows the admin to create attendance with fractional payable days and a wage snapshot", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+    });
+    await assertSucceeds(setDoc(doc(adminDb(), "employeeAttendance/employee-1_2026-11-19"), {
+      employeeUid: "employee-1", employeeName: "Test Employee", workDate: "2026-11-19",
+      departmentId: 1, payableDays: 0.5, dailyWage: 350000, wageAmount: 175000,
+      wageEffectiveDate: "2026-11-01", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("allows employees to query only their own attendance and blocks writing", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+      await setDoc(doc(context.firestore(), "employees/employee-2"), employeeData("employee-2", "employee2@example.com", [1]));
+      const row = {
+        employeeUid: "employee-1", employeeName: "Test Employee", workDate: "2026-11-19",
+        departmentId: 1, payableDays: 1, dailyWage: 350000, wageAmount: 350000,
+        wageEffectiveDate: "2026-11-01", createdBy: "admin-1",
+        createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+      };
+      await setDoc(doc(context.firestore(), "employeeAttendance/employee-1_2026-11-19"), row);
+      await setDoc(doc(context.firestore(), "employeeAttendance/employee-2_2026-11-19"), {...row, employeeUid:"employee-2"});
+    });
+    const db = googleDb("employee-1");
+    await assertSucceeds(getDocs(query(collection(db, "employeeAttendance"), where("employeeUid", "==", "employee-1"), limit(50))));
+    await assertFails(getDoc(doc(db, "employeeAttendance/employee-2_2026-11-19")));
+    await assertFails(setDoc(doc(db, "employeeAttendance/forbidden"), {
+      employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-20",
+      departmentId:1, payableDays:1, dailyWage:350000, wageAmount:350000,
+      wageEffectiveDate:"2026-11-01", createdBy:"employee-1",
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    }));
+  });
+
+  it("rejects a wage amount that does not equal payable days multiplied by daily wage", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+    });
+    await assertFails(setDoc(doc(adminDb(), "employeeAttendance/bad-math"), {
+      employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+      departmentId:1, payableDays:0.5, dailyWage:350000, wageAmount:350000,
+      wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    }));
   });
 });
