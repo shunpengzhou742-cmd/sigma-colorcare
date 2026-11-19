@@ -1510,7 +1510,7 @@ function bindDepartmentRequestForm(type){
   event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
   const date=document.getElementById(prefix+"Date").value;
   const workOrder=isQc?qcWorkOrderCache.get(document.getElementById("qcRequestWorkOrder").value):scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value);
-  const quantity=Number(document.getElementById(prefix+"Quantity").value);
+  const quantity=isQc?Number(workOrder?.quantity):Number(document.getElementById(prefix+"Quantity").value);
   if(!date||!workOrder||!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(workOrder.quantity)||quantity>1000000)return;
   const button=document.getElementById(isQc?"submitQcRequest":"submitScrapRequest"),message=document.getElementById(prefix+"Message");button.disabled=true;
   try{
