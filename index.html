@@ -1168,7 +1168,7 @@ async function refreshExpenseList(){
    const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
    line.append(detail,edit);target.append(line);
   });
- }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses list failed",error);target.textContent="operatingExpenses 读取失败："+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses list failed",error);target.textContent="operatingExpenses 读取失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
@@ -1338,7 +1338,7 @@ async function loadFinanceOverview(){
  renderFinanceOverview();
  if(failures.length){
   const detail=document.createElement("p");detail.className="small";detail.style.color="#b91c1c";
-  detail.textContent="读取失败："+failures.map(item=>item.name+"（"+(item.error?.code||item.error?.message||"unknown")+"）").join("；");
+  detail.textContent="读取失败："+failures.map(item=>item.name+"（"+(item.error?.code||item.error?.message||"unknown")+"）").join("；")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");
   root.append(detail);
  }
 }
@@ -1381,7 +1381,7 @@ async function loadDashboard(){
     if(results[2].status==="fulfilled")document.getElementById("metricWeaveQty").textContent=results[2].value.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0).toLocaleString();
     else document.getElementById("metricWeaveQty").textContent="—";
     message.textContent=failures.length
-      ?"部分数据读取失败："+failures.join("；")
+      ?"部分数据读取失败："+failures.join("；")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown")
       :tr("dashboardLoaded")+(results[0].value.size===500?" "+tr("dashboardLimit"):"");
     await loadFinanceOverview();
   }catch(error){
