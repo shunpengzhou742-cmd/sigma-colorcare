@@ -355,6 +355,26 @@ describe("SIGMA employee invitation Firestore rules", () => {
     ));
   });
 
+  it("prevents employees from changing their own group access, status, or role flags", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", name: "Test Employee", email: "employee@example.com",
+        roleType: 1, status: "active", departmentIds: [2],
+        repairTypeIds: [], specialRole: false, invitationId: "invite-valid",
+        createdAt: Timestamp.now(), createdBy: "admin-1", updatedAt: Timestamp.now()
+      });
+    });
+    const { updateDoc } = await import("firebase/firestore");
+    const ref = doc(googleDb(), "employees/employee-1");
+    await assertFails(updateDoc(ref, {
+      departmentIds: [1, 2, 3], repairTypeIds: [101, 102],
+      updatedAt: serverTimestamp()
+    }));
+    await assertFails(updateDoc(ref, {
+      status: "active", specialRole: true, updatedAt: serverTimestamp()
+    }));
+  });
+
   it("allows an active admin to update employee departments and status", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
