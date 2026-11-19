@@ -341,7 +341,8 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <label data-i18n="expenseAmount">金额（VND）</label><input id="expenseAmount" type="number" min="0.01" step="any" required placeholder="0">
         <label data-i18n="expenseNote">备注</label><input id="expenseNote" type="text" maxlength="300" placeholder="—">
         <button id="saveExpenseBtn" class="primary" type="submit" data-i18n="saveExpense">保存费用</button><button id="cancelExpenseEditBtn" class="dark hidden" type="button" data-i18n="cancelEdit">取消修改</button>
-        <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
+        <p class="dashboard-note" data-i18n="expenseDoubleCountWarning">录入前请核对：如果这笔费用已经填入部门每日核算的“其他部门支出”，不要再次登记。系统不会自动合并或识别重复费用。</p>
+         <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
       </form>
       <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
       <div id="expenseList" class="work-panel"><p class="small" data-i18n="expenseLoading">正在读取费用记录……</p></div>
@@ -632,6 +633,7 @@ const translations = {
     expenseCompany:"公司公共",
     expenseAmount:"金额（VND）",
     expenseNote:"备注",
+    expenseDoubleCountWarning:"录入前请核对：如果这笔费用已经填入部门每日核算的“其他部门支出”，不要再次登记。系统不会自动合并或识别重复费用。",
     saveExpense:"保存费用",
     expenseRecent:"近期费用记录",
     refreshExpenses:"刷新费用",
@@ -756,6 +758,7 @@ const translations = {
     expenseCompany:"Chi phí chung công ty",
     expenseAmount:"Số tiền (VND)",
     expenseNote:"Ghi chú",
+    expenseDoubleCountWarning:"Trước khi nhập, vui lòng kiểm tra: nếu khoản này đã được ghi ở mục “Chi phí khác của bộ phận” trong kế toán hằng ngày thì không nhập lại. Hệ thống không tự động gộp hoặc nhận diện khoản trùng.",
     saveExpense:"Lưu chi phí",
     expenseRecent:"Các khoản chi gần đây",
     refreshExpenses:"Làm mới chi phí",
