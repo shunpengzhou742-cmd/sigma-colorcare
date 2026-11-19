@@ -1447,12 +1447,15 @@ async function loadDeptRequests(){
    getDocs(query(collection(db,"reworkWorkOrders"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))
   ]);
   const submittedWorkOrders=new Set(qc.docs.map(x=>x.data().workOrderId).filter(Boolean));
+  const scrapRequestsByBatch=new Map(scrap.docs.map(item=>[item.id,item.data()]));
   scrapWorkOrderCache=new Map();
   const scrapSelect=document.getElementById("scrapRequestWorkOrder");scrapSelect.replaceChildren();
   const scrapPlaceholder=document.createElement("option");scrapPlaceholder.value="";scrapPlaceholder.textContent=tr("scrapBatchPlaceholder");scrapSelect.append(scrapPlaceholder);
   const addScrapOption=(docSnap,collectionName,isRework=false)=>{
    const row=docSnap.data(),key=collectionName+"/"+docSnap.id;
-   scrapWorkOrderCache.set(key,{...row,id:docSnap.id,sourceCollection:collectionName});
+   const requestId="scrap_"+collectionName+"_"+docSnap.id,existingRequest=scrapRequestsByBatch.get(requestId);
+   if(existingRequest&&existingRequest.status!=="rejected")return;
+   scrapWorkOrderCache.set(key,{...row,id:docSnap.id,sourceCollection:collectionName,existingRequest});
    const option=document.createElement("option");option.value=key;
    option.textContent=[isRework?tr("qcSourceRework"):tr("qcSourceBatch"),row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.color,row.quantity].filter(Boolean).join(" · ");
    scrapSelect.append(option);
@@ -1523,7 +1526,15 @@ function bindDepartmentRequestForm(type){
    }else{
     payload.reason=document.getElementById(prefix+"Reason").value.trim();
     payload.workOrderId=workOrder.id;payload.sourceCollection=workOrder.sourceCollection;
-    await setDoc(doc(db,collectionName,"scrap_"+workOrder.sourceCollection+"_"+workOrder.id),payload);
+    const scrapId="scrap_"+workOrder.sourceCollection+"_"+workOrder.id;
+    const scrapRef=doc(db,collectionName,scrapId);
+    if(workOrder.existingRequest?.status==="rejected"){
+     const {createdAt,...resubmission}=payload;
+     resubmission.updatedAt=serverTimestamp();
+     await updateDoc(scrapRef,resubmission);
+    }else{
+     await setDoc(scrapRef,payload);
+    }
    }
    document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
   }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
