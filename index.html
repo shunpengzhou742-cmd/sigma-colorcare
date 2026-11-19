@@ -1323,7 +1323,25 @@ document.getElementById("financePeriodType").addEventListener("change",event=>se
 document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 setFinanceDates("month");
-async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
+async function loadFinanceOverview(){
+ const root=document.getElementById("financeDepartmentSummary");
+ root.textContent=tr("financeLoading");
+ const results=await Promise.allSettled([
+  getDocs(collection(db,"dailyRecords")),
+  getDocs(collection(db,"operatingExpenses"))
+ ]);
+ const failures=[];
+ if(results[0].status==="fulfilled")financeRecordsCache=results[0].value.docs.map(x=>x.data());
+ else{failures.push("dailyRecords");console.error("[SIGMA permission diagnostic] dailyRecords read failed",results[0].reason);}
+ if(results[1].status==="fulfilled")financeExpensesCache=results[1].value.docs.map(x=>x.data());
+ else{failures.push("operatingExpenses");console.error("[SIGMA permission diagnostic] operatingExpenses read failed",results[1].reason);}
+ renderFinanceOverview();
+ if(failures.length){
+  const detail=document.createElement("p");detail.className="small";detail.style.color="#b91c1c";
+  detail.textContent="读取失败集合："+failures.join("、")+"；请检查管理员身份及 Firestore Rules。";
+  root.append(detail);
+ }
+}
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
@@ -1335,31 +1353,39 @@ async function loadDashboard(){
   try{
     const startDate=new Date();startDate.setDate(startDate.getDate()-6);
     const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
-    const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
-    const [snapshot,cleanSnapshot,weaveSnapshot]=await Promise.all([
-      getDocs(q),
+    const results=await Promise.allSettled([
+      getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500))),
       getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==",today),limit(500))),
       getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==",today),limit(500)))
     ]);
-    dashboardRowsCache=snapshot.docs.map(item=>item.data());
-    const cleanQty=cleanSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    const weaveQty=weaveSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    document.getElementById("metricCleanQty").textContent=cleanQty.toLocaleString();
-    document.getElementById("metricWeaveQty").textContent=weaveQty.toLocaleString();
-    const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
-    const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
-    document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
-    document.getElementById("metricHandQty").textContent=hand.toLocaleString();
-    document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
-    message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
-    renderRepairTrend(dashboardRowsCache,startKey,today);
+    const names=["repairWorkOrders（修色）","cleanWorkOrders（清洗）","weaveWorkOrders（修织）"];
+    const failures=[];
+    results.forEach((result,index)=>{if(result.status==="rejected"){failures.push(names[index]);console.error("[SIGMA permission diagnostic] "+names[index]+" read failed",result.reason);}});
+    if(results[0].status==="fulfilled"){
+      dashboardRowsCache=results[0].value.docs.map(item=>item.data());
+      const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
+      const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+      const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+      document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
+      document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
+      document.getElementById("metricHandQty").textContent=hand.toLocaleString();
+      document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
+      renderRepairTrend(dashboardRowsCache,startKey,today);
+    }else{
+      dashboardRowsCache=[];
+      ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount"].forEach(id=>document.getElementById(id).textContent="—");
+      document.getElementById("repairTrend").textContent="修色工单读取失败（repairWorkOrders）。";
+    }
+    if(results[1].status==="fulfilled")document.getElementById("metricCleanQty").textContent=results[1].value.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0).toLocaleString();
+    else document.getElementById("metricCleanQty").textContent="—";
+    if(results[2].status==="fulfilled")document.getElementById("metricWeaveQty").textContent=results[2].value.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0).toLocaleString();
+    else document.getElementById("metricWeaveQty").textContent="—";
+    message.textContent=failures.length
+      ?"部分数据读取失败："+failures.join("；")
+      :tr("dashboardLoaded")+(results[0].value.size===500?" "+tr("dashboardLimit"):"");
     await loadFinanceOverview();
   }catch(error){
-    console.error("SIGMA dashboard load error:",error);
-    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
-    document.getElementById("repairTrend").innerHTML='<p class="small">'+tr("trendError")+(error.code||error.message||"unknown")+"</p>";
+    console.error("SIGMA dashboard unexpected error:",error);
     message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
   }finally{if(button) button.disabled=false;}
 }
