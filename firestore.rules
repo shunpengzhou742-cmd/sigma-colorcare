@@ -345,6 +345,7 @@ service cloud.firestore {
 
     function validQcReview() {
       return isQcReviewer()
+        && resource.data.employeeUid != request.auth.uid
         && resource.data.status == 'submitted'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'qualifiedQuantity', 'unqualifiedQuantity', 'qcResult', 'reviewedBy', 'reviewedAt', 'reviewNote'])
         && request.resource.data.status == 'inspected'
