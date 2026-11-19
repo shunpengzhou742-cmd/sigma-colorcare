@@ -233,24 +233,32 @@ service cloud.firestore {
             && exists(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId))
             && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
             && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.orderNo == data.orderNo
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.styleNo == data.styleNo
             && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity is int
             && data.quantity <= get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity)
           || (data.sourceCollection == 'cleanWorkOrders'
             && exists(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId))
             && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
             && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.orderNo == data.orderNo
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.styleNo == data.styleNo
             && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity is int
             && data.quantity <= get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity)
           || (data.sourceCollection == 'weaveWorkOrders'
             && exists(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId))
             && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
             && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.orderNo == data.orderNo
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.styleNo == data.styleNo
             && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity is int
             && data.quantity <= get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity)
           || (data.sourceCollection == 'reworkWorkOrders'
             && exists(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId))
             && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
             && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.orderNo == data.orderNo
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.styleNo == data.styleNo
             && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity is int
             && data.quantity <= get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity)
         );
