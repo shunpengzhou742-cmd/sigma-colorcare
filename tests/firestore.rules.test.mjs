@@ -665,25 +665,63 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     }));
   });
 
-  it("allows an employee to submit a scrap request and requires a reason", async () => {
+  it("requires an employee-owned batch, caps scrap quantity, and permits only one request per batch", async () => {
     await seedDeptEmployee("employee-1", 2);
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/clean-1"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-19", orderNo: "ORD-SCRAP-01", styleNo: "STYLE-01",
+        color: "Navy", quantity: 12, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/clean-other"), {
+        employeeUid: "employee-2", createdBy: "employee-2", departmentId: 2,
+        workDate: "2026-11-19", orderNo: "ORD-OTHER", styleNo: "STYLE-02",
+        color: "Black", quantity: 20, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+    });
     const db = googleDb();
-    const { addDoc, collection } = await import("firebase/firestore");
-    await assertSucceeds(addDoc(collection(db, "scrapRequests"), requestData("employee-1", 2, true)));
-    const invalid = requestData("employee-1", 2, true);
-    invalid.reason = "";
-    await assertFails(addDoc(collection(db, "scrapRequests"), invalid));
+    const { setDoc } = await import("firebase/firestore");
+    const id = "scrap_cleanWorkOrders_clean-1";
+    const payload = {
+      ...requestData("employee-1", 2, true), quantity: 5,
+      workOrderId: "clean-1", sourceCollection: "cleanWorkOrders"
+    };
+    await assertSucceeds(setDoc(doc(db, "scrapRequests", id), payload));
+    await assertFails(setDoc(doc(db, "scrapRequests", id), {...payload, note: "duplicate"}));
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-other"), {
+      ...payload, workOrderId: "clean-other"
+    }));
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_missing"), {
+      ...payload, workOrderId: "missing"
+    }));
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-1-too-many"), {
+      ...payload, quantity: 13
+    }));
+    const missingLink = {...payload};delete missingLink.workOrderId;delete missingLink.sourceCollection;
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_missing-link"), missingLink));
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_bad-reason"), {...payload, reason: ""}));
   });
 
-  it("allows only an admin to approve or reject a submitted request", async () => {
+  it("allows only an admin to approve or reject a batch-linked scrap request", async () => {
     await seedDeptEmployee("employee-1", 3);
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "weaveWorkOrders/weave-1"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 3,
+        workDate: "2026-11-19", orderNo: "ORD-SCRAP-03", styleNo: "STYLE-03",
+        color: "White", quantity: 12, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+    });
     const employeeDb = googleDb();
-    const { addDoc, collection, updateDoc } = await import("firebase/firestore");
-    const created = await assertSucceeds(addDoc(collection(employeeDb, "scrapRequests"), requestData("employee-1", 3, true)));
-    await assertFails(updateDoc(doc(employeeDb, "scrapRequests", created.id), {
+    const { setDoc, updateDoc } = await import("firebase/firestore");
+    const id = "scrap_weaveWorkOrders_weave-1";
+    await assertSucceeds(setDoc(doc(employeeDb, "scrapRequests", id), {
+      ...requestData("employee-1", 3, true), quantity: 3,
+      workOrderId: "weave-1", sourceCollection: "weaveWorkOrders"
+    }));
+    await assertFails(updateDoc(doc(employeeDb, "scrapRequests", id), {
       status: "approved", reviewedBy: "employee-1", reviewedAt: serverTimestamp(), reviewNote: ""
     }));
-    await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", created.id), {
+    await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", id), {
       status: "approved", reviewedBy: "admin-1", reviewedAt: serverTimestamp(), reviewNote: ""
     }));
   });
