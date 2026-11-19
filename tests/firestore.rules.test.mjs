@@ -967,6 +967,21 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
     }));
   });
 
+  it("rejects malformed attendance dates and invalid wage snapshots", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+    });
+    const base = {
+      employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+      departmentId:1, payableDays:1, dailyWage:350000, wageAmount:350000,
+      wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    };
+    await assertFails(setDoc(doc(adminDb(), "employeeAttendance/bad-date"), {...base, workDate:"2026-11-19-extra"}));
+    await assertFails(setDoc(doc(adminDb(), "employeeAttendance/bad-rate-date"), {...base, wageEffectiveDate:"not-a-date"}));
+    await assertFails(setDoc(doc(adminDb(), "employeeAttendance/negative-wage"), {...base, dailyWage:-1, wageAmount:-1}));
+  });
+
   it("rejects attendance in a group the employee is not authorized for", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
