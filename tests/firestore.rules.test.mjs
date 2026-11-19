@@ -365,6 +365,35 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(getDoc(doc(googleDb(), "employeeInvites/invite-expired")));
   });
 
+  it("rejects consuming an expired invitation or creating its employee profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employeeInvites/invite-expired"), {
+        departmentIds: [2],
+        repairTypeIds: [],
+        status: "active",
+        expiresAt: Timestamp.fromDate(new Date(Date.now() - 60 * 1000)),
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        usedBy: null,
+        usedAt: null
+      });
+    });
+    const db = googleDb();
+    await assertFails(runTransaction(db, async transaction => {
+      const inviteRef = doc(db, "employeeInvites/invite-expired");
+      const employeeRef = doc(db, "employees/employee-1");
+      const inviteSnap = await transaction.get(inviteRef);
+      assert.equal(inviteSnap.exists(), false);
+      transaction.update(inviteRef, {
+        status: "used",
+        usedBy: "employee-1",
+        usedAt: serverTimestamp()
+      });
+      transaction.set(employeeRef, employeeData("employee-1", "employee@example.com", [2], []));
+    }));
+    await assertFails(getDoc(doc(db, "employees/employee-1")));
+  });
+
   it("rejects an employee profile whose department differs from the invitation", async () => {
     const db = googleDb();
     const inviteRef = doc(db, "employeeInvites/invite-valid");
