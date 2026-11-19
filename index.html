@@ -1274,7 +1274,7 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
    message.textContent=tr("expenseSaved");
   }
   await refreshExpenseList();
- }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses write failed",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):"operatingExpenses 保存失败："+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses write failed",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):"operatingExpenses 保存失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
  finally{button.disabled=false;}
 });
 
