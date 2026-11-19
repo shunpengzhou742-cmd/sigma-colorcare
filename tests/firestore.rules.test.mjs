@@ -558,6 +558,16 @@ describe("SIGMA washing and weaving work order Firestore rules", () => {
     await assertFails(addDoc(collection(db, "cleanWorkOrders"), workOrderData("employee-1", 2)));
   });
 
+  it("prevents an employee from reading another employee's work order in the same group", async () => {
+    await seedEmployee("employee-1", 2);
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/other-employee-order"), {
+        ...workOrderData("employee-2", 2), createdAt: Timestamp.now()
+      });
+    });
+    await assertFails(getDoc(doc(googleDb(), "cleanWorkOrders/other-employee-order")));
+  });
+
   it("rejects zero quantity and editing submitted cleaning work orders", async () => {
     await seedEmployee("employee-1", 2);
     const db = googleDb();
