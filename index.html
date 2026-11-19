@@ -1188,7 +1188,7 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
   });
   const snap=await getDoc(ref);wageRatesCache=snap.exists()?snap.data().rates||[]:[];
   renderWageHistory();message.textContent=tr("wageSaved");applyEffectiveWage();
- }catch(error){console.error("Wage rate save error",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):tr("wageSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] appSettings/departmentWages write failed",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):"appSettings/departmentWages 保存失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
  finally{button.disabled=false;}
 });
 
@@ -1324,7 +1324,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
    });
   });
   message.textContent=tr("accountingSaved");await loadDashboard();
- }catch(error){console.error("Daily accounting save error",error);message.textContent=error.message==="ACCOUNTING_RECORD_EXISTS"?tr("accountingDuplicate"):tr("accountingSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] dailyRecords write failed",error);message.textContent=error.message==="ACCOUNTING_RECORD_EXISTS"?tr("accountingDuplicate"):"dailyRecords 保存失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
  finally{button.disabled=false;}
 });
 
@@ -1459,7 +1459,7 @@ function bindScrapRequestForm(){
    const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:document.getElementById(prefix+"OrderNo").value.trim(),styleNo:document.getElementById(prefix+"StyleNo").value.trim(),quantity,note:document.getElementById(prefix+"Note").value.trim(),reason:document.getElementById(prefix+"Reason").value.trim(),status:"submitted",createdAt:serverTimestamp()};
    await addDoc(collection(db,"scrapRequests"),payload);
    document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
-  }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+  }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests create failed",error);message.textContent="scrapRequests 提交失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
   finally{button.disabled=false;}
  });
 }
@@ -1482,7 +1482,7 @@ async function loadScrapReviewQueue(){
     button.addEventListener("click",async()=>{
      button.disabled=true;
      try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:""});await loadScrapReviewQueue();}
-     catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+     catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review failed",error);root.textContent="scrapRequests 审批失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
      finally{button.disabled=false;}
     });actions.append(button);
    });
