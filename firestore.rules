@@ -224,10 +224,42 @@ service cloud.firestore {
       allow get, list: if isAdmin() || (isActiveDepartmentEmployee(3) && resource.data.employeeUid == request.auth.uid && resource.data.departmentId == 3);
       allow update, delete: if false;
     }
-    function validDepartmentRequest(data, departmentId, isScrap) {
+    function validScrapBatch(data, requestId) {
+      return data.workOrderId is string && data.workOrderId.size() > 0
+        && data.sourceCollection in ['repairWorkOrders', 'cleanWorkOrders', 'weaveWorkOrders', 'reworkWorkOrders']
+        && requestId == 'scrap_' + data.sourceCollection + '_' + data.workOrderId
+        && (
+          (data.sourceCollection == 'repairWorkOrders'
+            && exists(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity is int
+            && data.quantity <= get(/databases/$(database)/documents/repairWorkOrders/$(data.workOrderId)).data.quantity)
+          || (data.sourceCollection == 'cleanWorkOrders'
+            && exists(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity is int
+            && data.quantity <= get(/databases/$(database)/documents/cleanWorkOrders/$(data.workOrderId)).data.quantity)
+          || (data.sourceCollection == 'weaveWorkOrders'
+            && exists(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity is int
+            && data.quantity <= get(/databases/$(database)/documents/weaveWorkOrders/$(data.workOrderId)).data.quantity)
+          || (data.sourceCollection == 'reworkWorkOrders'
+            && exists(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId))
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.employeeUid == request.auth.uid
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.departmentId == data.departmentId
+            && get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity is int
+            && data.quantity <= get(/databases/$(database)/documents/reworkWorkOrders/$(data.workOrderId)).data.quantity)
+        );
+    }
+
+    function validDepartmentRequest(data, departmentId, isScrap, requestId) {
       return data.keys().hasAll(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt'])
-        && (isScrap ? data.keys().hasAll(['reason']) : true)
-        && (isScrap ? data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt', 'reason']) : data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt']))
+        && (isScrap ? data.keys().hasAll(['reason', 'workOrderId', 'sourceCollection']) : true)
+        && (isScrap ? data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt', 'reason', 'workOrderId', 'sourceCollection']) : data.keys().hasOnly(['requestDate', 'departmentId', 'employeeUid', 'createdBy', 'orderNo', 'styleNo', 'quantity', 'note', 'status', 'createdAt']))
         && data.requestDate is string && data.requestDate.size() == 10
         && data.requestDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}')
         && data.departmentId == departmentId && data.departmentId in [1, 2, 3]
@@ -237,7 +269,7 @@ service cloud.firestore {
         && data.quantity is int && data.quantity > 0 && data.quantity <= 1000000
         && data.note is string && data.note.size() <= 500
         && data.status == 'submitted' && data.createdAt == request.time
-        && (isScrap ? (data.reason is string && data.reason.size() > 0 && data.reason.size() <= 300) : true);
+        && (isScrap ? (data.reason is string && data.reason.size() > 0 && data.reason.size() <= 300 && validScrapBatch(data, requestId)) : true);
     }
 
     function validQCRequest(data, requestId) {
@@ -347,7 +379,7 @@ service cloud.firestore {
 
     match /scrapRequests/{requestId} {
       allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
-        && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true);
+        && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true, requestId);
       allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
       allow update: if validScrapReview();
       allow delete: if false;
