@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   Timestamp,
   setDoc,
+  updateDoc,
   getDocs,
   collection,
   query,
@@ -950,4 +951,50 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
       createdAt:serverTimestamp(), updatedAt:serverTimestamp()
     }));
   });
+
+  it("rejects attendance in a group the employee is not authorized for", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+    });
+    await assertFails(setDoc(doc(adminDb(), "employeeAttendance/wrong-group"), {
+      employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+      departmentId:2, payableDays:1, dailyWage:350000, wageAmount:350000,
+      wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    }));
+  });
+
+  it("blocks disabled employees from reading previously recorded personal payroll", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com", [1]), status:"disabled"
+      });
+      await setDoc(doc(context.firestore(), "employeeAttendance/employee-1_2026-11-19"), {
+        employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+        departmentId:1, payableDays:0.5, dailyWage:350000, wageAmount:175000,
+        wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+        createdAt:Timestamp.now(), updatedAt:Timestamp.now()
+      });
+    });
+    await assertFails(getDoc(doc(googleDb("employee-1"), "employeeAttendance/employee-1_2026-11-19")));
+  });
+
+  it("allows only the admin to correct a saved attendance record", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+      await setDoc(doc(context.firestore(), "employeeAttendance/employee-1_2026-11-19"), {
+        employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+        departmentId:1, payableDays:0.5, dailyWage:350000, wageAmount:175000,
+        wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+        createdAt:Timestamp.now(), updatedAt:Timestamp.now()
+      });
+    });
+    await assertFails(updateDoc(doc(googleDb("employee-1"), "employeeAttendance/employee-1_2026-11-19"), {
+      payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(doc(adminDb(), "employeeAttendance/employee-1_2026-11-19"), {
+      payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
+    }));
+  });
+
 });
