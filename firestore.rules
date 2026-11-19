@@ -81,7 +81,7 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.keys().hasAll([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
+          'repairTypeIds', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.keys().hasOnly([
@@ -97,7 +97,6 @@ service cloud.firestore {
         && request.resource.data.status == 'active'
         && request.resource.data.departmentIds is list
         && request.resource.data.repairTypeIds is list
-        && request.resource.data.specialRole == false
         && request.resource.data.invitationId is string
         && exists(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId))
         && get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.invitationId)).data.status == 'active'
