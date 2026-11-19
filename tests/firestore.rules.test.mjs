@@ -728,6 +728,30 @@ describe("SIGMA scrap request Firestore rules", () => {
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_bad-reason"), {...payload, reason: ""}));
   });
 
+  it("blocks disabled employees from reading or submitting scrap requests", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "disabled", departmentIds: [2]
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/disabled-scrap-source"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-19", orderNo: "ORD-DISABLED", styleNo: "STYLE-D",
+        color: "Navy", quantity: 12, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "scrapRequests/scrap_cleanWorkOrders_disabled-scrap-source"), {
+        ...requestData("employee-1", 2, true),
+        workOrderId: "disabled-scrap-source", sourceCollection: "cleanWorkOrders"
+      });
+    });
+    const db = googleDb();
+    const { getDoc } = await import("firebase/firestore");
+    await assertFails(getDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_disabled-scrap-source")));
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_disabled-new"), {
+      ...requestData("employee-1", 2, true),
+      workOrderId: "disabled-scrap-source", sourceCollection: "cleanWorkOrders"
+    }));
+  });
+
   it("allows only an admin to approve or reject a batch-linked scrap request", async () => {
     await seedDeptEmployee("employee-1", 3);
     await testEnv.withSecurityRulesDisabled(async context => {
