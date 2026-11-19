@@ -638,6 +638,33 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     }));
   });
 
+  it("prevents employees from overwriting an existing QC request", async () => {
+    await seedDeptEmployee("employee-1", 1);
+    const payload = {
+      ...requestData("employee-1", 1),
+      workOrderId: "order-1",
+      sourceCollection: "repairWorkOrders",
+      color: "Navy",
+      repairTypeId: 101
+    };
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "repairWorkOrders/order-1"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-19", orderNo: "ORD-QC-01",
+        styleNo: "STYLE-01", color: "Navy", quantity: 12, note: "",
+        status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "qcRequests/qc_order-1"), {
+        ...payload, createdAt: Timestamp.now()
+      });
+    });
+    await assertFails(setDoc(doc(googleDb(), "qcRequests/qc_order-1"), {
+      ...payload,
+      note: "Trying to replace the original QC request",
+      createdAt: serverTimestamp()
+    }));
+  });
+
   it("allows an employee to submit a scrap request and requires a reason", async () => {
     await seedDeptEmployee("employee-1", 2);
     const db = googleDb();
