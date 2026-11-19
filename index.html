@@ -1182,7 +1182,7 @@ async function loadWageRates(){
  try{
   const snap=await getDoc(doc(db,"appSettings","departmentWages"));
   wageRatesCache=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
-  renderWageHistory();applyEffectiveWage();
+  renderWageHistory();applyEffectiveWage();applyAttendanceRate();
  }catch(error){
   console.error("Wage history load error",error);
   target.textContent=tr("wageHistoryError")+(error.code||error.message||"unknown");
