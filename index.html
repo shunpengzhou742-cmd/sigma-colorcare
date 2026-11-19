@@ -1629,9 +1629,11 @@ async function loadReviewQueues(){
  for(const [type,name,rootId] of queues){
   const root=document.getElementById(rootId);root.textContent=tr("accountingLoading");
   try{
-   const snap=await getDocs(query(collection(db,name),where("status","==","submitted"),limit(100)));root.replaceChildren();
-   if(!snap.size){root.textContent=tr("noPendingRequests");continue;}
-   snap.docs.forEach(item=>{
+   const snap=await getDocs(query(collection(db,name),where("status","==","submitted"),limit(100)));
+   const reviewDocs=snap.docs.filter(item=>item.data().employeeUid!==auth.currentUser.uid);
+   root.replaceChildren();
+   if(!reviewDocs.length){root.textContent=tr("noPendingRequests");continue;}
+   reviewDocs.forEach(item=>{
     const row=item.data(),line=document.createElement("article");line.className="work-record";
     const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");
     const note=document.createElement("div");note.className="small";
