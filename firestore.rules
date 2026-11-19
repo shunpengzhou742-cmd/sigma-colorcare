@@ -319,96 +319,29 @@ service cloud.firestore {
 
     match /employeeAttendance/{attendanceId} {
       function validAttendance(data) {
-        return data.keys().hasAll([
-          'employeeUid', 'employeeName', 'workDate', 'departmentId',
-          'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
-          'createdBy', 'createdAt', 'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'employeeUid', 'employeeName', 'workDate', 'departmentId',
-          'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
-          'createdBy', 'createdAt', 'updatedAt'
-        ])
-        && data.employeeUid is string && data.employeeUid.size() > 0
-        && data.employeeName is string && data.employeeName.size() > 0
-        && data.workDate is string && data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-      allow get, create, update: if isAdmin();
-      allow list, delete: if false;
-    }
-
-
-    match /operatingExpenses/{expenseId} {
-      function validExpense(data) {
-        return data.keys().hasAll([
-          'expenseDate', 'category', 'departmentId', 'entryMode',
-          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'expenseDate', 'category', 'departmentId', 'entryMode',
-          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
-        ])
-        && data.expenseDate is string
-        && data.expenseDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-        && data.category in ['transport', 'utilities', 'maintenance', 'office', 'meals', 'other']
-        && data.departmentId in [0, 1, 2, 3]
-        && data.entryMode in ['item', 'dailySummary']
-        && data.amount is number
-        && data.amount > 0
-        && data.note is string
-        && data.note.size() <= 300
-        && data.currency == 'VND'
-        && data.createdBy is string
-        && data.createdBy.size() > 0;
+        return data.keys().hasAll(['employeeUid', 'employeeName', 'workDate', 'departmentId', 'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate', 'createdBy', 'createdAt', 'updatedAt'])
+          && data.keys().hasOnly(['employeeUid', 'employeeName', 'workDate', 'departmentId', 'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate', 'createdBy', 'createdAt', 'updatedAt'])
+          && data.employeeUid is string && data.employeeUid.size() > 0
+          && data.employeeName is string && data.employeeName.size() > 0
+          && data.workDate is string && data.workDate.size() == 10
+          && data.departmentId in [1, 2, 3]
+          && data.payableDays is number && data.payableDays > 0 && data.payableDays <= 1
+          && data.dailyWage is number && data.dailyWage >= 0
+          && data.wageAmount is number && data.wageAmount == data.payableDays * data.dailyWage
+          && data.wageEffectiveDate is string
+          && data.createdBy is string && data.createdBy.size() > 0;
       }
-
-      allow get, list: if isAdmin();
-      allow create: if isAdmin()
-        && validExpense(request.resource.data)
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
-      allow update: if isAdmin()
-        && validExpense(request.resource.data)
-        && request.resource.data.createdBy == resource.data.createdBy
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
-    }
-
-    match /dailyRecords/{recordId} {
-      allow get, list, create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
-        && data.departmentId in [1, 2, 3]
-        && data.payableDays is number && data.payableDays > 0 && data.payableDays <= 1
-        && data.dailyWage is number && data.dailyWage >= 0
-        && data.wageAmount is number
-        && data.wageAmount == data.payableDays * data.dailyWage
-        && data.wageEffectiveDate is string
-        && data.createdBy is string && data.createdBy.size() > 0;
-      }
-      allow get, list: if isAdmin()
-        || (request.auth != null
-          && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
-          && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
-          && resource.data.employeeUid == request.auth.uid);
-      allow create: if isAdmin()
-        && validAttendance(request.resource.data)
+      allow get, list: if isAdmin() || (request.auth != null
+        && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
+        && resource.data.employeeUid == request.auth.uid);
+      allow create: if isAdmin() && validAttendance(request.resource.data)
         && exists(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid))
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.status == 'active'
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.departmentIds.hasAny([request.resource.data.departmentId])
         && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
-      allow update: if isAdmin()
-        && validAttendance(request.resource.data)
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin() && validAttendance(request.resource.data)
         && request.resource.data.employeeUid == resource.data.employeeUid
         && request.resource.data.workDate == resource.data.workDate
         && request.resource.data.createdBy == resource.data.createdBy
@@ -418,13 +351,6 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.departmentIds.hasAny([request.resource.data.departmentId]);
       allow delete: if false;
     }
-
-    match /appSettings/departmentWages {
-      allow get, create, update: if isAdmin();
-      allow list, delete: if false;
-    }
-
-
     match /operatingExpenses/{expenseId} {
       function validExpense(data) {
         return data.keys().hasAll([
