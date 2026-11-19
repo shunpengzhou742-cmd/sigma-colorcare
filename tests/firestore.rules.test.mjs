@@ -483,7 +483,7 @@ describe("SIGMA financial privacy Firestore rules", () => {
         uid: "employee-1", roleType: 1, status: "active", departmentIds: [1]
       });
     });
-    const { getDoc, doc } = await import("firebase/firestore");
+    const { getDoc } = await import("firebase/firestore");
     await assertSucceeds(getDoc(doc(adminDb(), "appSettings/departmentWages")));
     await assertSucceeds(getDoc(doc(adminDb(), "dailyRecords/2026-11-19_1")));
     await assertFails(getDoc(doc(googleDb(), "appSettings/departmentWages")));
@@ -497,7 +497,7 @@ describe("SIGMA financial privacy Firestore rules", () => {
         departmentIds: [1], specialRole: false
       });
     });
-    const { updateDoc, doc } = await import("firebase/firestore");
+    const { updateDoc } = await import("firebase/firestore");
     await assertFails(updateDoc(doc(googleDb(), "employees/employee-1"), {
       specialRole: true
     }));
