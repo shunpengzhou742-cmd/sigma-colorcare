@@ -73,7 +73,6 @@ function employeeData(uid, email, departments = [1], repairTypes = [101, 102]) {
     departmentIds: departments,
     repairTypeIds: repairTypes,
     specialRole: false,
-    qcAuthorized: false,
     invitationId: "invite-valid",
     createdAt: serverTimestamp(),
     createdBy: "admin-1",
@@ -714,7 +713,7 @@ describe("SIGMA department workflow isolation from QC", () => {
       });
     });
     const db = googleDb();
-    const { collection, getDocs, setDoc } = await import("firebase/firestore");
+    const { collection, getDocs } = await import("firebase/firestore");
     await assertFails(getDocs(collection(db, "qcRequests")));
     await assertFails(getDocs(collection(db, "reworkWorkOrders")));
     await assertFails(setDoc(doc(db, "qcRequests/new-request"), { employeeUid: "employee-1" }));
