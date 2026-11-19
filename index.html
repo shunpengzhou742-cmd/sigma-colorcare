@@ -1501,7 +1501,10 @@ async function loadReviewQueues(){
    snap.docs.forEach(item=>{
     const row=item.data(),line=document.createElement("article");line.className="work-record";
     const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");
-    const note=document.createElement("div");note.className="small";note.textContent=(type==="scrap"?row.reason+" · ":"")+(row.note||"")+" · UID "+row.employeeUid;
+    const note=document.createElement("div");note.className="small";
+    const sourceLabel=type==="qc"?(row.sourceCollection==="reworkWorkOrders"?tr("reworkCreated"):tr("workOrderRecords")):"";
+    const repairLabel=type==="qc"&&row.repairTypeId?(Number(row.repairTypeId)===101?tr("sprayRepair"):tr("handRepair")):"";
+    note.textContent=[sourceLabel,row.color||"",repairLabel,type==="scrap"?row.reason:"",row.note||""].filter(Boolean).join(" · ");
     const actions=document.createElement("div");actions.className="employee-actions";
     if(type==="qc"){
      const qualified=document.createElement("input");qualified.type="number";qualified.min="0";qualified.step="1";qualified.max=String(row.quantity);qualified.placeholder=tr("qcQualified");qualified.setAttribute("aria-label",tr("qcQualified"));
