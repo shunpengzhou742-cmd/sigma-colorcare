@@ -182,6 +182,25 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertSucceeds(getDocs(ownQuery));
   });
 
+  it("allows an active admin to query cleaning and weaving work orders for the dashboard", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db=context.firestore();
+      const row=(departmentId)=>({
+        employeeUid:"employee-1",createdBy:"employee-1",departmentId,
+        workDate:"2026-11-19",orderNo:"DASH-001",styleNo:"STYLE-01",
+        color:"Black",quantity:25,note:"",status:"submitted",createdAt:Timestamp.now()
+      });
+      await setDoc(doc(db,"cleanWorkOrders/clean-1"),row(2));
+      await setDoc(doc(db,"weaveWorkOrders/weave-1"),row(3));
+    });
+    const {collection,getDocs,query,where}=await import("firebase/firestore");
+    const db=adminDb();
+    const clean=await assertSucceeds(getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==","2026-11-19"))));
+    const weave=await assertSucceeds(getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==","2026-11-19"))));
+    assert.equal(clean.size,1);
+    assert.equal(weave.size,1);
+  });
+
   it("allows an active admin to create a valid one-day invitation", async () => {
     const db = adminDb();
     await assertSucceeds(setDoc(doc(db, "employeeInvites/new-invite"), {
