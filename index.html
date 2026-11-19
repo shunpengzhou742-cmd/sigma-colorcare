@@ -293,7 +293,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <select id="financePeriodType"><option value="month" data-i18n="financeMonth">本月</option><option value="half" data-i18n="financeHalf">本半年</option><option value="year" data-i18n="financeYear">本年度</option><option value="custom" data-i18n="financeCustom">自定义日期范围</option></select>
         <div class="form-grid"><label><span data-i18n="financeStart">开始日期</span><input id="financeStartDate" type="date"></label><label><span data-i18n="financeEnd">结束日期</span><input id="financeEndDate" type="date"></label></div>
       </div>
-      <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article></div>
+      <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article><article><span data-i18n="scrapApprovedLabel">已批准报废数量</span><strong id="financeScrapQuantity">—</strong></article></div>
       <div id="financeDepartmentSummary" class="work-panel small" data-i18n="financeLoading">正在读取财务数据……</div>
       <div id="financeDepartmentChart" class="finance-dept-chart" aria-live="polite"></div>
       <div class="dashboard-section-title"><h3 data-i18n="financeMonthlyTitle">按月经营汇总</h3></div><div id="financeMonthlyReport" class="work-panel"></div>
@@ -564,7 +564,7 @@ const translations = {
     netProfit:"公司净利润",
     financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"部门利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
-    financeNote:"统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。",
+    financeNote:"统计基于部门每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",
     deptOverview:"部门运营进度",
     threeDeptIndependent:"三个部门独立核算",
     repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
@@ -1327,7 +1327,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  finally{button.disabled=false;}
 });
 
-let financeRecordsCache=[],financeExpensesCache=[];
+let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[];
 function financeRange(mode){
  const t=localWorkDate(),y=t.slice(0,4),m=Number(t.slice(5,7));
  if(mode==="month")return[t.slice(0,7)+"-01",t.slice(0,7)+"-31"];
@@ -1342,12 +1342,13 @@ function renderFinanceOverview(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
  const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart");
  if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();return;}
- const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end);
+ const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved");
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
- const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount");
+ const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount"),approvedScrap=sum(ss,"quantity");
+  document.getElementById("financeScrapQuantity").textContent=approvedScrap.toLocaleString()+" "+tr("unitPieces");
  document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
  root.replaceChildren();chart.replaceChildren();
- if(!rs.length&&!es.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");return;}
+ if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");return;}
  const names={1:tr("repair"),2:tr("clean"),3:tr("weave")},deptResults=[];
  [1,2,3].forEach(id=>{
   const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);
@@ -1388,7 +1389,7 @@ document.getElementById("financePeriodType").addEventListener("change",event=>se
 document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 setFinanceDates("month");
-async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
+async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b,s]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses")),getDocs(collection(db,"scrapRequests"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());financeScrapCache=s.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
