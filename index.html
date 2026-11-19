@@ -817,12 +817,14 @@ function showApp(user, identity){
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
-  document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
+  setupAdminWorkspace();
+  document.getElementById("adminWorkspaceNav").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
+  if(identity.role === "admin"){ loadDashboard(); loadWageRates(); refreshExpenseList(); }
   currentDept = "";
+  window.switchAdminPage(identity.role === "admin" ? "overview" : "departments");
 }
 function updateGoogleLinkButton(user){
   const button = document.getElementById("googleLinkBtn");
