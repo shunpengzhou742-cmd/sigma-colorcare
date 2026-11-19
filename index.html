@@ -750,6 +750,7 @@ let currentDept = "";
 let currentRole = null;
 let currentProfile = null;
 let handlingAuthState = false;
+let activeAppIdentityKey = "";
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
 let inviteCompletedUid = null;
@@ -808,6 +809,9 @@ try{
 updateThemeButton();
 
 function showLogin(){
+  activeAppIdentityKey = "";
+  currentRole = null;
+  currentProfile = null;
   document.getElementById("loginView").classList.remove("hidden");
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
@@ -844,6 +848,9 @@ window.switchAdminPage=function(key){
 }
 
 function showApp(user, identity){
+  const identityKey = [user.uid,identity.role,(identity.departmentIds||[]).slice().sort((a,b)=>a-b).join(",")].join("|");
+  const shouldLoadAdminData = identity.role === "admin" && activeAppIdentityKey !== identityKey;
+  activeAppIdentityKey = identityKey;
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
@@ -861,7 +868,7 @@ function showApp(user, identity){
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadDashboard(); loadWageRates(); refreshExpenseList(); }
+  if(shouldLoadAdminData){ loadDashboard(); loadWageRates(); refreshExpenseList(); }
   currentDept = "";
   window.switchAdminPage(identity.role === "admin" ? "overview" : "departments");
 }
