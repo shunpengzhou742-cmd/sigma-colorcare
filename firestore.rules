@@ -351,6 +351,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.departmentIds.hasAny([request.resource.data.departmentId]);
       allow delete: if false;
     }
+    match /appSettings/departmentWages {
+      allow get, create, update: if isAdmin();
+      allow list, delete: if false;
+    }
+
     match /operatingExpenses/{expenseId} {
       function validExpense(data) {
         return data.keys().hasAll([
