@@ -1,0 +1,30 @@
+name: Client syntax check
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "scripts/check-client-syntax.mjs"
+      - ".github/workflows/client-syntax.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "scripts/check-client-syntax.mjs"
+      - ".github/workflows/client-syntax.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate browser module syntax
+        run: node scripts/check-client-syntax.mjs
