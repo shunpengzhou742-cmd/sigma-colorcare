@@ -940,6 +940,21 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
     }));
   });
 
+  it("allows one employee to have separate attendance records in two authorized groups on the same date", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1, 2]));
+    });
+    const date = "2026-11-19";
+    const base = {
+      employeeUid: "employee-1", employeeName: "Test Employee", workDate: date,
+      payableDays: 1, dailyWage: 350000, wageAmount: 350000,
+      wageEffectiveDate: "2026-11-01", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    };
+    await assertSucceeds(setDoc(doc(adminDb(), `employeeAttendance/employee-1_${date}_1`), {...base, departmentId: 1}));
+    await assertSucceeds(setDoc(doc(adminDb(), `employeeAttendance/employee-1_${date}_2`), {...base, departmentId: 2}));
+  });
+
   it("rejects a wage amount that does not equal payable days multiplied by daily wage", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
