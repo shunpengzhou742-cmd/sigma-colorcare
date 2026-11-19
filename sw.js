@@ -1,4 +1,4 @@
-const CACHE_NAME = "sigma-colorcare-v30";
+const CACHE_NAME = "sigma-colorcare-v31";
 
 const APP_FILES = [
   "./",
@@ -32,20 +32,31 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  // Always check the network for page navigations so GitHub Pages updates
+  // are not hidden behind an old cached index.html.
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
 
       return fetch(event.request).then((response) => {
-        if (
-          response &&
-          response.status === 200 &&
-          response.type === "basic"
-        ) {
+        if (response && response.status === 200 && response.type === "basic") {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, copy);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return response;
       });
