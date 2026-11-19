@@ -325,6 +325,20 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("rejects an employee profile whose email does not match the verified Google account", async () => {
+    const db = googleDb("employee-1", "employee@example.com");
+    await assertFails(runTransaction(db, async transaction => {
+      const inviteRef = doc(db, "employeeInvites/invite-valid");
+      const inviteSnap = await transaction.get(inviteRef);
+      assert.equal(inviteSnap.exists(), true);
+      transaction.update(inviteRef, {
+        status: "used", usedBy: "employee-1", usedAt: serverTimestamp()
+      });
+      transaction.set(doc(db, "employees/employee-1"),
+        employeeData("employee-1", "someone-else@example.com"));
+    }));
+  });
+
   it("rejects an administrator Google account attempting to register as an employee", async () => {
     const db = googleDb("admin-1", "admin@example.com");
     await assertSucceeds(getDoc(doc(db, "employeeInvites/invite-valid")));
