@@ -612,6 +612,31 @@ describe("SIGMA washing and weaving work order Firestore rules", () => {
     await assertSucceeds(getDoc(doc(googleDb(), "employees/employee-1")));
   });
 
+  it("limits employees with multiple group assignments to only those assigned groups", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "active", departmentIds: [2, 3]
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/own-clean-order"), {
+        ...workOrderData("employee-1", 2), createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "weaveWorkOrders/own-weave-order"), {
+        ...workOrderData("employee-1", 3), createdAt: Timestamp.now()
+      });
+      await setDoc(doc(context.firestore(), "repairWorkOrders/unassigned-repair-order"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-19", orderNo: "ORD-01",
+        styleNo: "STYLE-01", color: "Navy", quantity: 10, note: "",
+        status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const db = googleDb();
+    const { getDoc } = await import("firebase/firestore");
+    await assertSucceeds(getDoc(doc(db, "cleanWorkOrders/own-clean-order")));
+    await assertSucceeds(getDoc(doc(db, "weaveWorkOrders/own-weave-order")));
+    await assertFails(getDoc(doc(db, "repairWorkOrders/unassigned-repair-order")));
+  });
+
   it("allows a weaving employee to submit and read only weaving work orders", async () => {
     await seedEmployee("employee-1", 3);
     const db = googleDb();
