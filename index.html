@@ -817,7 +817,7 @@ function setupAdminWorkspace(){
  if(adminWorkspaceReady)return;
  const appView=document.getElementById('appView'),dashboard=document.getElementById('dashboardPanel');if(!appView||!dashboard)return;
  const nav=document.createElement('nav');nav.id='adminWorkspaceNav';nav.className='hidden';nav.setAttribute('aria-label','管理功能导航');
- [['overview','经营总览'],['finance','财务管理'],['accounting','每日核算'],['people','人员与报废'],['departments','部门工单']].forEach(([key,label])=>{const b=document.createElement('button');b.type='button';b.dataset.page=key;b.textContent=label;b.addEventListener('click',()=>window.switchAdminPage(key));nav.appendChild(b);});
+ [['overview','dashboardTitle'],['finance','businessFinance'],['accounting','dailyAccountingTitle'],['people','employeeManageTitle'],['departments','deptOverview']].forEach(([key,labelKey])=>{const b=document.createElement('button');b.type='button';b.dataset.page=key;b.dataset.i18n=labelKey;b.textContent=tr(labelKey);b.addEventListener('click',()=>window.switchAdminPage(key));nav.appendChild(b);});
  appView.insertBefore(nav,dashboard);
  const nodes=Array.from(dashboard.children),findIndex=selector=>nodes.findIndex(n=>n.matches?.(selector)||n.querySelector?.(selector));
  const fs=findIndex('#financePeriodType'),as=findIndex('#dailyAccountingForm'),es=findIndex('#expenseForm'),ds=findIndex('.dept-overview-grid');
@@ -825,7 +825,7 @@ function setupAdminWorkspace(){
  const pages={overview:document.createElement('section'),finance:document.createElement('section'),accounting:document.createElement('section')};
  Object.entries(pages).forEach(([key,el])=>{el.className='admin-subpage'+(key==='overview'?'':' hidden');el.dataset.adminSection=key;});
  dashboard.insertBefore(pages.overview,dashboard.children[1]);dashboard.insertBefore(pages.finance,pages.overview.nextSibling);dashboard.insertBefore(pages.accounting,pages.finance.nextSibling);
- nodes.slice(1).forEach((node,index)=>{let key='finance';if(index<fs-1||index>=ds-1)key='overview';else if(index>=as-1&&index<es-1)key='accounting';pages[key].appendChild(node);});
+ nodes.slice(1).forEach((node,offset)=>{const index=offset+1;let key='finance';if(index<fs-1||index>=ds-1)key='overview';else if(index>=as-1&&index<es-1)key='accounting';pages[key].appendChild(node);});
  const people=document.createElement('section');people.id='peopleWorkspace';people.className='admin-workspace-page hidden';['scrapReviewPanel','invitePanel','employeeManagePanel'].forEach(id=>{const el=document.getElementById(id);if(el)people.appendChild(el);});
  const departments=document.createElement('section');departments.id='departmentWorkspace';departments.className='admin-workspace-page';const deptButton=document.getElementById('deptRepair');const heading=deptButton?.previousElementSibling?.matches('h3')?deptButton.previousElementSibling:null;if(heading)departments.appendChild(heading);['deptRepair','deptClean','deptWeave'].forEach(id=>{const el=document.getElementById(id);if(el)departments.appendChild(el);});
  appView.appendChild(people);appView.appendChild(departments);adminWorkspaceReady=true;
