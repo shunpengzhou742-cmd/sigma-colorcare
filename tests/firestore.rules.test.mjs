@@ -704,3 +704,61 @@ describe("SIGMA scrap request Firestore rules", () => {
     }));
   });
 });
+
+describe("SIGMA wage settings and daily accounting Firestore rules", () => {
+  it("allows an active admin to read and update department wage settings", async () => {
+    const db = adminDb();
+    const ref = doc(db, "appSettings/departmentWages");
+    await assertSucceeds(setDoc(ref, {
+      rates: [
+        { departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 300000 },
+        { departmentId: 2, effectiveDate: "2026-11-01", dailyWage: 280000 },
+        { departmentId: 3, effectiveDate: "2026-11-01", dailyWage: 290000 }
+      ],
+      updatedBy: "admin-1",
+      updatedAt: serverTimestamp()
+    }));
+    const snapshot = await assertSucceeds(getDoc(ref));
+    assert.equal(snapshot.data().rates.length, 3);
+  });
+
+  it("rejects employees reading or changing department wage settings", async () => {
+    const db = googleDb();
+    const ref = doc(db, "appSettings/departmentWages");
+    await assertFails(getDoc(ref));
+    await assertFails(setDoc(ref, { rates: [] }));
+  });
+
+  it("allows an active admin to create, read, and update daily accounting records", async () => {
+    const db = adminDb();
+    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+    const payload = {
+      workDate: "2026-11-19",
+      departmentId: 1,
+      headcount: 3,
+      quantity: 420,
+      unitPrice: 10000,
+      dailyWage: 300000,
+      materialCost: 150000,
+      updatedBy: "admin-1",
+      updatedAt: serverTimestamp()
+    };
+    await assertSucceeds(setDoc(ref, payload));
+    await assertSucceeds(getDoc(ref));
+    await assertSucceeds(setDoc(ref, { ...payload, quantity: 450 }));
+  });
+
+  it("rejects employees reading, creating, or changing daily accounting records", async () => {
+    const db = googleDb();
+    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+    const payload = {
+      workDate: "2026-11-19",
+      departmentId: 1,
+      headcount: 3,
+      quantity: 420
+    };
+    await assertFails(getDoc(ref));
+    await assertFails(setDoc(ref, payload));
+    await assertFails(setDoc(ref, { ...payload, quantity: 500 }));
+  });
+});
