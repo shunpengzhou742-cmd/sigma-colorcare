@@ -595,7 +595,7 @@ describe("SIGMA operating expense edit permissions", () => {
   });
 });
 
-describe("SIGMA QC and scrap request Firestore rules", () => {
+describe("SIGMA scrap request Firestore rules", () => {
   async function seedDeptEmployee(uid, departmentId) {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), `employees/${uid}`), {
@@ -606,7 +606,7 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
   function requestData(uid, departmentId, scrap = false) {
     const data = {
       requestDate: "2026-11-19", departmentId, employeeUid: uid,
-      createdBy: uid, orderNo: "ORD-QC-01", styleNo: "STYLE-01",
+      createdBy: uid, orderNo: "ORD-SCRAP-01", styleNo: "STYLE-01",
       quantity: 12, note: "Batch ready", status: "submitted",
       createdAt: serverTimestamp()
     };
