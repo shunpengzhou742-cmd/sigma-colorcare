@@ -507,6 +507,58 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(deleteDoc(doc(db, "employees/employee-1")));
   });
 
+  it("blocks disabled employees from reading or submitting work orders in every department", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com", [1, 2, 3]),
+        status: "disabled"
+      });
+      const row = {
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        departmentId: 1,
+        repairTypeId: 101,
+        workDate: "2026-11-19",
+        orderNo: "DISABLED-001",
+        styleNo: "STYLE-01",
+        color: "Black",
+        quantity: 10,
+        note: "",
+        status: "submitted",
+        createdAt: Timestamp.now()
+      };
+      await setDoc(doc(db, "repairWorkOrders/disabled-repair"), row);
+      await setDoc(doc(db, "cleanWorkOrders/disabled-clean"), { ...row, departmentId: 2, repairTypeId: undefined });
+      await setDoc(doc(db, "weaveWorkOrders/disabled-weave"), { ...row, departmentId: 3, repairTypeId: undefined });
+    });
+    const db = googleDb();
+    const { addDoc, collection, getDoc } = await import("firebase/firestore");
+    await assertSucceeds(getDoc(doc(db, "employees/employee-1")));
+    for (const [collectionName, departmentId] of [
+      ["repairWorkOrders", 1],
+      ["cleanWorkOrders", 2],
+      ["weaveWorkOrders", 3]
+    ]) {
+      await assertFails(getDoc(doc(db, collectionName, collectionName === "repairWorkOrders" ? "disabled-repair" : collectionName === "cleanWorkOrders" ? "disabled-clean" : "disabled-weave")));
+      const payload = {
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        departmentId,
+        ...(departmentId === 1 ? { repairTypeId: 101 } : {}),
+        workDate: "2026-11-19",
+        orderNo: "DISABLED-002",
+        styleNo: "STYLE-01",
+        color: "Black",
+        quantity: 10,
+        note: "",
+        status: "submitted",
+        createdAt: serverTimestamp()
+      };
+      await assertFails(addDoc(collection(db, collectionName), payload));
+    }
+  });
+
   it("rejects employees updating their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
