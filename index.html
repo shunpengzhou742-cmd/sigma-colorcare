@@ -371,6 +371,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <div id="inviteQr" style="display:inline-block;background:white;padding:12px;border-radius:12px"></div>
         <p id="inviteLinkText" class="small" style="overflow-wrap:anywhere"></p>
         <button id="copyInviteBtn" class="dark" type="button" data-i18n="copyInvite">复制邀请链接</button>
+        <button id="revokeInviteBtn" class="dark" type="button" data-i18n="revokeInvite">撤销此邀请</button>
       </div>
       <p id="inviteMsg" class="small" role="status" aria-live="polite"></p>
     </section>
@@ -523,7 +524,7 @@ const translations = {
     weaveDesc:"修织工序管理", placeholder:"修色部业务组页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
-    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个业务组。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
+    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个业务组。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", revokeInvite:"撤销此邀请", inviteRevoking:"正在撤销邀请……", inviteRevoked:"未使用邀请已撤销。", inviteRevokeError:"撤销邀请失败：", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
     signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
     loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
@@ -648,7 +649,7 @@ const translations = {
     weaveDesc:"Quản lý sửa dệt", placeholder:"Module các tổ thuộc Bộ phận Sửa màu đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
-    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một tổ.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
+    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một tổ.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", revokeInvite:"Thu hồi lời mời này", inviteRevoking:"Đang thu hồi lời mời…", inviteRevoked:"Đã thu hồi lời mời chưa sử dụng.", inviteRevokeError:"Thu hồi lời mời thất bại: ", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
     signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
     loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
@@ -773,6 +774,7 @@ let currentProfile = null;
 let handlingAuthState = false;
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
+let latestInviteId = "";
 let inviteCompletedUid = null;
 let employeeCache = [];
 
@@ -949,6 +951,7 @@ async function createEmployeeInvite(){
     crypto.getRandomValues(bytes);
     const inviteId = [...bytes].map(value => value.toString(16).padStart(2,"0")).join("");
     const inviteRef = doc(db,"employeeInvites",inviteId);
+    latestInviteId = inviteId;
     const repairTypeIds = selected.includes(1) ? [101,102] : [];
     await setDoc(inviteRef,{
       departmentIds:selected,
@@ -979,6 +982,25 @@ async function createEmployeeInvite(){
 }
 
 document.getElementById("createInviteBtn").addEventListener("click",createEmployeeInvite);
+document.getElementById("revokeInviteBtn").addEventListener("click",async()=>{
+  const msg = document.getElementById("inviteMsg");
+  const button = document.getElementById("revokeInviteBtn");
+  if(!latestInviteId) return;
+  button.disabled = true;
+  msg.textContent = tr("inviteRevoking");
+  try{
+    await updateDoc(doc(db,"employeeInvites",latestInviteId),{
+      status:"revoked", revokedBy:auth.currentUser.uid, revokedAt:serverTimestamp()
+    });
+    latestInviteId = "";
+    latestInviteUrl = "";
+    document.getElementById("inviteResult").classList.add("hidden");
+    msg.textContent = tr("inviteRevoked");
+  }catch(error){
+    console.error("SIGMA invitation revoke error:",error);
+    msg.textContent = tr("inviteRevokeError") + (error.code || error.message || "unknown");
+  }finally{ button.disabled = false; }
+});
 document.getElementById("copyInviteBtn").addEventListener("click",async()=>{
   if(!latestInviteUrl) return;
   try{ await navigator.clipboard.writeText(latestInviteUrl); document.getElementById("inviteMsg").textContent = tr("inviteCopied"); }
