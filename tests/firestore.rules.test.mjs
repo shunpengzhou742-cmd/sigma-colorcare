@@ -470,6 +470,40 @@ describe("SIGMA employee invitation Firestore rules", () => {
   });
 });
 
+describe("SIGMA financial privacy Firestore rules", () => {
+  it("allows admins to read wage settings and daily accounting but blocks employee access", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "appSettings/departmentWages"), {
+        rates: [{ departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 350000 }]
+      });
+      await setDoc(doc(context.firestore(), "dailyRecords/2026-11-19_1"), {
+        departmentId: 1, headcount: 3, outputQuantity: 300, netProfit: 1000000
+      });
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "active", departmentIds: [1]
+      });
+    });
+    const { getDoc, doc } = await import("firebase/firestore");
+    await assertSucceeds(getDoc(doc(adminDb(), "appSettings/departmentWages")));
+    await assertSucceeds(getDoc(doc(adminDb(), "dailyRecords/2026-11-19_1")));
+    await assertFails(getDoc(doc(googleDb(), "appSettings/departmentWages")));
+    await assertFails(getDoc(doc(googleDb(), "dailyRecords/2026-11-19_1")));
+  });
+
+  it("does not allow employees to grant themselves the special role", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "active",
+        departmentIds: [1], specialRole: false
+      });
+    });
+    const { updateDoc, doc } = await import("firebase/firestore");
+    await assertFails(updateDoc(doc(googleDb(), "employees/employee-1"), {
+      specialRole: true
+    }));
+  });
+});
+
 describe("SIGMA operating expense Firestore rules", () => {
   function expenseData(uid = "admin-1") {
     return {
