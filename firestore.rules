@@ -53,7 +53,17 @@ service cloud.firestore {
         && request.resource.data.usedBy == null
         && request.resource.data.usedAt == null;
 
-      allow update: if isGoogleUser()
+      allow update: if (
+        isAdmin()
+        && resource.data.status == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'revokedBy', 'revokedAt'
+        ])
+        && request.resource.data.status == 'revoked'
+        && request.resource.data.revokedBy == request.auth.uid
+        && request.resource.data.revokedAt == request.time
+      ) || (
+        isGoogleUser()
         && !isAdmin()
         && resource.data.status == 'active'
         && resource.data.expiresAt > request.time
@@ -66,7 +76,8 @@ service cloud.firestore {
         && existsAfter(/databases/$(database)/documents/employees/$(request.auth.uid))
         && getAfter(/databases/$(database)/documents/employees/$(request.auth.uid)).data.invitationId == inviteId
         && getAfter(/databases/$(database)/documents/employees/$(request.auth.uid)).data.departmentIds == resource.data.departmentIds
-        && getAfter(/databases/$(database)/documents/employees/$(request.auth.uid)).data.repairTypeIds == resource.data.repairTypeIds;
+        && getAfter(/databases/$(database)/documents/employees/$(request.auth.uid)).data.repairTypeIds == resource.data.repairTypeIds
+      );
 
       allow delete: if false;
     }
