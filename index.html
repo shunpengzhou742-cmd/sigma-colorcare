@@ -851,7 +851,7 @@ function showApp(user, identity){
   document.getElementById("scrapReviewContainer").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); }
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadReviewQueues(); loadScrapHistory(); }
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
