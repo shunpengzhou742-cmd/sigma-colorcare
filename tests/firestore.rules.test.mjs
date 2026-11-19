@@ -583,6 +583,35 @@ describe("SIGMA washing and weaving work order Firestore rules", () => {
     await assertFails(addDoc(collection(db, "weaveWorkOrders"), workOrderData("employee-1", 3)));
   });
 
+  it("blocks a disabled employee from reading and creating work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "disabled", departmentIds: [2]
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/disabled-order"), {
+        ...workOrderData("employee-1", 2), createdAt: Timestamp.now()
+      });
+    });
+    const db = googleDb();
+    const { addDoc, collection, getDoc } = await import("firebase/firestore");
+    await assertFails(getDoc(doc(db, "cleanWorkOrders/disabled-order")));
+    await assertFails(addDoc(collection(db, "cleanWorkOrders"), workOrderData("employee-1", 2)));
+  });
+
+  it("prevents employees from reading another employee's profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        uid: "employee-1", roleType: 1, status: "active", departmentIds: [2]
+      });
+      await setDoc(doc(context.firestore(), "employees/employee-2"), {
+        uid: "employee-2", roleType: 1, status: "active", departmentIds: [2]
+      });
+    });
+    const { getDoc } = await import("firebase/firestore");
+    await assertFails(getDoc(doc(googleDb(), "employees/employee-2")));
+    await assertSucceeds(getDoc(doc(googleDb(), "employees/employee-1")));
+  });
+
   it("allows a weaving employee to submit and read only weaving work orders", async () => {
     await seedEmployee("employee-1", 3);
     const db = googleDb();
