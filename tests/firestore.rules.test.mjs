@@ -529,8 +529,9 @@ describe("SIGMA employee invitation Firestore rules", () => {
         createdAt: Timestamp.now()
       };
       await setDoc(doc(db, "repairWorkOrders/disabled-repair"), row);
-      await setDoc(doc(db, "cleanWorkOrders/disabled-clean"), { ...row, departmentId: 2, repairTypeId: undefined });
-      await setDoc(doc(db, "weaveWorkOrders/disabled-weave"), { ...row, departmentId: 3, repairTypeId: undefined });
+      const { repairTypeId, ...genericRow } = row;
+      await setDoc(doc(db, "cleanWorkOrders/disabled-clean"), { ...genericRow, departmentId: 2 });
+      await setDoc(doc(db, "weaveWorkOrders/disabled-weave"), { ...genericRow, departmentId: 3 });
     });
     const db = googleDb();
     const { addDoc, collection, getDoc } = await import("firebase/firestore");
