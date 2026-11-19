@@ -1332,13 +1332,13 @@ async function loadFinanceOverview(){
  ]);
  const failures=[];
  if(results[0].status==="fulfilled")financeRecordsCache=results[0].value.docs.map(x=>x.data());
- else{failures.push("dailyRecords");console.error("[SIGMA permission diagnostic] dailyRecords read failed",results[0].reason);}
+ else{financeRecordsCache=[];failures.push({name:"dailyRecords",error:results[0].reason});console.error("[SIGMA permission diagnostic] dailyRecords read failed",results[0].reason);}
  if(results[1].status==="fulfilled")financeExpensesCache=results[1].value.docs.map(x=>x.data());
- else{failures.push("operatingExpenses");console.error("[SIGMA permission diagnostic] operatingExpenses read failed",results[1].reason);}
+ else{financeExpensesCache=[];failures.push({name:"operatingExpenses",error:results[1].reason});console.error("[SIGMA permission diagnostic] operatingExpenses read failed",results[1].reason);}
  renderFinanceOverview();
  if(failures.length){
   const detail=document.createElement("p");detail.className="small";detail.style.color="#b91c1c";
-  detail.textContent="读取失败集合："+failures.join("、")+"；请检查管理员身份及 Firestore Rules。";
+  detail.textContent="读取失败："+failures.map(item=>item.name+"（"+(item.error?.code||item.error?.message||"unknown")+"）").join("；");
   root.append(detail);
  }
 }
@@ -1360,7 +1360,7 @@ async function loadDashboard(){
     ]);
     const names=["repairWorkOrders（修色）","cleanWorkOrders（清洗）","weaveWorkOrders（修织）"];
     const failures=[];
-    results.forEach((result,index)=>{if(result.status==="rejected"){failures.push(names[index]);console.error("[SIGMA permission diagnostic] "+names[index]+" read failed",result.reason);}});
+    results.forEach((result,index)=>{if(result.status==="rejected"){failures.push(names[index]+"（"+(result.reason?.code||result.reason?.message||"unknown")+"）");console.error("[SIGMA permission diagnostic] "+names[index]+" read failed",result.reason);}});
     if(results[0].status==="fulfilled"){
       dashboardRowsCache=results[0].value.docs.map(item=>item.data());
       const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
