@@ -299,9 +299,9 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
        <div id="financeReconciliation" class="work-panel small" aria-live="polite"></div>
       <div id="financeDepartmentChart" class="finance-dept-chart" aria-live="polite"></div>
       <div class="dashboard-section-title"><h3 data-i18n="financeMonthlyTitle">按月经营汇总</h3></div><div id="financeMonthlyReport" class="work-panel"></div>
-      <p class="dashboard-note" data-i18n="financeNote">统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
+      <p class="dashboard-note" data-i18n="financeNote">统计基于修色部各组每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
 
-      <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">部门每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">修色部各组每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
       <form id="dailyAccountingForm" class="work-panel">
         <label data-i18n="accountingDate">核算日期</label><input id="accountingDate" type="date" required>
         <label data-i18n="accountingDepartment">核算业务组</label>
@@ -311,16 +311,16 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="accountingUnitPrice" type="number" min="0" step="any" required placeholder="0">
         <label data-i18n="accountingDailyWage">每人日薪（VND）</label><input id="accountingDailyWage" type="number" min="0" step="any" required placeholder="0">
         <label data-i18n="accountingMaterialCost">材料费用（VND）</label><input id="accountingMaterialCost" type="number" min="0" step="any" required placeholder="0">
-        <label data-i18n="accountingOtherCost">其他部门支出（VND，可填0）</label><input id="accountingOtherCost" type="number" min="0" step="any" value="0" required>
+        <label data-i18n="accountingOtherCost">其他组支出（VND，可填0）</label><input id="accountingOtherCost" type="number" min="0" step="any" value="0" required>
         <div id="accountingPreview" class="small" data-i18n="accountingPreviewHint">填写数据后自动预览收入、人工成本和利润。</div>
         <button id="saveAccountingBtn" class="primary" type="submit" data-i18n="saveAccounting">保存每日核算</button>
         <p id="accountingMessage" class="small" role="status" aria-live="polite"></p>
       </form>
 
-      <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">部门日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">各组日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
       <form id="wageRateForm" class="work-panel">
-        <label data-i18n="wageDepartment">部门</label>
-        <select id="wageDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="wageDepartment">业务组</label>
+        <select id="wageDepartment" required><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
         <label data-i18n="wageEffectiveDate">生效日期</label><input id="wageEffectiveDate" type="date" required>
         <label data-i18n="wageAmount">每人日薪（VND）</label><input id="wageAmount" type="number" min="0" step="any" required placeholder="0">
         <button id="saveWageRateBtn" class="primary" type="submit" data-i18n="saveWageRate">保存日薪标准</button>
@@ -348,7 +348,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
       <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
       <div id="expenseList" class="work-panel"><p class="small" data-i18n="expenseLoading">正在读取费用记录……</p></div>
       <div class="work-panel"><label data-i18n="expensePeriodLabel">费用统计周期</label><select id="expensePeriodType"><option value="month" data-i18n="expensePeriodMonth">本月</option><option value="half" data-i18n="expensePeriodHalf">本半年</option><option value="year" data-i18n="expensePeriodYear">本年度</option></select><div id="expensePeriodSummary" class="small">—</div></div>
-      <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">修色部下属三个组分别独立核算</span></div>
       <div class="dept-overview-grid">
         <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
         <article class="dept-overview clean-overview"><b data-i18n="clean">清洗部门</b><strong data-i18n="cleanModuleLive">清洗工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
@@ -376,12 +376,12 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
     </section>
     <section id="employeeManagePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="employeeManageTitle">员工管理</h3>
-      <p class="small" data-i18n="employeeManageDesc">查看员工资料、调整部门权限或停用系统访问。</p>
+      <p class="small" data-i18n="employeeManageDesc">查看员工资料、调整业务组权限或停用系统访问。</p>
       <button id="refreshEmployeesBtn" class="dark" type="button" data-i18n="refreshEmployees">刷新员工名单</button>
       <p id="employeeManageMsg" class="small" role="status" aria-live="polite"></p>
       <div id="employeeList"></div>
     </section>
-    <h3 data-i18n="selectDept">请选择部门</h3>
+    <h3 data-i18n="selectDept">修色部 · 请选择业务组</h3>
     <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
       <span><strong data-i18n="repair">修色部门</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
     </button>
@@ -434,7 +434,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
     <section id="cleanWorkbench" class="hidden">
       <div class="work-panel">
         <h3 data-i18n="cleanEntryTitle">清洗工单录入（按批次）</h3>
-        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看部门汇总。</p>
+        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看各组汇总。</p>
         <form id="cleanWorkOrderForm">
           <label data-i18n="workDate">作业日期</label><input id="cleanWorkDate" type="date" required>
           <label data-i18n="orderNo">订单号（选填）</label><input id="cleanOrderNo" maxlength="80">
@@ -606,7 +606,7 @@ const translations = {
     wageSaveError:"保存日薪失败：",
     wageAutoApplied:"已按生效日期自动带入对应部门日薪。",
     wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",
-    batchTraceTitle:"批次记录",scrapApprovedLabel:"已批准报废",scrapPendingLabel:"待审核报废",scrapRequestTitle:"报废申请",scrapReviewNotePlaceholder:"填写驳回原因（最多300字）",scrapRejectReasonRequired:"驳回时必须填写原因",scrapHistoryTitle:"已处理报废记录",scrapHistoryEmpty:"暂无已处理报废记录",scrapHistoryError:"读取报废历史失败：",scrapFilterAll:"全部",scrapFilterStatus:"审核状态",scrapFilterDepartment:"部门",scrapFilterStartDate:"开始日期",scrapFilterEndDate:"结束日期",scrapFilterApply:"筛选记录",scrapBatchQuantity:"关联批次原始数量",scrapBatchDate:"批次日期",scrapBatchColor:"批次颜色",scrapBatchMissing:"关联批次不存在或无法读取",scrapBatchLabel:"关联报废批次",scrapBatchPlaceholder:"请选择本人批次",scrapBatchHint:"每个批次只能提交一次报废申请，数量不能超过该批次数量。",scrapReason:"报废原因",submitScrapRequest:"提交报废申请",requestDate:"申请日期",myRequests:"我的报废申请记录",requestSaved:"申请已提交，等待负责人审核。",requestError:"申请提交失败：",scrapPending:"待处理报废申请",reviewApprove:"通过",reviewReject:"驳回",statusSubmitted:"待审核",statusApproved:"已通过",statusRejected:"已驳回",noPendingRequests:"暂无待处理申请",noMyRequests:"暂无申请记录",editExpense:"修改",cancelEdit:"取消修改",expenseUpdated:"费用记录已更新。",
+    batchTraceTitle:"批次记录",scrapApprovedLabel:"已批准报废",scrapPendingLabel:"待审核报废",scrapRequestTitle:"报废申请",scrapReviewNotePlaceholder:"填写驳回原因（最多300字）",scrapRejectReasonRequired:"驳回时必须填写原因",scrapHistoryTitle:"已处理报废记录",scrapHistoryEmpty:"暂无已处理报废记录",scrapHistoryError:"读取报废历史失败：",scrapFilterAll:"全部",scrapFilterStatus:"审核状态",scrapFilterDepartment:"业务组",scrapFilterStartDate:"开始日期",scrapFilterEndDate:"结束日期",scrapFilterApply:"筛选记录",scrapBatchQuantity:"关联批次原始数量",scrapBatchDate:"批次日期",scrapBatchColor:"批次颜色",scrapBatchMissing:"关联批次不存在或无法读取",scrapBatchLabel:"关联报废批次",scrapBatchPlaceholder:"请选择本人批次",scrapBatchHint:"每个批次只能提交一次报废申请，数量不能超过该批次数量。",scrapReason:"报废原因",submitScrapRequest:"提交报废申请",requestDate:"申请日期",myRequests:"我的报废申请记录",requestSaved:"申请已提交，等待负责人审核。",requestError:"申请提交失败：",scrapPending:"待处理报废申请",reviewApprove:"通过",reviewReject:"驳回",statusSubmitted:"待审核",statusApproved:"已通过",statusRejected:"已驳回",noPendingRequests:"暂无待处理申请",noMyRequests:"暂无申请记录",editExpense:"修改",cancelEdit:"取消修改",expenseUpdated:"费用记录已更新。",
     expenseAdminOnly:"仅负责人录入",
     expenseMode:"登记方式",
     expenseModeItem:"逐笔登记",
@@ -637,7 +637,7 @@ const translations = {
     expenseRecordDaily:"日汇总",
     expenseAdminOnlyDenied:"只有负责人可以管理经营费用。",
     expenseCompanyLabel:"公司公共",
-    expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
+    expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"业务组归属费用",
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
@@ -685,7 +685,7 @@ const translations = {
     financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",
     deptOverview:"Tiến độ hoạt động các tổ thuộc Bộ phận Sửa màu",
     threeDeptIndependent:"Ba bộ phận hạch toán độc lập",
-    repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp bộ phận.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
+    repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp theo tổ.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
     moduleInDevelopment:"Đang phát triển module",
     moduleNotCounted:"Chưa tính vào sản lượng và lợi nhuận",
@@ -708,18 +708,18 @@ const translations = {
     accountingUnitPrice:"Đơn giá gia công (VND/sản phẩm)",
     accountingDailyWage:"Lương ngày mỗi người (VND)",
     accountingMaterialCost:"Chi phí vật liệu (VND)",
-    accountingOtherCost:"Chi phí khác của bộ phận (VND, có thể nhập 0)",
+    accountingOtherCost:"Chi phí khác của tổ (VND, có thể nhập 0)",
     accountingPreviewHint:"Tự động xem trước doanh thu, chi phí nhân công và lợi nhuận sau khi nhập.",
     saveAccounting:"Lưu hạch toán ngày",
     accountingPreview:"Doanh thu dự kiến: {revenue} VND · Nhân công: {labor} VND · Lợi nhuận dự kiến: {profit} VND",
     accountingSaved:"Đã lưu hạch toán ngày.",
     accountingSaveError:"Lưu hạch toán thất bại: ",
-    accountingDuplicate:"Bộ phận này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
+    accountingDuplicate:"Tổ này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
     accountingInvalid:"Vui lòng nhập số hợp lệ không âm.",
     accountingLoading:"Đang lưu…",
-    wageSettingsTitle:"Thiết lập lương ngày theo bộ phận",
+    wageSettingsTitle:"Thiết lập lương ngày theo tổ",
     effectiveDateRule:"Áp dụng theo ngày hiệu lực, không sửa ngược dữ liệu lịch sử",
-    wageDepartment:"Bộ phận",
+    wageDepartment:"Tổ",
     wageEffectiveDate:"Ngày bắt đầu áp dụng",
     wageAmount:"Lương ngày mỗi người (VND)",
     saveWageRate:"Lưu mức lương ngày",
@@ -727,11 +727,11 @@ const translations = {
     wageHistoryEmpty:"Chưa thiết lập mức lương ngày.",
     wageHistoryError:"Không thể tải lịch sử lương: ",
     wageSaved:"Đã lưu mức lương ngày.",
-    wageDuplicate:"Bộ phận này đã có mức lương vào ngày hiệu lực đó. Vui lòng chọn ngày khác.",
+    wageDuplicate:"Tổ này đã có mức lương vào ngày hiệu lực đó. Vui lòng chọn ngày khác.",
     wageSaveError:"Lưu mức lương thất bại: ",
-    wageAutoApplied:"Đã tự động điền lương theo bộ phận và ngày hiệu lực.",
+    wageAutoApplied:"Đã tự động điền lương theo tổ và ngày hiệu lực.",
     wageAutoMissing:"Chưa có mức lương trước ngày này. Vui lòng nhập lương ngày thủ công.",
-    batchTraceTitle:"Theo dõi lô",scrapApprovedLabel:"Số lượng báo phế đã duyệt",scrapPendingLabel:"Số lượng báo phế chờ duyệt",scrapRequestTitle:"Yêu cầu báo phế",scrapReviewNotePlaceholder:"Nhập lý do từ chối (tối đa 300 ký tự)",scrapRejectReasonRequired:"Phải nhập lý do từ chối",scrapHistoryTitle:"Lịch sử báo phế đã xử lý",scrapHistoryEmpty:"Chưa có lịch sử báo phế đã xử lý",scrapHistoryError:"Không thể tải lịch sử báo phế: ",scrapFilterAll:"Tất cả",scrapFilterStatus:"Trạng thái duyệt",scrapFilterDepartment:"Bộ phận",scrapFilterStartDate:"Từ ngày",scrapFilterEndDate:"Đến ngày",scrapFilterApply:"Lọc dữ liệu",scrapBatchQuantity:"Số lượng ban đầu của lô liên kết",scrapBatchDate:"Ngày của lô",scrapBatchColor:"Màu của lô",scrapBatchMissing:"Không tìm thấy hoặc không thể đọc lô liên kết",scrapBatchLabel:"Chọn lô báo phế",scrapBatchPlaceholder:"Chọn lô của bạn",scrapBatchHint:"Mỗi lô chỉ được gửi một yêu cầu báo phế; số lượng không được vượt quá số lượng lô.",scrapReason:"Lý do báo phế",submitScrapRequest:"Gửi yêu cầu báo phế",requestDate:"Ngày yêu cầu",myRequests:"Yêu cầu báo phế của tôi",requestSaved:"Đã gửi yêu cầu, đang chờ người phụ trách duyệt.",requestError:"Gửi yêu cầu thất bại: ",scrapPending:"Yêu cầu báo phế chờ xử lý",reviewApprove:"Duyệt",reviewReject:"Từ chối",statusSubmitted:"Chờ duyệt",statusApproved:"Đã duyệt",statusRejected:"Đã từ chối",noPendingRequests:"Không có yêu cầu chờ xử lý",noMyRequests:"Chưa có yêu cầu",editExpense:"Sửa",cancelEdit:"Hủy sửa",expenseUpdated:"Đã cập nhật khoản chi.",
+    batchTraceTitle:"Theo dõi lô",scrapApprovedLabel:"Số lượng báo phế đã duyệt",scrapPendingLabel:"Số lượng báo phế chờ duyệt",scrapRequestTitle:"Yêu cầu báo phế",scrapReviewNotePlaceholder:"Nhập lý do từ chối (tối đa 300 ký tự)",scrapRejectReasonRequired:"Phải nhập lý do từ chối",scrapHistoryTitle:"Lịch sử báo phế đã xử lý",scrapHistoryEmpty:"Chưa có lịch sử báo phế đã xử lý",scrapHistoryError:"Không thể tải lịch sử báo phế: ",scrapFilterAll:"Tất cả",scrapFilterStatus:"Trạng thái duyệt",scrapFilterDepartment:"Tổ",scrapFilterStartDate:"Từ ngày",scrapFilterEndDate:"Đến ngày",scrapFilterApply:"Lọc dữ liệu",scrapBatchQuantity:"Số lượng ban đầu của lô liên kết",scrapBatchDate:"Ngày của lô",scrapBatchColor:"Màu của lô",scrapBatchMissing:"Không tìm thấy hoặc không thể đọc lô liên kết",scrapBatchLabel:"Chọn lô báo phế",scrapBatchPlaceholder:"Chọn lô của bạn",scrapBatchHint:"Mỗi lô chỉ được gửi một yêu cầu báo phế; số lượng không được vượt quá số lượng lô.",scrapReason:"Lý do báo phế",submitScrapRequest:"Gửi yêu cầu báo phế",requestDate:"Ngày yêu cầu",myRequests:"Yêu cầu báo phế của tôi",requestSaved:"Đã gửi yêu cầu, đang chờ người phụ trách duyệt.",requestError:"Gửi yêu cầu thất bại: ",scrapPending:"Yêu cầu báo phế chờ xử lý",reviewApprove:"Duyệt",reviewReject:"Từ chối",statusSubmitted:"Chờ duyệt",statusApproved:"Đã duyệt",statusRejected:"Đã từ chối",noPendingRequests:"Không có yêu cầu chờ xử lý",noMyRequests:"Chưa có yêu cầu",editExpense:"Sửa",cancelEdit:"Hủy sửa",expenseUpdated:"Đã cập nhật khoản chi.",
     expenseAdminOnly:"Chỉ quản lý nhập",
     expenseMode:"Hình thức ghi nhận",
     expenseModeItem:"Ghi từng khoản",
@@ -762,7 +762,7 @@ const translations = {
     expenseRecordDaily:"Tổng hợp ngày",
     expenseAdminOnlyDenied:"Chỉ người quản lý được quản lý chi phí kinh doanh.",
     expenseCompanyLabel:"Chi phí chung công ty",
-     expensePeriodLabel:"Kỳ thống kê chi phí",expensePeriodMonth:"Tháng này",expensePeriodHalf:"Nửa năm hiện tại",expensePeriodYear:"Năm nay",expensePeriodTotal:"Tổng chi phí trong kỳ",expensePeriodEmpty:"Không có chi phí trong kỳ này",expensePeriodDept:"Chi phí theo bộ phận",
+     expensePeriodLabel:"Kỳ thống kê chi phí",expensePeriodMonth:"Tháng này",expensePeriodHalf:"Nửa năm hiện tại",expensePeriodYear:"Năm nay",expensePeriodTotal:"Tổng chi phí trong kỳ",expensePeriodEmpty:"Không có chi phí trong kỳ này",expensePeriodDept:"Chi phí theo tổ",
   }
 };
 
