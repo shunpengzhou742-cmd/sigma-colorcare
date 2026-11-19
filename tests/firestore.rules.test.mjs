@@ -761,6 +761,11 @@ describe("SIGMA manager-assigned QC reviewer permissions", () => {
         createdBy: "employee-1", orderNo: "QC-1", styleNo: "S-1",
         quantity: 10, note: "", status: "submitted", createdAt: Timestamp.now()
       });
+      await setDoc(doc(context.firestore(), "qcRequests/qc-own"), {
+        requestDate: "2026-11-19", departmentId: 1, employeeUid: "qc-inspector",
+        createdBy: "qc-inspector", orderNo: "QC-OWN", styleNo: "S-OWN",
+        quantity: 5, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
       await setDoc(doc(context.firestore(), "scrapRequests/scrap-pending"), {
         requestDate: "2026-11-19", departmentId: 1, employeeUid: "employee-1",
         createdBy: "employee-1", orderNo: "SC-1", styleNo: "S-1",
@@ -773,6 +778,11 @@ describe("SIGMA manager-assigned QC reviewer permissions", () => {
     await assertFails(getDocs(collection(db, "scrapRequests")));
     await assertSucceeds(updateDoc(doc(db, "qcRequests/qc-pending"), {
       status: "inspected", qualifiedQuantity: 10, unqualifiedQuantity: 0,
+      qcResult: "passed", reviewedBy: "qc-inspector",
+      reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+    await assertFails(updateDoc(doc(db, "qcRequests/qc-own"), {
+      status: "inspected", qualifiedQuantity: 5, unqualifiedQuantity: 0,
       qcResult: "passed", reviewedBy: "qc-inspector",
       reviewedAt: serverTimestamp(), reviewNote: ""
     }));
