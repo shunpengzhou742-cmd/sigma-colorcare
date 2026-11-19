@@ -1168,7 +1168,7 @@ async function refreshExpenseList(){
    const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
    line.append(detail,edit);target.append(line);
   });
- }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses list failed",error);target.textContent="operatingExpenses 读取失败："+(error.code||error.message||"unknown");}
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
@@ -1233,7 +1233,7 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
    message.textContent=tr("expenseSaved");
   }
   await refreshExpenseList();
- }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses write failed",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):"operatingExpenses 保存失败："+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
 
