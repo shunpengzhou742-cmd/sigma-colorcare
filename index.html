@@ -834,6 +834,11 @@ window.switchAdminPage=function(key){
  setupAdminWorkspace();const valid=['overview','finance','accounting','people','departments'];if(!valid.includes(key))key='overview';
  const nav=document.getElementById('adminWorkspaceNav');nav?.querySelectorAll('button').forEach(b=>{const active=b.dataset.page===key;b.setAttribute('aria-current',active?'page':'false');});
  const dashboard=document.getElementById('dashboardPanel');dashboard?.classList.toggle('hidden',currentRole!=='admin'||!['overview','finance','accounting'].includes(key));dashboard?.querySelectorAll('[data-admin-section]').forEach(el=>el.classList.toggle('hidden',el.dataset.adminSection!==key));
+ const headingKeys={overview:'dashboardTitle',finance:'businessFinance',accounting:'dailyAccountingTitle'};
+ const heading=document.querySelector('#dashboardPanel .dashboard-heading h2');
+ if(heading&&headingKeys[key]){heading.dataset.i18n=headingKeys[key];heading.textContent=tr(headingKeys[key]);}
+ const kicker=document.querySelector('#dashboardPanel .dashboard-kicker');if(kicker)kicker.classList.toggle('hidden',key!=='overview');
+ const dashboardDate=document.getElementById('dashboardDate');if(dashboardDate)dashboardDate.classList.toggle('hidden',key!=='overview');
  document.getElementById('peopleWorkspace')?.classList.toggle('hidden',key!=='people'||currentRole!=='admin');document.getElementById('departmentWorkspace')?.classList.toggle('hidden',key!=='departments');
  if(key==='people'&&currentRole==='admin'){loadEmployees();loadScrapReviewQueue();}window.scrollTo({top:0,behavior:'smooth'});
 }
