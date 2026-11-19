@@ -1483,12 +1483,7 @@ async function loadScrapHistory(){
    try{
     const batchSnap=await getDoc(doc(db,row.sourceCollection,row.workOrderId));
     if(!batchSnap.exists())return {batch:null,original:null};
-    const batch=batchSnap.data();let original=null;
-    if(row.sourceCollection==="reworkWorkOrders"&&allowedCollections.has(batch.sourceCollection)&&batch.sourceWorkOrderId){
-     const originalSnap=await getDoc(doc(db,batch.sourceCollection,batch.sourceWorkOrderId));
-     if(originalSnap.exists())original=originalSnap.data();
-    }
-    return {batch,original};
+    const batch=batchSnap.data();return {batch,original:null};
    }catch(error){return {batch:null,original:null};}
   }));
   filters.replaceChildren();
@@ -1509,16 +1504,14 @@ async function loadScrapHistory(){
     const state=row.status==="approved"?tr("statusApproved"):tr("statusRejected");
     const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity,state].filter(Boolean).join(" · ");
     const detail=document.createElement("div");detail.className="small";
-    const batch=batchDetail.batch,original=batchDetail.original;
-    const source=row.sourceCollection==="reworkWorkOrders"?tr("qcSourceRework"):tr("qcSourceBatch");
+    const batch=batchDetail.batch;
     const repairLabel=batch?.repairTypeId?(Number(batch.repairTypeId)===101?tr("sprayRepair"):tr("handRepair")):"";
     const batchLines=batch?[
      tr("scrapBatchQuantity")+": "+Number(batch.quantity||0).toLocaleString(),
      batch.workDate?tr("scrapBatchDate")+": "+batch.workDate:"",
      batch.color?tr("scrapBatchColor")+": "+batch.color:"",
      repairLabel,
-     original?tr("scrapOriginalQuantity")+": "+Number(original.quantity||0).toLocaleString():""
-    ].filter(Boolean):[tr("scrapBatchMissing")];
+         ].filter(Boolean):[tr("scrapBatchMissing")];
     detail.textContent=[...batchLines,row.reason||"",row.note||"",row.reviewNote||""].filter(Boolean).join(" · ");
     line.append(head,detail);root.append(line);
    });
