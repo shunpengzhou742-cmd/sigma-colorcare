@@ -195,6 +195,29 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("allows an admin to revoke an unused invitation", async () => {
+    const { updateDoc } = await import("firebase/firestore");
+    await assertSucceeds(updateDoc(doc(adminDb(), "employeeInvites/invite-valid"), {
+      status: "revoked", revokedBy: "admin-1", revokedAt: serverTimestamp()
+    }));
+    await assertFails(getDoc(doc(googleDb(), "employeeInvites/invite-valid")));
+  });
+
+  it("prevents employees from revoking invitations and admins from revoking used invitations", async () => {
+    const { updateDoc } = await import("firebase/firestore");
+    await assertFails(updateDoc(doc(googleDb(), "employeeInvites/invite-valid"), {
+      status: "revoked", revokedBy: "employee-1", revokedAt: serverTimestamp()
+    }));
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await updateDoc(doc(context.firestore(), "employeeInvites/invite-valid"), {
+        status: "used", usedBy: "employee-2", usedAt: Timestamp.now()
+      });
+    });
+    await assertFails(updateDoc(doc(adminDb(), "employeeInvites/invite-valid"), {
+      status: "revoked", revokedBy: "admin-1", revokedAt: serverTimestamp()
+    }));
+  });
+
   it("rejects a normal Google employee creating an invitation", async () => {
     const db = googleDb();
     await assertFails(setDoc(doc(db, "employeeInvites/forbidden"), {
