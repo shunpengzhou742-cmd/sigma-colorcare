@@ -370,6 +370,108 @@ service cloud.firestore {
         && request.resource.data.reviewNote.size() <= 300;
     }
 
+    function validScrapResubmission() {
+      return isActiveDepartmentEmployee(resource.data.departmentId)
+        && resource.data.employeeUid == request.auth.uid
+        && resource.data.status == 'rejected'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['requestDate', 'quantity', 'reason', 'note', 'status', 'updatedAt'])
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.requestDate is string
+        && request.resource.data.requestDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
+      allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
+        && validQCRequest(request.resource.data, requestId);
+      allow get, list: if isQcReviewer() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update: if validQcReview();
+      allow delete: if false;
+    }
+
+    match /reworkWorkOrders/{reworkId} {
+      allow create: if isQcReviewer() && validRework(request.resource.data, reworkId);
+      allow get, list: if isAdmin() || isQcReviewer()
+        || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update, delete: if false;
+    }
+
+    match /scrapRequests/{requestId} {
+      allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
+        && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true, requestId);
+      allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
+      allow update: if validScrapReview() || validScrapResubmission();
+      allow delete: if false;
+    }
+
+    match /appSettings/departmentWages {
+      allow get, create, update: if isAdmin();
+      allow list, delete: if false;
+    }
+
+
+    match /operatingExpenses/{expenseId} {
+      function validExpense(data) {
+        return data.keys().hasAll([
+          'expenseDate', 'category', 'departmentId', 'entryMode',
+          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'expenseDate', 'category', 'departmentId', 'entryMode',
+          'amount', 'note', 'currency', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.expenseDate is string
+        && data.expenseDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.category in ['transport', 'utilities', 'maintenance', 'office', 'meals', 'other']
+        && data.departmentId in [0, 1, 2, 3]
+        && data.entryMode in ['item', 'dailySummary']
+        && data.amount is number
+        && data.amount > 0
+        && data.note is string
+        && data.note.size() <= 300
+        && data.currency == 'VND'
+        && data.createdBy is string
+        && data.createdBy.size() > 0;
+      }
+
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+        && validExpense(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && validExpense(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /dailyRecords/{recordId} {
+      allow get, list, create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+)
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity > 0
+        && request.resource.data.quantity <= 1000000
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 300
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 500
+        && request.resource.data.updatedAt == request.time
+        && validScrapBatch(request.resource.data, requestId)
+        && request.resource.data.workOrderId == resource.data.workOrderId
+        && request.resource.data.sourceCollection == resource.data.sourceCollection
+        && request.resource.data.employeeUid == resource.data.employeeUid
+        && request.resource.data.departmentId == resource.data.departmentId
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
     match /qcRequests/{requestId} {
       allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
         && validQCRequest(request.resource.data, requestId);
