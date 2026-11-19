@@ -678,6 +678,11 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
         workDate: "2026-11-19", orderNo: "ORD-OTHER", styleNo: "STYLE-02",
         color: "Black", quantity: 20, note: "", status: "submitted", createdAt: Timestamp.now()
       });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/clean-2"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-19", orderNo: "ORD-SCRAP-02", styleNo: "STYLE-02",
+        color: "Gray", quantity: 12, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
     });
     const db = googleDb();
     const { setDoc } = await import("firebase/firestore");
@@ -694,8 +699,8 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_missing"), {
       ...payload, workOrderId: "missing"
     }));
-    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-1-too-many"), {
-      ...payload, quantity: 13
+    await assertFails(setDoc(doc(db, "scrapRequests/scrap_cleanWorkOrders_clean-2"), {
+      ...payload, workOrderId: "clean-2", quantity: 13
     }));
     const missingLink = {...payload};delete missingLink.workOrderId;delete missingLink.sourceCollection;
     await assertFails(setDoc(doc(db, "scrapRequests/scrap_missing-link"), missingLink));
