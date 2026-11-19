@@ -1153,8 +1153,8 @@ async function loadWageRates(){
   wageRatesCache=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
   renderWageHistory();applyEffectiveWage();
  }catch(error){
-  console.error("Wage history load error",error);
-  target.textContent=tr("wageHistoryError")+(error.code||error.message||"unknown");
+  console.error("[SIGMA permission diagnostic] appSettings/departmentWages read failed",error);
+  target.textContent="appSettings/departmentWages 读取失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");
  }
 }
 function applyEffectiveWage(){
@@ -1488,7 +1488,7 @@ async function loadScrapReviewQueue(){
    });
    line.append(head,note,actions);root.append(line);
   });
- }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review queue read failed",error);root.textContent="scrapRequests 待审批列表读取失败："+(error.code||error.message||"unknown")+"；Firebase 项目："+(db.app?.options?.projectId||"unknown")+"；当前角色："+(currentRole||"unknown");}
 }
 
 function setRepairWorkMessage(message,isError=false){
