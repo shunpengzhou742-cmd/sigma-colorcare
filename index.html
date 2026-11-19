@@ -296,6 +296,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
       <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article><article><span data-i18n="scrapApprovedLabel">已批准报废数量</span><strong id="financeScrapQuantity">—</strong></article></div>
       <div id="financeDepartmentSummary" class="work-panel small" data-i18n="financeLoading">正在读取财务数据……</div>
        <div id="financeScrapBreakdown" class="work-panel small"></div>
+       <div id="financeReconciliation" class="work-panel small" aria-live="polite"></div>
       <div id="financeDepartmentChart" class="finance-dept-chart" aria-live="polite"></div>
       <div class="dashboard-section-title"><h3 data-i18n="financeMonthlyTitle">按月经营汇总</h3></div><div id="financeMonthlyReport" class="work-panel"></div>
       <p class="dashboard-note" data-i18n="financeNote">统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
@@ -567,7 +568,7 @@ const translations = {
     netProfit:"公司净利润",
     financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"部门利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
-    financeNote:"统计基于部门每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",financeScrapBreakdown:"各部门已批准报废数量",financeScrapUnassigned:"未识别部门报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",
+    financeNote:"统计基于部门每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",financeScrapBreakdown:"各部门已批准报废数量",financeScrapUnassigned:"未识别部门报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：部门归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"部门编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditProfitGap:"公司总利润与部门汇总差额",
     deptOverview:"部门运营进度",
     threeDeptIndependent:"三个部门独立核算",
     repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
@@ -692,7 +693,7 @@ const translations = {
     netProfit:"Lợi nhuận ròng",
     financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận bộ phận",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
-    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo bộ phận",financeScrapUnassigned:"Số lượng báo phế chưa xác định bộ phận",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",
+    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo bộ phận",financeScrapUnassigned:"Số lượng báo phế chưa xác định bộ phận",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: bộ phận và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã bộ phận bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp bộ phận",
     deptOverview:"Tiến độ hoạt động các bộ phận",
     threeDeptIndependent:"Ba bộ phận hạch toán độc lập",
     repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp bộ phận.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
@@ -1310,7 +1311,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  const date=document.getElementById("accountingDate").value;
  const departmentId=Number(document.getElementById("accountingDepartment").value);
  const {v,revenue,labor,profit}=accountingValues();
- if(!date||!accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0)||!Number.isInteger(v.accountingHeadcount)||!Number.isInteger(v.accountingOutput)){
+ if(!date||![1,2,3].includes(departmentId)||!accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0)||!Number.isInteger(v.accountingHeadcount)||!Number.isInteger(v.accountingOutput)){
   message.textContent=tr("accountingInvalid");return;
  }
  button.disabled=true;message.textContent=tr("accountingLoading");
@@ -1345,11 +1346,15 @@ function setFinanceDates(mode){
 }
 function renderFinanceOverview(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
- const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart"),scrapBreakdown=document.getElementById("financeScrapBreakdown");
- if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();return;}
+ const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart"),scrapBreakdown=document.getElementById("financeScrapBreakdown"),audit=document.getElementById("financeReconciliation");
+ if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();audit.replaceChildren();return;}
  const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved");
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
  const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount"),approvedScrap=sum(ss,"quantity");
+  const validDeptIds=[1,2,3],validExpenseIds=[0,1,2,3];
+  const invalidDept=rs.filter(x=>!validDeptIds.includes(Number(x.departmentId))).length;
+  const invalidExpense=es.filter(x=>!validExpenseIds.includes(Number(x.departmentId))).length;
+  const mathMismatch=rs.filter(x=>Math.abs(Number(x.revenue||0)-Number(x.outputQuantity||0)*Number(x.unitPrice||0))>1||Math.abs(Number(x.laborCost||0)-Number(x.headcount||0)*Number(x.dailyWagePerPerson||0))>1||Math.abs(Number(x.netProfit||0)-(Number(x.revenue||0)-Number(x.laborCost||0)-Number(x.materialCost||0)-Number(x.otherCost||0)))>1).length;
   document.getElementById("financeScrapQuantity").textContent=approvedScrap.toLocaleString()+" "+tr("unitPieces");
   scrapBreakdown.replaceChildren();const scrapTitle=document.createElement("strong");scrapTitle.textContent=tr("financeScrapBreakdown");scrapBreakdown.append(scrapTitle);
   const scrapDeptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};let knownScrap=0;
@@ -1368,6 +1373,14 @@ function renderFinanceOverview(){
  const shared=sum(es.filter(x=>![1,2,3].includes(Number(x.departmentId))),"amount");
  const departmentProfit=deptResults.reduce((v,x)=>v+x.profit,0);
  const companyProfit=departmentProfit-shared;
+  const overallProfit=revenue-labor-materials-other-extra,profitGap=Math.abs(companyProfit-overallProfit);
+  audit.replaceChildren();const auditTitle=document.createElement("strong");auditTitle.textContent=tr("financeAuditTitle");audit.append(auditTitle);
+  const auditIssues=invalidDept+invalidExpense+mathMismatch+(profitGap>1?1:0);
+  const auditSummary=document.createElement("div");auditSummary.className="work-summary-row";auditSummary.textContent=auditIssues?tr("financeAuditIssues"):tr("financeAuditClean");audit.append(auditSummary);
+  if(invalidDept){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidDept")+": "+invalidDept;audit.append(line);}
+  if(invalidExpense){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidExpense")+": "+invalidExpense;audit.append(line);}
+  if(mathMismatch){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditMath")+": "+mathMismatch;audit.append(line);}
+  if(profitGap>1){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditProfitGap")+": "+money(profitGap);audit.append(line);}
  const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
  deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=x.name+" · "+money(x.profit);root.append(d);});
  const common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
