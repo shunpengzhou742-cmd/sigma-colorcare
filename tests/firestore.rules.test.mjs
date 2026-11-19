@@ -726,7 +726,22 @@ describe("SIGMA QC and scrap request Firestore rules", () => {
       status: "approved", reviewedBy: "employee-1", reviewedAt: serverTimestamp(), reviewNote: ""
     }));
     await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", id), {
+      status: "rejected", reviewedBy: "admin-1", reviewedAt: serverTimestamp(), reviewNote: "Please verify quantity"
+    }));
+    const { updateDoc: employeeUpdate } = await import("firebase/firestore");
+    await assertSucceeds(employeeUpdate(doc(employeeDb, "scrapRequests", id), {
+      requestDate: "2026-11-20", quantity: 2, reason: "Rechecked", note: "Updated",
+      status: "submitted", updatedAt: serverTimestamp()
+    }));
+    await assertFails(employeeUpdate(doc(employeeDb, "scrapRequests", id), {
+      status: "approved", reviewedBy: "employee-1", reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+    await assertSucceeds(updateDoc(doc(adminDb(), "scrapRequests", id), {
       status: "approved", reviewedBy: "admin-1", reviewedAt: serverTimestamp(), reviewNote: ""
+    }));
+    await assertFails(employeeUpdate(doc(employeeDb, "scrapRequests", id), {
+      requestDate: "2026-11-21", quantity: 1, reason: "Again", note: "",
+      status: "submitted", updatedAt: serverTimestamp()
     }));
   });
 });
