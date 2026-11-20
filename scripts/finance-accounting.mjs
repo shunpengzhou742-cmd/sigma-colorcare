@@ -61,12 +61,13 @@ export function calculateFinanceSummary(records = [], expenses = []) {
 
   const sum = (rows, getter) => rows.reduce((total, row) => total + getter(row), 0);
   // Never let a partially malformed daily record affect the reported financial totals.
-  const validRecords = normalizedRecords.filter(item => item.valid);
+  const validRecords = normalizedRecords.filter(item => item.valid && GROUP_IDS.includes(Number(item.row.departmentId)));
+  const validExpenses = normalizedExpenses.filter(item => EXPENSE_GROUP_IDS.includes(Number(item.row.departmentId)));
   const revenue = sum(validRecords, item => item.values.revenue);
   const labor = sum(validRecords, item => item.values.laborCost);
   const materials = sum(validRecords, item => item.values.materialCost);
   const other = sum(validRecords, item => item.values.otherCost);
-  const extra = sum(normalizedExpenses, item => item.amount);
+  const extra = sum(validExpenses, item => item.amount);
 
   const invalidDeptCount = records.filter(
     row => !GROUP_IDS.includes(Number(row.departmentId))
@@ -84,7 +85,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
 
   const departments = GROUP_IDS.map(id => {
     const own = validRecords.filter(item => Number(item.row.departmentId) === id);
-    const ownExpenses = normalizedExpenses.filter(item => Number(item.row.departmentId) === id);
+    const ownExpenses = validExpenses.filter(item => Number(item.row.departmentId) === id);
     const departmentRevenue = sum(own, item => item.values.revenue);
     const departmentLabor = sum(own, item => item.values.laborCost);
     const departmentMaterials = sum(own, item => item.values.materialCost);
@@ -101,7 +102,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   });
 
   const sharedExpenses = sum(
-    normalizedExpenses.filter(item => !GROUP_IDS.includes(Number(item.row.departmentId))),
+    validExpenses.filter(item => Number(item.row.departmentId) === 0),
     item => item.amount
   );
   const departmentProfit = departments.reduce((total, row) => total + row.profit, 0);
