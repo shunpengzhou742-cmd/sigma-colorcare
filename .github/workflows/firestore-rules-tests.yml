@@ -3,7 +3,7 @@ name: Firestore Rules Tests
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/finance-department-comparison]
     paths:
       - "firestore.rules"
       - "firebase.json"
@@ -43,5 +43,3 @@ jobs:
         run: npm run check:client
       - name: Run Firestore rules tests
         run: npm run test:rules
-
-# Trigger a fresh pull-request validation after enabling manual dispatch on main.
