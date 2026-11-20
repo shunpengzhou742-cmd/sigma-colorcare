@@ -657,6 +657,30 @@ describe("SIGMA financial privacy Firestore rules", () => {
       specialRole: false, updatedAt: serverTimestamp()
     }));
   });
+
+  it("does not grant extra access to an employee with the special-role marker", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com"),
+        specialRole: true
+      });
+      await setDoc(doc(context.firestore(), "dailyRecords/finance-private"), {
+        workDate: "2026-11-20", departmentId: 1, headcount: 1, outputQuantity: 10,
+        unitPrice: 10000, dailyWagePerPerson: 100000, materialCost: 0,
+        otherCost: 0, revenue: 100000, laborCost: 100000,
+        netProfit: 0, currency: "VND", createdBy: "admin-1",
+        createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+      });
+    });
+    const db = googleDb();
+    await assertFails(getDoc(doc(db, "dailyRecords/finance-private")));
+    await assertFails(getDocs(collection(db, "employees")));
+    await assertFails(setDoc(doc(db, "operatingExpenses/forbidden-special-role"), {
+      expenseDate: "2026-11-20", category: "other", departmentId: 0,
+      entryMode: "item", amount: 1000, note: "", currency: "VND",
+      createdBy: "employee-1", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }));
+  });
 });
 
 describe("SIGMA operating expense Firestore rules", () => {
