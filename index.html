@@ -1790,7 +1790,7 @@ document.getElementById("financeStartDate").addEventListener("change",()=>{docum
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
 function getSelectedClosableFinanceMonth(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
- if(!start||!end||!/^\\d{4}-\\d{2}-01$/.test(start))return null;
+ if(!start||!end||!/^\d{4}-\d{2}-01$/.test(start))return null;
  const [expectedStart,expectedEnd]=getFinanceDateRange("month",start);
  if(start!==expectedStart||end!==expectedEnd||end>=localWorkDate())return null;
  return start.slice(0,7);
