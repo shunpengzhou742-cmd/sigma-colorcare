@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateFinanceSummary } from "../scripts/finance-accounting.mjs";
+import { calculateFinanceSummary, calculatePayrollReconciliation } from "../scripts/finance-accounting.mjs";
 
 const records = [
   { departmentId: 1, revenue: 1000, outputQuantity: 100, unitPrice: 10, laborCost: 200, headcount: 2, dailyWagePerPerson: 100, materialCost: 50, otherCost: 10, netProfit: 740 },
@@ -126,4 +126,44 @@ test("returns zeroed totals for an empty period", () => {
   assert.deepEqual(result.departments.map(row => row.profit), [0, 0, 0]);
   assert.equal(result.companyProfit, 0);
   assert.equal(result.auditIssueCount, 0);
+});
+
+
+test("reconciles payroll attendance separately without changing daily accounting costs", () => {
+  const result = calculatePayrollReconciliation(
+    [
+      { departmentId: 1, laborCost: 200000 },
+      { departmentId: 2, laborCost: 100000 },
+      { departmentId: 3, laborCost: 50000 }
+    ],
+    [
+      { departmentId: 1, wageAmount: 175000 },
+      { departmentId: 1, wageAmount: 25000 },
+      { departmentId: 2, wageAmount: 90000 },
+      { departmentId: 3, wageAmount: 50000 }
+    ]
+  );
+
+  assert.equal(result.accountingLabor, 350000);
+  assert.equal(result.payrollAmount, 340000);
+  assert.equal(result.difference, -10000);
+  assert.deepEqual(result.groups.map(row => row.difference), [0, -10000, 0]);
+  assert.equal(result.invalidAttendanceCount, 0);
+  assert.equal(result.hasAttendance, true);
+});
+
+test("does not count malformed payroll rows or treat payroll as an extra expense", () => {
+  const result = calculatePayrollReconciliation(
+    [{ departmentId: 1, laborCost: 100000 }],
+    [
+      { departmentId: 1, wageAmount: 100000 },
+      { departmentId: 9, wageAmount: 50000 },
+      { departmentId: 2, wageAmount: "bad" }
+    ]
+  );
+
+  assert.equal(result.accountingLabor, 100000);
+  assert.equal(result.payrollAmount, 100000);
+  assert.equal(result.difference, 0);
+  assert.equal(result.invalidAttendanceCount, 2);
 });
