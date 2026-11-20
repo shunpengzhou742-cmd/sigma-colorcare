@@ -26,6 +26,7 @@ function readNumber(row, key, options = {}) {
 
 function normalizeRecords(records) {
   let invalidNumericCount = 0;
+  let invalidNumericFieldCount = 0;
   const normalized = records.map(row => {
     const values = {};
     let valid = true;
@@ -33,22 +34,27 @@ function normalizeRecords(records) {
       const parsed = readNumber(row, key, options);
       values[key] = parsed.value;
       if (!parsed.valid) {
-        invalidNumericCount += 1;
+        invalidNumericFieldCount += 1;
         valid = false;
       }
     }
+    if (!valid) invalidNumericCount += 1;
     return { row, values, valid };
   });
-  return { normalized, invalidNumericCount };
+  return { normalized, invalidNumericCount, invalidNumericFieldCount };
 }
 
 export function calculateFinanceSummary(records = [], expenses = []) {
-  const { normalized: normalizedRecords, invalidNumericCount: invalidRecordNumbers } =
+  const { normalized: normalizedRecords, invalidNumericCount: invalidRecordNumbers, invalidNumericFieldCount } =
     normalizeRecords(records);
   let invalidExpenseNumbers = 0;
+  let invalidExpenseFieldCount = 0;
   const normalizedExpenses = expenses.map(row => {
     const parsed = readNumber(row, "amount", { required: true });
-    if (!parsed.valid || parsed.value <= 0) invalidExpenseNumbers += 1;
+    if (!parsed.valid || parsed.value <= 0) {
+      invalidExpenseNumbers += 1;
+      invalidExpenseFieldCount += 1;
+    }
     return { row, amount: parsed.valid && parsed.value > 0 ? parsed.value : 0 };
   });
   const invalidNumericCount = invalidRecordNumbers + invalidExpenseNumbers;
@@ -118,6 +124,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
     invalidDeptCount,
     invalidExpenseCount,
     invalidNumericCount,
+    invalidNumericFieldCount: invalidNumericFieldCount + invalidExpenseFieldCount,
     mathMismatchCount,
     auditIssueCount: invalidDeptCount + invalidExpenseCount + invalidNumericCount +
       mathMismatchCount + (profitGap > 1 ? 1 : 0)
