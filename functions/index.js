@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { initializeApp } from "firebase-admin/app";
-import { FieldPath, FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldPath, FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { buildFinanceClosureSnapshot, createFinanceSourceDigest, getFinanceMonthRange } from "./closure-core.mjs";
 
@@ -69,6 +70,8 @@ export const closeFinancePeriod = onCall({
   }
 
   const closureRef = db.collection("financeClosures").doc(range.periodId);
+  const ownerToken = randomUUID();
+  const leaseExpiresAt = Timestamp.fromMillis(Date.now() + 15 * 60 * 1000);
   await db.runTransaction(async transaction => {
     const existing = await transaction.get(closureRef);
     if (!existing.exists) {
@@ -77,6 +80,8 @@ export const closeFinancePeriod = onCall({
         status: "closing",
         startedAt: FieldValue.serverTimestamp(),
         startedBy: request.auth.uid,
+        ownerToken,
+        leaseExpiresAt,
         schemaVersion: 1
       });
       return;
@@ -87,6 +92,16 @@ export const closeFinancePeriod = onCall({
     if (existing.get("status") !== "closing") {
       throw new HttpsError("failed-precondition", "The existing closure has an unsupported state.");
     }
+    const activeLease = existing.get("leaseExpiresAt");
+    if (activeLease?.toMillis?.() > Date.now()) {
+      throw new HttpsError("aborted", "Another finance closure attempt is still running.");
+    }
+    transaction.update(closureRef, {
+      ownerToken,
+      leaseExpiresAt,
+      startedAt: existing.get("startedAt") ?? FieldValue.serverTimestamp(),
+      startedBy: existing.get("startedBy") ?? request.auth.uid
+    });
   });
 
   // The lock is created before reading any source collection. Firestore rules
@@ -108,18 +123,23 @@ export const closeFinancePeriod = onCall({
     sourceDigest
   });
 
-  const lockSnapshot = await closureRef.get();
-  await closureRef.set({
-    ...range,
-    status: "closed",
-    startedAt: lockSnapshot.get("startedAt") ?? FieldValue.serverTimestamp(),
-    startedBy: lockSnapshot.get("startedBy") ?? request.auth.uid,
-    closedAt: FieldValue.serverTimestamp(),
-    closedBy: request.auth.uid,
-    snapshot: closure.snapshot,
-    sourceCounts,
-    sourceDigest,
-    schemaVersion: 1
+  await db.runTransaction(async transaction => {
+    const lockSnapshot = await transaction.get(closureRef);
+    if (!lockSnapshot.exists || lockSnapshot.get("status") !== "closing"
+      || lockSnapshot.get("ownerToken") !== ownerToken) {
+      throw new HttpsError("aborted", "Finance closure ownership changed; snapshot was not finalized.");
+    }
+    transaction.update(closureRef, {
+      status: "closed",
+      closedAt: FieldValue.serverTimestamp(),
+      closedBy: request.auth.uid,
+      snapshot: closure.snapshot,
+      sourceCounts,
+      sourceDigest,
+      ownerToken: FieldValue.delete(),
+      leaseExpiresAt: FieldValue.delete(),
+      schemaVersion: 1
+    });
   });
   return {
     periodId: range.periodId,
