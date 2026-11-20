@@ -612,6 +612,7 @@ const translations = {
     accountingEditLoading:"正在保存修改和历史快照……",
     accountingEditSaved:"修改已保存，历史快照已记录。",
     accountingEditError:"修改失败：",
+    accountingEditConflict:"这条核算记录已被其他操作修改，请取消后重新打开最新记录再编辑。",
     accountingHistoryEmpty:"当前统计周期没有每日核算记录。",
     accountingEditButton:"修改记录",
     accountingAuditEmpty:"该记录暂无修改历史。",
@@ -1456,6 +1457,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
 });
 
 let editingDailyRecordId=null;
+let editingDailyRecordVersion=null;
 const editAccountingFields=[
  ["editAccountingHeadcount","headcount",true],
  ["editAccountingOutput","outputQuantity",true],
@@ -1491,7 +1493,7 @@ async function openDailyAccountingEdit(recordId){
  try{
   const snap=await getDoc(doc(db,"dailyRecords",recordId));
   if(!snap.exists())throw new Error("RECORD_NOT_FOUND");
-  const data=snap.data();editingDailyRecordId=recordId;
+  const data=snap.data();editingDailyRecordId=recordId;editingDailyRecordVersion=data.updatedAt?.toMillis?.()??null;
   document.getElementById("dailyAccountingEditDate").textContent=data.workDate+" · "+({1:tr("repair"),2:tr("clean"),3:tr("weave")}[data.departmentId]||data.departmentId);
   editAccountingFields.forEach(([id,key])=>{document.getElementById(id).value=String(data[key]??0);});
   form.classList.remove("hidden");message.textContent="";
@@ -1521,7 +1523,7 @@ async function openDailyAccountingEdit(recordId){
  }catch(error){message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
 }
 document.getElementById("cancelDailyAccountingEdit").addEventListener("click",()=>{
- editingDailyRecordId=null;document.getElementById("dailyAccountingEditForm").classList.add("hidden");
+ editingDailyRecordId=null;editingDailyRecordVersion=null;document.getElementById("dailyAccountingEditForm").classList.add("hidden");
 });
 document.getElementById("dailyAccountingEditForm").addEventListener("submit",async event=>{
  event.preventDefault();
@@ -1541,6 +1543,8 @@ document.getElementById("dailyAccountingEditForm").addEventListener("submit",asy
    const current=await transaction.get(recordRef);
    if(!current.exists())throw new Error("RECORD_NOT_FOUND");
    const before=current.data();
+   const currentVersion=before.updatedAt?.toMillis?.()??null;
+   if(currentVersion!==editingDailyRecordVersion)throw new Error("ACCOUNTING_RECORD_CHANGED");
    const revenue=values.outputQuantity*values.unitPrice;
    const laborCost=values.headcount*values.dailyWagePerPerson;
    const netProfit=revenue-laborCost-values.materialCost-values.otherCost;
@@ -1555,7 +1559,7 @@ document.getElementById("dailyAccountingEditForm").addEventListener("submit",asy
   await loadFinanceOverview();
   await openDailyAccountingEdit(savedRecordId);
   message.textContent=tr("accountingEditSaved");
- }catch(error){console.error("Daily accounting edit error",error);message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("Daily accounting edit error",error);message.textContent=error.message==="ACCOUNTING_RECORD_CHANGED"?tr("accountingEditConflict"):tr("accountingEditError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
 
