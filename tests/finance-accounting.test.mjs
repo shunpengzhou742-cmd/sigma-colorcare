@@ -184,7 +184,7 @@ test("breaks payroll reconciliation differences down by work date and group", ()
     ]
   );
 
-  assert.deepEqual(result.dailyComparisons, [
+  assert.deepEqual(result.dailyComparisons.map(({ employees, ...row }) => row), [
     { workDate: "2026-11-18", departmentId: 1, accountingLabor: 100000, payrollAmount: 90000, difference: -10000 },
     { workDate: "2026-11-19", departmentId: 1, accountingLabor: 120000, payrollAmount: 120000, difference: 0 },
     { workDate: "2026-11-19", departmentId: 2, accountingLabor: 80000, payrollAmount: 75000, difference: -5000 },
