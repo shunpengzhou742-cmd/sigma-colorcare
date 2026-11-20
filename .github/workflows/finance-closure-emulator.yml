@@ -1,0 +1,43 @@
+name: Finance closure emulator integration
+
+on:
+  pull_request:
+    paths:
+      - "functions/**"
+      - "tests/finance-closure-emulator.test.mjs"
+      - "firebase.json"
+      - "firestore.rules"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/finance-closure-emulator.yml"
+  push:
+    branches: [main]
+    paths:
+      - "functions/**"
+      - "tests/finance-closure-emulator.test.mjs"
+      - "firebase.json"
+      - "firestore.rules"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/finance-closure-emulator.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  closure-emulator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install root dependencies
+        run: npm ci
+      - name: Install Cloud Functions dependencies
+        run: npm install --prefix functions
+      - name: Test callable finance closure against Firebase emulators
+        run: npm run test:closure:emulator
