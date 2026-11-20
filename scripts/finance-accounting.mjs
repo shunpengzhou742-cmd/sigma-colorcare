@@ -15,8 +15,10 @@ const RECORD_FIELDS = {
 
 function readNumber(row, key, options = {}) {
   if (!(key in row) && options.required === false) return { value: 0, valid: true };
-  const value = Number(row[key]);
-  const valid = Number.isFinite(value)
+  const raw = row[key];
+  const hasNumericInput = typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "");
+  const value = Number(raw);
+  const valid = hasNumericInput && Number.isFinite(value)
     && (options.signed || value >= 0)
     && (!options.integer || Number.isInteger(value));
   return { value: valid ? value : 0, valid };
