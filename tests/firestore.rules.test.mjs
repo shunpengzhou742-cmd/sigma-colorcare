@@ -582,6 +582,10 @@ describe("SIGMA financial privacy Firestore rules", () => {
       outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     }));
+    await assertFails(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      updatedAt: serverTimestamp()
+    }));
     await assertSucceeds(runTransaction(db, async transaction => {
       const current = await transaction.get(ref);
       const before = current.data();
@@ -597,6 +601,9 @@ describe("SIGMA financial privacy Firestore rules", () => {
     }));
     await assertSucceeds(getDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1")));
     await assertFails(getDoc(doc(googleDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
+    await assertFails(updateDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1"), { changedBy: "attacker" }));
+    const { deleteDoc } = await import("firebase/firestore");
+    await assertFails(deleteDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1")));
     await assertFails(setDoc(doc(db, "dailyRecordAuditLogs/forged"), {
       recordId: ref.id, workDate: "2026-11-20", departmentId: 1,
       before: valid, after: valid, changedBy: "admin-1", changedAt: serverTimestamp()
