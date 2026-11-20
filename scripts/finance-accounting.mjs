@@ -54,10 +54,12 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   const invalidNumericCount = invalidRecordNumbers + invalidExpenseNumbers;
 
   const sum = (rows, getter) => rows.reduce((total, row) => total + getter(row), 0);
-  const revenue = sum(normalizedRecords, item => item.values.revenue);
-  const labor = sum(normalizedRecords, item => item.values.laborCost);
-  const materials = sum(normalizedRecords, item => item.values.materialCost);
-  const other = sum(normalizedRecords, item => item.values.otherCost);
+  // Never let a partially malformed daily record affect the reported financial totals.
+  const validRecords = normalizedRecords.filter(item => item.valid);
+  const revenue = sum(validRecords, item => item.values.revenue);
+  const labor = sum(validRecords, item => item.values.laborCost);
+  const materials = sum(validRecords, item => item.values.materialCost);
+  const other = sum(validRecords, item => item.values.otherCost);
   const extra = sum(normalizedExpenses, item => item.amount);
 
   const invalidDeptCount = records.filter(
@@ -75,7 +77,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   )).length;
 
   const departments = GROUP_IDS.map(id => {
-    const own = normalizedRecords.filter(item => Number(item.row.departmentId) === id);
+    const own = validRecords.filter(item => Number(item.row.departmentId) === id);
     const ownExpenses = normalizedExpenses.filter(item => Number(item.row.departmentId) === id);
     const departmentRevenue = sum(own, item => item.values.revenue);
     const departmentLabor = sum(own, item => item.values.laborCost);
