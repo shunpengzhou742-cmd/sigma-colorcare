@@ -1389,7 +1389,7 @@ function renderFinanceOverview(){
   if(!ss.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financeScrapNoRecords");scrapBreakdown.append(empty);}
  document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
  root.replaceChildren();chart.replaceChildren();
- if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");return;}
+ if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
  const names={1:tr("repair"),2:tr("clean"),3:tr("weave")},deptResults=[];
  [1,2,3].forEach(id=>{
   const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);
