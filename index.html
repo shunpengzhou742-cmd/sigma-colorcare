@@ -219,6 +219,24 @@ body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
 body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
 @media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
 
+
+/* v13 finance department comparison */
+.finance-dept-chart{display:grid;gap:12px;margin:12px 0}
+.finance-dept-card{padding:13px;border:1px solid var(--line,#d7e2ef);border-radius:14px;background:rgba(255,255,255,.58)}
+body.theme-dark .finance-dept-card{background:rgba(15,32,55,.72);border-color:#3b5575}
+.finance-dept-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;margin-bottom:9px}
+.finance-dept-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.finance-dept-metric{min-width:0;font-size:11px;color:#58708c}
+.finance-dept-metric strong{display:block;margin-top:4px;font-size:12px;color:#193d63;overflow-wrap:anywhere}
+body.theme-dark .finance-dept-metric{color:#b5c9e2}
+body.theme-dark .finance-dept-metric strong{color:#edf5ff}
+.finance-profit-track{height:9px;border-radius:99px;background:rgba(120,145,170,.2);overflow:hidden;margin-top:10px}
+.finance-profit-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2387d7,#21b7ad)}
+.finance-profit-fill.negative{background:linear-gradient(90deg,#e18b4c,#d94d62)}
+.finance-shared-note{font-size:12px;color:#60758d;margin:2px 0 0}
+body.theme-dark .finance-shared-note{color:#b4c7dd}
+@media(max-width:420px){.finance-dept-metrics{gap:5px}.finance-dept-metric strong{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -275,37 +293,74 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
         <select id="financePeriodType"><option value="month" data-i18n="financeMonth">本月</option><option value="half" data-i18n="financeHalf">本半年</option><option value="year" data-i18n="financeYear">本年度</option><option value="custom" data-i18n="financeCustom">自定义日期范围</option></select>
         <div class="form-grid"><label><span data-i18n="financeStart">开始日期</span><input id="financeStartDate" type="date"></label><label><span data-i18n="financeEnd">结束日期</span><input id="financeEndDate" type="date"></label></div>
       </div>
-      <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article></div>
+      <div id="financeClosurePanel" class="work-panel">
+        <button id="closeFinancePeriodBtn" type="button" class="dark" data-i18n="financeCloseBtn">结账所选月份</button>
+        <p id="financeClosureStatus" class="small" aria-live="polite" data-i18n="financeClosureMonthOnly">请选择一个已经结束的完整月份。</p>
+      </div>
+      <div id="financeClosureHistoryPanel" class="work-panel">
+        <h3 data-i18n="financeClosureHistoryTitle">历史结账记录</h3>
+        <button id="refreshFinanceClosureHistoryBtn" type="button" data-i18n="financeClosureHistoryRefresh">刷新历史</button>
+        <div id="financeClosureHistory" class="small" aria-live="polite">—</div>
+      </div>
+      <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article><article><span data-i18n="scrapApprovedLabel">已批准报废数量</span><strong id="financeScrapQuantity">—</strong></article></div>
       <div id="financeDepartmentSummary" class="work-panel small" data-i18n="financeLoading">正在读取财务数据……</div>
+       <div id="financeScrapBreakdown" class="work-panel small"></div>
+       <div id="financeReconciliation" class="work-panel small" aria-live="polite"></div>
+      <div id="financeDepartmentChart" class="finance-dept-chart" aria-live="polite"></div>
       <div class="dashboard-section-title"><h3 data-i18n="financeMonthlyTitle">按月经营汇总</h3></div><div id="financeMonthlyReport" class="work-panel"></div>
-      <p class="dashboard-note" data-i18n="financeNote">统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
+      <p class="dashboard-note" data-i18n="financeNote">统计基于修色部各组每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。</p>
 
-      <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">部门每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="dailyAccountingTitle">修色部各组每日经营数据</h3><span data-i18n="adminOnlyEntry">仅负责人录入</span></div>
       <form id="dailyAccountingForm" class="work-panel">
         <label data-i18n="accountingDate">核算日期</label><input id="accountingDate" type="date" required>
-        <label data-i18n="accountingDepartment">核算部门</label>
-        <select id="accountingDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="accountingDepartment">核算业务组</label>
+        <select id="accountingDepartment" required><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
         <label data-i18n="accountingHeadcount">当天人数</label><input id="accountingHeadcount" type="number" min="0" step="1" required placeholder="0">
         <label data-i18n="accountingOutput">当天总产量</label><input id="accountingOutput" type="number" min="0" step="1" required placeholder="0">
         <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="accountingUnitPrice" type="number" min="0" step="any" required placeholder="0">
         <label data-i18n="accountingDailyWage">每人日薪（VND）</label><input id="accountingDailyWage" type="number" min="0" step="any" required placeholder="0">
         <label data-i18n="accountingMaterialCost">材料费用（VND）</label><input id="accountingMaterialCost" type="number" min="0" step="any" required placeholder="0">
-        <label data-i18n="accountingOtherCost">其他部门支出（VND，可填0）</label><input id="accountingOtherCost" type="number" min="0" step="any" value="0" required>
+        <label data-i18n="accountingOtherCost">其他组支出（VND，可填0）</label><input id="accountingOtherCost" type="number" min="0" step="any" value="0" required>
         <div id="accountingPreview" class="small" data-i18n="accountingPreviewHint">填写数据后自动预览收入、人工成本和利润。</div>
         <button id="saveAccountingBtn" class="primary" type="submit" data-i18n="saveAccounting">保存每日核算</button>
         <p id="accountingMessage" class="small" role="status" aria-live="polite"></p>
       </form>
 
-      <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">部门日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="accountingHistoryTitle">每日核算历史记录</h3></div>
+      <div id="dailyAccountingHistory" class="work-panel small" aria-live="polite"></div>
+      <form id="dailyAccountingEditForm" class="work-panel hidden">
+        <strong data-i18n="editAccountingTitle">修改每日核算</strong>
+        <p id="dailyAccountingEditDate" class="small"></p>
+        <label data-i18n="accountingHeadcount">当天人数</label><input id="editAccountingHeadcount" type="number" min="0" step="1" required>
+        <label data-i18n="accountingOutput">当天总产量</label><input id="editAccountingOutput" type="number" min="0" step="1" required>
+        <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="editAccountingUnitPrice" type="number" min="0" step="any" required>
+        <label data-i18n="accountingDailyWage">每人日薪（VND）</label><input id="editAccountingDailyWage" type="number" min="0" step="any" required>
+        <label data-i18n="accountingMaterialCost">材料费用（VND）</label><input id="editAccountingMaterialCost" type="number" min="0" step="any" required>
+        <label data-i18n="accountingOtherCost">其他组支出（VND，可填0）</label><input id="editAccountingOtherCost" type="number" min="0" step="any" required>
+        <p id="dailyAccountingEditMessage" class="small" role="status" aria-live="polite"></p>
+        <button id="saveDailyAccountingEdit" class="primary" type="submit" data-i18n="saveAccountingEdit">保存修改并记录历史</button>
+        <button id="cancelDailyAccountingEdit" class="dark" type="button" data-i18n="cancelAccountingEdit">取消修改</button>
+      </form>
+      <div id="dailyAccountingAuditHistory" class="work-panel small"></div>
+
+      <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">各组日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
       <form id="wageRateForm" class="work-panel">
-        <label data-i18n="wageDepartment">部门</label>
-        <select id="wageDepartment" required><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <label data-i18n="wageDepartment">业务组</label>
+        <select id="wageDepartment" required><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
         <label data-i18n="wageEffectiveDate">生效日期</label><input id="wageEffectiveDate" type="date" required>
         <label data-i18n="wageAmount">每人日薪（VND）</label><input id="wageAmount" type="number" min="0" step="any" required placeholder="0">
         <button id="saveWageRateBtn" class="primary" type="submit" data-i18n="saveWageRate">保存日薪标准</button>
         <p id="wageRateMessage" class="small" role="status" aria-live="polite"></p>
       </form>
       <div id="wageRateHistory" class="work-panel"><p class="small" data-i18n="wageHistoryLoading">正在读取日薪历史……</p></div>
+      <div class="dashboard-section-title"><h3 data-i18n="attendanceTitle">员工考勤与个人工资</h3></div><form id="attendanceForm" class="work-panel">
+<label data-i18n="attendanceEmployee">员工</label><select id="attendanceEmployee" required></select>
+<label data-i18n="attendanceDate">出勤日期</label><input id="attendanceDate" type="date" required>
+<label data-i18n="attendanceDepartment">所属业务组</label><select id="attendanceDepartment"><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
+<label data-i18n="attendanceDays">计薪天数（全天1，半天0.5，可手动输入）</label><input id="attendanceDays" type="number" min="0.01" max="1" step="0.01" value="1" required>
+<label data-i18n="attendanceDailyWage">当日日薪</label><input id="attendanceDailyWage" type="number" min="0" step="any" required>
+<p id="attendancePreview" class="small"></p><button class="primary" id="saveAttendanceBtn" type="submit" data-i18n="attendanceSave">保存考勤与工资</button><p id="attendanceMessage" class="small"></p></form><div id="attendanceAdminList" class="work-panel"></div><div id="attendanceAuditHistory" class="work-panel"></div><button id="loadMoreAttendanceAdminBtn" class="dark hidden" type="button" data-i18n="attendanceLoadMore">加载更多考勤</button>
+
 
       <div class="dashboard-section-title"><h3 data-i18n="expenseTitle">其他经营费用登记</h3><span data-i18n="expenseAdminOnly">仅负责人录入</span></div>
       <form id="expenseForm" class="work-panel">
@@ -317,59 +372,63 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
           <option value="transport" data-i18n="expenseTransport">运输交通</option><option value="utilities" data-i18n="expenseUtilities">水电杂费</option><option value="maintenance" data-i18n="expenseMaintenance">设备维修</option><option value="office" data-i18n="expenseOffice">办公用品</option><option value="meals" data-i18n="expenseMeals">餐饮伙食</option><option value="other" data-i18n="expenseOther">其他</option>
         </select>
         <label data-i18n="expenseDepartment">归属范围</label>
-        <select id="expenseDepartment"><option value="0" data-i18n="expenseCompany">公司公共</option><option value="1">修色部门</option><option value="2">清洗部门</option><option value="3">修织部门</option></select>
+        <select id="expenseDepartment"><option value="0" data-i18n="expenseCompany">公司公共</option><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
         <label data-i18n="expenseAmount">金额（VND）</label><input id="expenseAmount" type="number" min="0.01" step="any" required placeholder="0">
         <label data-i18n="expenseNote">备注</label><input id="expenseNote" type="text" maxlength="300" placeholder="—">
         <button id="saveExpenseBtn" class="primary" type="submit" data-i18n="saveExpense">保存费用</button><button id="cancelExpenseEditBtn" class="dark hidden" type="button" data-i18n="cancelEdit">取消修改</button>
-        <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
+        <p class="dashboard-note" data-i18n="expenseDoubleCountWarning">录入前请核对：如果这笔费用已经填入部门每日核算的“其他部门支出”，不要再次登记。系统不会自动合并或识别重复费用。</p>
+         <p id="expenseMessage" class="small" role="status" aria-live="polite"></p>
       </form>
       <div class="dashboard-section-title"><h3 data-i18n="expenseRecent">近期费用记录</h3><button id="refreshExpensesBtn" class="dark dashboard-refresh" type="button" data-i18n="refreshExpenses">刷新费用</button></div>
       <div id="expenseList" class="work-panel"><p class="small" data-i18n="expenseLoading">正在读取费用记录……</p></div>
       <div class="work-panel"><label data-i18n="expensePeriodLabel">费用统计周期</label><select id="expensePeriodType"><option value="month" data-i18n="expensePeriodMonth">本月</option><option value="half" data-i18n="expensePeriodHalf">本半年</option><option value="year" data-i18n="expensePeriodYear">本年度</option></select><div id="expensePeriodSummary" class="small">—</div></div>
-      <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">三个部门独立核算</span></div>
+      <div class="dashboard-section-title"><h3 data-i18n="deptOverview">部门运营进度</h3><span data-i18n="threeDeptIndependent">修色部下属三个组分别独立核算</span></div>
       <div class="dept-overview-grid">
-        <article class="dept-overview repair-overview"><b data-i18n="repair">修色部门</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
-        <article class="dept-overview clean-overview"><b data-i18n="clean">清洗部门</b><strong data-i18n="cleanModuleLive">清洗工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
-        <article class="dept-overview weave-overview"><b data-i18n="weave">修织部门</b><strong data-i18n="weaveModuleLive">修织工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
+        <article class="dept-overview repair-overview"><b data-i18n="repair">修色组</b><strong data-i18n="repairModuleLive">工单录入模块已上线</strong><small data-i18n="repairModuleDetail">今日数量以实际提交工单统计</small></article>
+        <article class="dept-overview clean-overview"><b data-i18n="clean">清洗组</b><strong data-i18n="cleanModuleLive">清洗工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
+        <article class="dept-overview weave-overview"><b data-i18n="weave">修织组</b><strong data-i18n="weaveModuleLive">修织工单模块已上线</strong><small data-i18n="moduleNotCounted">产量按已提交工单统计</small></article>
       </div>
       <p id="dashboardMessage" class="small" role="status" aria-live="polite"></p>
     </section>
-    <section id="scrapReviewPanel" class="card hidden" style="margin-top:18px">
-      <h3 data-i18n="scrapPending">报废申请处理</h3><div id="scrapReviewQueue"></div>
+    <section id="scrapReviewContainer" class="card hidden" style="margin-top:18px">
+      <div id="scrapReviewPanel" class="work-panel hidden"><h3 data-i18n="scrapPending">待处理报废申请</h3><div id="scrapReviewQueue"></div></div>
+      <div id="scrapHistoryPanel" class="work-panel hidden"><h4 data-i18n="scrapHistoryTitle">已处理报废记录</h4><div id="scrapHistoryFilters" class="employee-actions"></div><div id="scrapHistoryList"></div></div>
     </section>
     <section id="invitePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="inviteTitle">员工邀请</h3>
       <p class="small" data-i18n="inviteDesc">生成24小时有效、只能使用一次的员工邀请。</p>
-      <label><input class="invite-dept" type="checkbox" value="1"> <span data-i18n="repair">修色部门</span></label>
-      <label><input class="invite-dept" type="checkbox" value="2"> <span data-i18n="clean">清洗部门</span></label>
-      <label><input class="invite-dept" type="checkbox" value="3"> <span data-i18n="weave">修织部门</span></label>
+      <label><input class="invite-dept" type="checkbox" value="1"> <span data-i18n="repair">修色组</span></label>
+      <label><input class="invite-dept" type="checkbox" value="2"> <span data-i18n="clean">清洗组</span></label>
+      <label><input class="invite-dept" type="checkbox" value="3"> <span data-i18n="weave">修织组</span></label>
       <button id="createInviteBtn" class="primary" type="button" data-i18n="createInvite">生成员工邀请二维码</button>
       <div id="inviteResult" class="hidden" style="margin-top:16px;text-align:center">
         <div id="inviteQr" style="display:inline-block;background:white;padding:12px;border-radius:12px"></div>
         <p id="inviteLinkText" class="small" style="overflow-wrap:anywhere"></p>
         <button id="copyInviteBtn" class="dark" type="button" data-i18n="copyInvite">复制邀请链接</button>
+        <button id="revokeInviteBtn" class="dark" type="button" data-i18n="revokeInvite">撤销此邀请</button>
       </div>
       <p id="inviteMsg" class="small" role="status" aria-live="polite"></p>
     </section>
     <section id="employeeManagePanel" class="card hidden" style="margin-top:18px">
       <h3 data-i18n="employeeManageTitle">员工管理</h3>
-      <p class="small" data-i18n="employeeManageDesc">查看员工资料、调整部门权限或停用系统访问。</p>
+      <p class="small" data-i18n="employeeManageDesc">查看员工资料、调整业务组权限或停用系统访问。</p>
       <button id="refreshEmployeesBtn" class="dark" type="button" data-i18n="refreshEmployees">刷新员工名单</button>
       <p id="employeeManageMsg" class="small" role="status" aria-live="polite"></p>
       <div id="employeeList"></div>
     </section>
-    <h3 data-i18n="selectDept">请选择部门</h3>
+    <h3 data-i18n="selectDept">修色部 · 请选择业务组</h3>
     <button id="deptRepair" class="dept repair" type="button" onclick="openDept('repair')">
-      <span><strong data-i18n="repair">修色部门</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
+      <span><strong data-i18n="repair">修色组</strong><div class="small" data-i18n="repairDesc">喷色 / 手工描绘</div></span><b>→</b>
     </button>
     <button id="deptClean" class="dept clean" type="button" onclick="openDept('clean')">
-      <span><strong data-i18n="clean">清洗部门</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
+      <span><strong data-i18n="clean">清洗组</strong><div class="small" data-i18n="cleanDesc">清洗工序管理</div></span><b>→</b>
     </button>
     <button id="deptWeave" class="dept weave" type="button" onclick="openDept('weave')">
-      <span><strong data-i18n="weave">修织部门</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
+      <span><strong data-i18n="weave">修织组</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
     </button>
   </section>
 
+<section id="myPayrollPanel" class="card hidden" style="margin-top:18px"><h3 data-i18n="myPayrollTitle">我的出勤与工资</h3><div id="myPayrollList" class="work-panel">—</div><button id="loadMorePayrollBtn" class="dark hidden" type="button" data-i18n="myPayrollLoadMore">加载更多记录</button></section>
   <section id="deptView" class="card hidden">
     <h2 id="deptTitle"></h2>
     <section id="repairWorkbench" class="hidden">
@@ -411,7 +470,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
     <section id="cleanWorkbench" class="hidden">
       <div class="work-panel">
         <h3 data-i18n="cleanEntryTitle">清洗工单录入（按批次）</h3>
-        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看部门汇总。</p>
+        <p class="small" data-i18n="genericWorkDesc">每批单独提交，负责人可查看各组汇总。</p>
         <form id="cleanWorkOrderForm">
           <label data-i18n="workDate">作业日期</label><input id="cleanWorkDate" type="date" required>
           <label data-i18n="orderNo">订单号（选填）</label><input id="cleanOrderNo" maxlength="80">
@@ -449,6 +508,8 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
       <div class="work-panel"><h3 data-i18n="scrapRequestTitle">报废申请</h3>
         <form id="scrapRequestForm">
           <label data-i18n="requestDate">申请日期</label><input id="scrapRequestDate" type="date" required>
+          <label data-i18n="scrapBatchLabel">关联报废批次</label><select id="scrapRequestWorkOrder" required><option value="" data-i18n="scrapBatchPlaceholder">请选择本人批次</option></select>
+          <p class="small" data-i18n="scrapBatchHint">每个批次只能提交一次报废申请，数量不能超过该批次数量。</p>
           <label data-i18n="orderNo">订单号（选填）</label><input id="scrapRequestOrderNo" maxlength="80">
           <label data-i18n="styleNo">款号（选填）</label><input id="scrapRequestStyleNo" maxlength="80">
           <label data-i18n="quantity">报废数量</label><input id="scrapRequestQuantity" type="number" min="1" max="1000000" step="1" required>
@@ -471,7 +532,11 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, orderBy, documentId, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
+import { calculateFinanceSummary, calculatePayrollReconciliation } from "./scripts/finance-accounting.mjs";
+import { collectPaginatedDocuments } from "./scripts/finance-pagination.mjs";
+import { getFinanceDateRange } from "./scripts/finance-period.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -485,6 +550,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functionsClient = getFunctions(app, "asia-southeast1");
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
@@ -493,12 +559,12 @@ const translations = {
     subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
-    selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
-    clean:"清洗部门", cleanDesc:"清洗工序管理", weave:"修织部门",
-    weaveDesc:"修织工序管理", placeholder:"部门业务页面尚未开发，这是第一阶段框架。",
+    selectDept:"修色部 · 请选择业务组", repair:"修色组", repairDesc:"喷色 / 手工描绘",
+    clean:"清洗组", cleanDesc:"清洗工序管理", weave:"修织组",
+    weaveDesc:"修织工序管理", placeholder:"修色部业务组页面尚未开发，这是第一阶段框架。",
     back:"返回首页", online:"在线", offline:"离线", configured:"Firebase 已连接",
     connecting:"Firebase 连接中", lang:"Tiếng Việt",
-    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个部门。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
+    inviteTitle:"员工邀请", inviteDesc:"生成24小时有效、只能使用一次的员工邀请。", createInvite:"生成员工邀请二维码", copyInvite:"复制邀请链接", inviteSelect:"请至少选择一个业务组。", inviteCreating:"正在生成邀请……", inviteReady:"邀请已生成。请让员工在24小时内扫码并使用自己的 Google 账号登录。", inviteCopied:"邀请链接已复制。", revokeInvite:"撤销此邀请", inviteRevoking:"正在撤销邀请……", inviteRevoked:"未使用邀请已撤销。", inviteRevokeError:"撤销邀请失败：", inviteError:"邀请生成失败：", inviteJoin:"正在验证员工邀请并建立资料……", inviteInvalid:"邀请无效、已过期或已被使用，请联系负责人重新生成。", inviteDone:"员工资料已建立并自动激活。", inviteAlreadyUsed:"该邀请已经使用过。", inviteGoogleOnly:"员工邀请必须使用 Google 账号登录。", inviteAdminDenied:"负责人账号不能领取员工邀请。",
     signingIn:"正在验证账号……", checkingAdmin:"正在检查管理员权限……",
     loginFailed:"登录失败：", wrongPassword:"邮箱或密码不正确。",
     userNotFound:"没有找到该邮箱对应的账号。", invalidEmail:"邮箱格式不正确。",
@@ -515,7 +581,7 @@ const translations = {
     linkingGoogle:"正在跳转 Google 完成账号关联……", googleLinkSuccess:"Google 登录已成功关联，仍使用原管理员 UID。",
     googleLinkError:"Google 账号关联失败：", googleCredentialInUse:"这个 Google 账号已关联到其他 Firebase UID，不能直接合并。请先停止操作。",
     googleNeedPassword:"请先使用该管理员的邮箱和密码登录，再绑定 Google。",
-    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存部门权限", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用",
+    repairEntryTitle:"修色工单录入（按批次）", repairEntryDesc:"每一批货单独提交；系统自动按日期和修色类型汇总。", workDate:"作业日期", repairType:"修色类型", sprayRepair:"喷色", handRepair:"手工描绘", orderNo:"订单号（选填）", styleNo:"款号（选填）", color:"颜色（选填）", quantity:"本批数量", workNote:"备注（选填）", submitWorkOrder:"提交本批工单", submittingWorkOrder:"正在提交……", workOrderSaved:"本批工单已提交。", workOrderError:"工单提交失败：", dailyRepairSummary:"每日修色汇总", myRepairOrders:"修色工单记录", refreshRecords:"刷新记录", noRepairOrders:"暂无修色工单。", otherDeptComing:"该部门工单页面将在修色模块验证后继续开发。",employeeManageTitle:"员工管理", employeeManageDesc:"查看员工资料、调整部门权限或停用系统访问。", specialRoleMarker:"辅助岗位标记", specialRoleHint:"仅记录负责人指定的辅助岗位；具体权限包尚未配置，当前不会额外开放功能。", refreshEmployees:"刷新员工名单", loadingEmployees:"正在读取员工名单……", noEmployees:"目前还没有员工资料。", employeeLoadError:"读取员工名单失败：", saveAccess:"保存权限与岗位标记", savingAccess:"正在保存……", accessSaved:"部门权限已更新。", disableEmployee:"停用系统访问", enableEmployee:"恢复系统访问", employeeDisabled:"员工已停用，不能进入系统。", employeeEnabled:"员工已恢复使用。", employeeSaveError:"更新员工失败：", statusActive:"状态：正常", statusDisabled:"状态：已停用",
     dashboardKicker:"SIGMA · BUSINESS OVERVIEW",
     dashboardTitle:"经营总览",
     refreshDashboard:"刷新数据",
@@ -529,12 +595,14 @@ const translations = {
     financePending:"等待接入真实核算数据",
     totalRevenue:"总收入",
     totalCost:"总成本",
+    laborCostLabel:"人工成本",
     netProfit:"公司净利润",
-    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"部门利润",financeDataError:"财务数据读取失败：",
+    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeCloseBtn:"结账所选月份",financeClosureRetryBtn:"继续完成结账",financeClosureOpen:"该月份尚未结账。结账后财务源数据将锁定。",financeClosureClosing:"该月份正在结账，源数据已锁定。",financeClosureRetry:"上次结账已中断，可重新尝试；期间数据仍保持锁定。",financeClosureClosed:"已结账并锁定。数据笔数：",financeClosureMonthOnly:"请选择一个已经结束的完整月份。",financeCloseConfirm:"确认结账 {period}？结账后不能直接修改该月份的财务源数据。",financeClosureWorking:"正在生成结账快照……",financeClosureError:"结账失败：",financeClosureDone:"结账完成。公司净利润：",financeClosureHistoryTitle:"历史结账记录",financeClosureHistoryRefresh:"刷新历史",financeClosureHistoryLoading:"正在读取历史结账记录……",financeClosureHistoryEmpty:"暂无已结账月份。",financeClosureHistoryError:"历史结账记录读取失败：",financeClosureHistoryProfit:"公司净利润",financeClosureHistoryDigest:"数据摘要",financeClosureHistoryCounts:"数据笔数",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
-    financeNote:"统计基于部门每日核算和经营费用；每日核算中的其他支出不要重复登记到经营费用。",
-    deptOverview:"部门运营进度",
-    threeDeptIndependent:"三个部门独立核算",
+    financeNote:"统计基于修色部各组每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用；考勤工资仅用于人工成本核对，不会再次扣减利润。",financeScrapBreakdown:"各组已批准报废数量",financeScrapUnassigned:"未识别组别报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：组别归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"组别编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditInvalidNumeric:"数字字段异常的核算或费用记录",financeAuditProfitGap:"公司总利润与各组汇总差额",financePayrollTitle:"考勤工资与每日核算人工成本对照（仅核对，不重复计入利润）",financePayrollEmpty:"所选周期暂无考勤工资记录",financePayrollAccounting:"每日核算人工成本",financePayrollAttendance:"考勤工资合计",financePayrollDifference:"差额（考勤工资－每日人工）",financePayrollInvalid:"异常考勤工资记录",financePayrollUndatedAttendance:"未填写有效日期的考勤记录（已计入部门工资总额，无法按日核对）",financePayrollUnmatchedAccounting:"未填写有效日期的每日核算记录（已计入部门人工总额，无法按日核对）",financePayrollStatusMatched:"金额一致",financePayrollStatusMismatch:"金额不一致",financePayrollStatusPayrollOnly:"只有考勤工资",financePayrollStatusAccountingOnly:"只有每日核算人工",financePayrollStatusNoData:"暂无数据",financePayrollAttendanceCount:"考勤人数",financePayrollExceptionSummary:"日期核对分类统计",financePayrollViewSources:"查看原始记录与修改历史",financePayrollSourcesTitle:"核对来源记录",financePayrollNoAccountingSource:"没有对应的每日核算记录",financePayrollNoAttendanceSource:"没有对应的考勤记录",financePayrollOpenAccounting:"打开核算记录及修改历史",financePayrollAttendanceHistory:"查看考勤修改历史",financePayrollHistoryLoading:"正在读取修改历史……",financePayrollHistoryEmpty:"该记录暂无修改历史",financePayrollHistoryError:"读取修改历史失败：",financePayrollBefore:"修改前",financePayrollAfter:"修改后",financePayrollChangedBy:"修改人",
+    financePayrollDailyBreakdown:"按日期和业务组核对差额",
+    deptOverview:"修色部各组运营进度",
+    threeDeptIndependent:"修色部下属三个组分别独立核算",
     repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
     repairModuleDetail:"今日数量以实际提交工单统计",
     moduleInDevelopment:"业务模块开发中",
@@ -549,16 +617,27 @@ const translations = {
     trendEmpty:"近7天暂无修色工单记录。",
     trendError:"读取趋势失败：",
     trendPieces:"件",
-    dailyAccountingTitle:"部门每日经营数据",
+    dailyAccountingTitle:"修色部各组每日经营数据",
+    accountingHistoryTitle:"每日核算历史记录",
+    editAccountingTitle:"修改每日核算",
+    saveAccountingEdit:"保存修改并记录历史",
+    cancelAccountingEdit:"取消修改",
+    accountingEditLoading:"正在保存修改和历史快照……",
+    accountingEditSaved:"修改已保存，历史快照已记录。",
+    accountingEditError:"修改失败：",
+    accountingEditConflict:"这条核算记录已被其他操作修改，请取消后重新打开最新记录再编辑。",
+    accountingHistoryEmpty:"当前统计周期没有每日核算记录。",
+    accountingEditButton:"修改记录",
+    accountingAuditEmpty:"该记录暂无修改历史。",
     adminOnlyEntry:"仅负责人录入",
     accountingDate:"核算日期",
-    accountingDepartment:"核算部门",
+    accountingDepartment:"核算业务组",
     accountingHeadcount:"当天人数",
     accountingOutput:"当天总产量",
     accountingUnitPrice:"加工单价（越南盾/件）",
     accountingDailyWage:"每人日薪（越南盾）",
     accountingMaterialCost:"材料费用（越南盾）",
-    accountingOtherCost:"其他部门支出（越南盾，可填0）",
+    accountingOtherCost:"其他组支出（越南盾，可填0）",
     accountingPreviewHint:"填写数据后自动预览收入、人工成本和利润。",
     saveAccounting:"保存每日核算",
     accountingPreview:"预计收入：{revenue} VND · 人工：{labor} VND · 预计利润：{profit} VND",
@@ -567,9 +646,9 @@ const translations = {
     accountingDuplicate:"该部门当天已有核算记录；为避免重复计算，请先核对已有记录。",
     accountingInvalid:"请填写有效的非负数字。",
     accountingLoading:"正在保存……",
-    wageSettingsTitle:"部门日薪设置",
+    wageSettingsTitle:"各组日薪设置",
     effectiveDateRule:"按生效日期执行，不追溯修改历史",
-    wageDepartment:"部门",
+    wageDepartment:"业务组",
     wageEffectiveDate:"生效日期",
     wageAmount:"每人日薪（VND）",
     saveWageRate:"保存日薪标准",
@@ -580,7 +659,8 @@ const translations = {
     wageDuplicate:"该部门在这个生效日期已有日薪记录，请选择其他日期。",
     wageSaveError:"保存日薪失败：",
     wageAutoApplied:"已按生效日期自动带入对应部门日薪。",
-    wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",scrapRequestTitle:"报废申请",scrapReason:"报废原因",submitScrapRequest:"提交报废申请",requestDate:"申请日期",myRequests:"我的报废申请记录",requestSaved:"申请已提交，等待负责人审核。",requestError:"申请提交失败：",scrapPending:"待处理报废申请",reviewApprove:"通过",reviewReject:"驳回",statusSubmitted:"待审核",statusApproved:"已通过",statusRejected:"已驳回",noPendingRequests:"暂无待处理申请",noMyRequests:"暂无申请记录",editExpense:"修改",cancelEdit:"取消修改",expenseUpdated:"费用记录已更新。",
+    wageAutoMissing:"该日期之前没有日薪标准，请手动填写每日核算日薪。",attendanceTitle:"员工考勤与个人工资",attendanceLoadMore:"加载更多考勤",attendanceEmployee:"员工",attendanceDate:"出勤日期",attendanceDepartment:"所属业务组",attendanceDays:"计薪天数（全天1，半天0.5，可手动输入）",attendanceDailyWage:"当日日薪",attendanceSave:"保存考勤与工资",attendanceSaved:"考勤与工资已保存。",attendanceAuditTitle:"最近修改记录",attendanceAuditOpen:"查看修改历史",attendanceAuditLoading:"正在读取修改记录……",attendanceAuditEmpty:"该考勤记录暂无修改历史。",attendanceAuditBefore:"修改前",attendanceAuditAfter:"修改后",attendanceAuditError:"读取考勤修改历史失败：",attendanceError:"保存失败：",attendanceEmpty:"暂无记录",attendanceNoRate:"没有对应日薪标准，请手动输入",attendanceRateApplied:"已自动带入日薪",attendanceInvalid:"请检查输入内容",attendanceAmount:"工资",attendanceDaysLabel:"计薪天数",wageEffectiveDate:"工资标准生效日",wageManual:"手动录入",attendanceMyError:"读取个人工资失败：",myPayrollTitle:"我的出勤与工资",myPayrollEmpty:"暂无个人工资记录",myPayrollLoadMore:"加载更多记录",
+    batchTraceTitle:"批次记录",scrapApprovedLabel:"已批准报废",scrapPendingLabel:"待审核报废",scrapRequestTitle:"报废申请",scrapReviewNotePlaceholder:"填写驳回原因（最多300字）",scrapRejectReasonRequired:"驳回时必须填写原因",scrapHistoryTitle:"已处理报废记录",scrapHistoryEmpty:"暂无已处理报废记录",scrapHistoryError:"读取报废历史失败：",scrapFilterAll:"全部",scrapFilterStatus:"审核状态",scrapFilterDepartment:"业务组",scrapFilterStartDate:"开始日期",scrapFilterEndDate:"结束日期",scrapFilterApply:"筛选记录",scrapBatchQuantity:"关联批次原始数量",scrapBatchDate:"批次日期",scrapBatchColor:"批次颜色",scrapBatchMissing:"关联批次不存在或无法读取",scrapBatchLabel:"关联报废批次",scrapBatchPlaceholder:"请选择本人批次",scrapBatchHint:"每个批次只能提交一次报废申请，数量不能超过该批次数量。",scrapReason:"报废原因",submitScrapRequest:"提交报废申请",requestDate:"申请日期",myRequests:"我的报废申请记录",requestSaved:"申请已提交，等待负责人审核。",requestError:"申请提交失败：",scrapPending:"待处理报废申请",reviewApprove:"通过",reviewReject:"驳回",statusSubmitted:"待审核",statusApproved:"已通过",statusRejected:"已驳回",noPendingRequests:"暂无待处理申请",noMyRequests:"暂无申请记录",editExpense:"修改",cancelEdit:"取消修改",expenseUpdated:"费用记录已更新。",
     expenseAdminOnly:"仅负责人录入",
     expenseMode:"登记方式",
     expenseModeItem:"逐笔登记",
@@ -597,6 +677,7 @@ const translations = {
     expenseCompany:"公司公共",
     expenseAmount:"金额（VND）",
     expenseNote:"备注",
+    expenseDoubleCountWarning:"录入前请核对：如果这笔费用已经填入部门每日核算的“其他部门支出”，不要再次登记。系统不会自动合并或识别重复费用。",
     saveExpense:"保存费用",
     expenseRecent:"近期费用记录",
     refreshExpenses:"刷新费用",
@@ -610,18 +691,18 @@ const translations = {
     expenseRecordDaily:"日汇总",
     expenseAdminOnlyDenied:"只有负责人可以管理经营费用。",
     expenseCompanyLabel:"公司公共",
-    expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
+    expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"业务组归属费用",
   },
   vi: {
     subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
-    selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
-    clean:"Bộ phận Giặt", cleanDesc:"Quản lý công đoạn giặt", weave:"Bộ phận Sửa dệt",
-    weaveDesc:"Quản lý sửa dệt", placeholder:"Module nghiệp vụ đang được phát triển.",
+    selectDept:"Bộ phận Sửa màu · Chọn tổ", repair:"Tổ Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
+    clean:"Tổ Giặt", cleanDesc:"Quản lý công đoạn giặt", weave:"Tổ Sửa dệt",
+    weaveDesc:"Quản lý sửa dệt", placeholder:"Module các tổ thuộc Bộ phận Sửa màu đang được phát triển.",
     back:"Quay lại trang chủ", online:"Trực tuyến", offline:"Ngoại tuyến", configured:"Firebase đã kết nối",
     connecting:"Đang kết nối Firebase", lang:"中文",
-    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một bộ phận.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
+    inviteTitle:"Mời nhân viên", inviteDesc:"Tạo lời mời có hiệu lực 24 giờ và chỉ sử dụng một lần.", createInvite:"Tạo mã QR mời nhân viên", copyInvite:"Sao chép liên kết mời", inviteSelect:"Vui lòng chọn ít nhất một tổ.", inviteCreating:"Đang tạo lời mời…", inviteReady:"Đã tạo lời mời. Nhân viên quét mã trong 24 giờ và đăng nhập bằng Google của chính mình.", inviteCopied:"Đã sao chép liên kết mời.", revokeInvite:"Thu hồi lời mời này", inviteRevoking:"Đang thu hồi lời mời…", inviteRevoked:"Đã thu hồi lời mời chưa sử dụng.", inviteRevokeError:"Thu hồi lời mời thất bại: ", inviteError:"Tạo lời mời thất bại: ", inviteJoin:"Đang xác minh lời mời và tạo hồ sơ nhân viên…", inviteInvalid:"Lời mời không hợp lệ, đã hết hạn hoặc đã được sử dụng. Vui lòng liên hệ người phụ trách để tạo lại.", inviteDone:"Hồ sơ nhân viên đã được tạo và tự động kích hoạt.", inviteAlreadyUsed:"Lời mời này đã được sử dụng.", inviteGoogleOnly:"Nhân viên phải đăng nhập bằng tài khoản Google để sử dụng lời mời.", inviteAdminDenied:"Tài khoản quản trị không thể sử dụng lời mời nhân viên.",
     signingIn:"Đang xác minh tài khoản…", checkingAdmin:"Đang kiểm tra quyền quản trị…",
     loginFailed:"Đăng nhập thất bại: ", wrongPassword:"Email hoặc mật khẩu không chính xác.",
     userNotFound:"Không tìm thấy tài khoản với email này.", invalidEmail:"Định dạng email không hợp lệ.",
@@ -638,7 +719,7 @@ const translations = {
     linkingGoogle:"Đang chuyển đến Google để liên kết tài khoản…", googleLinkSuccess:"Đã liên kết Google thành công, vẫn sử dụng UID quản trị cũ.",
     googleLinkError:"Liên kết tài khoản Google thất bại: ", googleCredentialInUse:"Tài khoản Google này đã liên kết với một Firebase UID khác. Không thể tự động hợp nhất. Vui lòng dừng thao tác.",
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
-    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
+    repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", specialRoleMarker:"Đánh dấu vị trí hỗ trợ", specialRoleHint:"Chỉ ghi nhận vị trí hỗ trợ do quản lý chỉ định; gói quyền cụ thể chưa được cấu hình nên hiện chưa mở thêm chức năng.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền và dấu vị trí", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
     dashboardKicker:"SIGMA · TỔNG QUAN KINH DOANH",
     dashboardTitle:"Tổng quan kinh doanh",
     refreshDashboard:"Làm mới",
@@ -652,13 +733,15 @@ const translations = {
     financePending:"Chờ kết nối dữ liệu kế toán thực tế",
     totalRevenue:"Tổng doanh thu",
     totalCost:"Tổng chi phí",
+    laborCostLabel:"Chi phí nhân công",
     netProfit:"Lợi nhuận ròng",
-    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận bộ phận",financeDataError:"Không thể tải dữ liệu tài chính: ",
+    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeCloseBtn:"Chốt tháng đã chọn",financeClosureRetryBtn:"Tiếp tục chốt tháng",financeClosureOpen:"Tháng này chưa chốt. Dữ liệu tài chính sẽ bị khóa sau khi chốt.",financeClosureClosing:"Tháng đang được chốt, dữ liệu nguồn đã khóa.",financeClosureRetry:"Lần chốt trước đã bị gián đoạn, có thể thử lại; dữ liệu tháng vẫn bị khóa.",financeClosureClosed:"Đã chốt và khóa. Số lượng dữ liệu: ",financeClosureMonthOnly:"Hãy chọn một tháng đầy đủ đã kết thúc.",financeCloseConfirm:"Xác nhận chốt tháng {period}? Sau khi chốt không thể sửa trực tiếp dữ liệu tài chính của tháng.",financeClosureWorking:"Đang tạo bản chụp quyết toán…",financeClosureError:"Chốt tháng thất bại: ",financeClosureDone:"Đã chốt. Lợi nhuận ròng công ty: ",financeClosureHistoryTitle:"Lịch sử chốt kỳ",financeClosureHistoryRefresh:"Làm mới lịch sử",financeClosureHistoryLoading:"Đang tải lịch sử chốt kỳ…",financeClosureHistoryEmpty:"Chưa có tháng nào được chốt.",financeClosureHistoryError:"Không thể tải lịch sử chốt kỳ: ",financeClosureHistoryProfit:"Lợi nhuận ròng công ty",financeClosureHistoryDigest:"Mã kiểm tra dữ liệu",financeClosureHistoryCounts:"Số bản ghi",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
-    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày và chi phí kinh doanh; không ghi trùng chi phí khác ở cả hai nơi.",
-    deptOverview:"Tiến độ hoạt động các bộ phận",
-    threeDeptIndependent:"Ba bộ phận hạch toán độc lập",
-    repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp bộ phận.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
+    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi; tiền công từ chấm công chỉ dùng để đối chiếu chi phí nhân công, không trừ lợi nhuận lần nữa.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditInvalidNumeric:"Bản ghi kế toán hoặc chi phí có trường số liệu không hợp lệ",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",financePayrollTitle:"Đối chiếu lương chấm công và chi phí nhân công kế toán (chỉ đối chiếu, không trừ lợi nhuận lần nữa)",financePayrollEmpty:"Không có dữ liệu lương chấm công trong kỳ đã chọn",financePayrollAccounting:"Chi phí nhân công theo kế toán ngày",financePayrollAttendance:"Tổng lương chấm công",financePayrollDifference:"Chênh lệch (lương chấm công − nhân công kế toán)",financePayrollInvalid:"Bản ghi lương chấm công bất thường",financePayrollUndatedAttendance:"Bản ghi chấm công thiếu ngày hợp lệ (đã tính vào tổng lương bộ phận, không thể đối chiếu theo ngày)",financePayrollUnmatchedAccounting:"Bản ghi kế toán ngày thiếu ngày hợp lệ (đã tính vào tổng nhân công bộ phận, không thể đối chiếu theo ngày)",financePayrollStatusMatched:"Số tiền khớp",financePayrollStatusMismatch:"Số tiền không khớp",financePayrollStatusPayrollOnly:"Chỉ có lương chấm công",financePayrollStatusAccountingOnly:"Chỉ có nhân công kế toán ngày",financePayrollStatusNoData:"Chưa có dữ liệu",financePayrollAttendanceCount:"Số nhân viên chấm công",financePayrollExceptionSummary:"Tổng hợp phân loại đối chiếu theo ngày",financePayrollViewSources:"Xem bản ghi gốc và lịch sử chỉnh sửa",financePayrollSourcesTitle:"Bản ghi nguồn đối chiếu",financePayrollNoAccountingSource:"Không có bản ghi kế toán hằng ngày tương ứng",financePayrollNoAttendanceSource:"Không có bản ghi chấm công tương ứng",financePayrollOpenAccounting:"Mở bản ghi kế toán và lịch sử chỉnh sửa",financePayrollAttendanceHistory:"Xem lịch sử chỉnh sửa chấm công",financePayrollHistoryLoading:"Đang tải lịch sử chỉnh sửa…",financePayrollHistoryEmpty:"Bản ghi này chưa có lịch sử chỉnh sửa",financePayrollHistoryError:"Lỗi tải lịch sử chỉnh sửa: ",financePayrollBefore:"Trước khi sửa",financePayrollAfter:"Sau khi sửa",financePayrollChangedBy:"Người chỉnh sửa",
+    financePayrollDailyBreakdown:"Đối chiếu chênh lệch theo ngày và tổ",
+    deptOverview:"Tiến độ hoạt động các tổ thuộc Bộ phận Sửa màu",
+    threeDeptIndependent:"Ba tổ thuộc Bộ phận Sửa màu được hạch toán độc lập",
+    repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp theo tổ.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
     moduleInDevelopment:"Đang phát triển module",
     moduleNotCounted:"Chưa tính vào sản lượng và lợi nhuận",
@@ -672,27 +755,38 @@ const translations = {
     trendEmpty:"Không có phiếu sửa màu trong 7 ngày qua.",
     trendError:"Không thể tải xu hướng: ",
     trendPieces:"sản phẩm",
-    dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của bộ phận",
+    dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của các tổ",
+    accountingHistoryTitle:"Lịch sử hạch toán hằng ngày",
+    editAccountingTitle:"Chỉnh sửa hạch toán ngày",
+    saveAccountingEdit:"Lưu thay đổi và ghi lịch sử",
+    cancelAccountingEdit:"Hủy chỉnh sửa",
+    accountingEditLoading:"Đang lưu thay đổi và bản ghi lịch sử…",
+    accountingEditSaved:"Đã lưu thay đổi và bản ghi lịch sử.",
+    accountingEditError:"Không thể chỉnh sửa: ",
+    accountingEditConflict:"Bản ghi đã được thay đổi ở nơi khác. Vui lòng hủy và mở lại bản ghi mới nhất trước khi sửa.",
+    accountingHistoryEmpty:"Không có dữ liệu hạch toán trong kỳ đã chọn.",
+    accountingEditButton:"Chỉnh sửa",
+    accountingAuditEmpty:"Bản ghi này chưa có lịch sử chỉnh sửa.",
     adminOnlyEntry:"Chỉ quản lý nhập",
     accountingDate:"Ngày hạch toán",
-    accountingDepartment:"Bộ phận",
+    accountingDepartment:"Tổ",
     accountingHeadcount:"Số người trong ngày",
     accountingOutput:"Tổng sản lượng trong ngày",
     accountingUnitPrice:"Đơn giá gia công (VND/sản phẩm)",
     accountingDailyWage:"Lương ngày mỗi người (VND)",
     accountingMaterialCost:"Chi phí vật liệu (VND)",
-    accountingOtherCost:"Chi phí khác của bộ phận (VND, có thể nhập 0)",
+    accountingOtherCost:"Chi phí khác của tổ (VND, có thể nhập 0)",
     accountingPreviewHint:"Tự động xem trước doanh thu, chi phí nhân công và lợi nhuận sau khi nhập.",
     saveAccounting:"Lưu hạch toán ngày",
     accountingPreview:"Doanh thu dự kiến: {revenue} VND · Nhân công: {labor} VND · Lợi nhuận dự kiến: {profit} VND",
     accountingSaved:"Đã lưu hạch toán ngày.",
     accountingSaveError:"Lưu hạch toán thất bại: ",
-    accountingDuplicate:"Bộ phận này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
+    accountingDuplicate:"Tổ này đã có dữ liệu hạch toán trong ngày; hãy kiểm tra trước để tránh tính trùng.",
     accountingInvalid:"Vui lòng nhập số hợp lệ không âm.",
     accountingLoading:"Đang lưu…",
-    wageSettingsTitle:"Thiết lập lương ngày theo bộ phận",
+    wageSettingsTitle:"Thiết lập lương ngày theo tổ",
     effectiveDateRule:"Áp dụng theo ngày hiệu lực, không sửa ngược dữ liệu lịch sử",
-    wageDepartment:"Bộ phận",
+    wageDepartment:"Tổ",
     wageEffectiveDate:"Ngày bắt đầu áp dụng",
     wageAmount:"Lương ngày mỗi người (VND)",
     saveWageRate:"Lưu mức lương ngày",
@@ -700,10 +794,11 @@ const translations = {
     wageHistoryEmpty:"Chưa thiết lập mức lương ngày.",
     wageHistoryError:"Không thể tải lịch sử lương: ",
     wageSaved:"Đã lưu mức lương ngày.",
-    wageDuplicate:"Bộ phận này đã có mức lương vào ngày hiệu lực đó. Vui lòng chọn ngày khác.",
+    wageDuplicate:"Tổ này đã có mức lương vào ngày hiệu lực đó. Vui lòng chọn ngày khác.",
     wageSaveError:"Lưu mức lương thất bại: ",
-    wageAutoApplied:"Đã tự động điền lương theo bộ phận và ngày hiệu lực.",
-    wageAutoMissing:"Chưa có mức lương trước ngày này. Vui lòng nhập lương ngày thủ công.",scrapRequestTitle:"Yêu cầu báo phế",scrapReason:"Lý do báo phế",submitScrapRequest:"Gửi yêu cầu báo phế",requestDate:"Ngày yêu cầu",myRequests:"Yêu cầu báo phế của tôi",requestSaved:"Đã gửi yêu cầu, đang chờ người phụ trách duyệt.",requestError:"Gửi yêu cầu thất bại: ",scrapPending:"Yêu cầu báo phế chờ xử lý",reviewApprove:"Duyệt",reviewReject:"Từ chối",statusSubmitted:"Chờ duyệt",statusApproved:"Đã duyệt",statusRejected:"Đã từ chối",noPendingRequests:"Không có yêu cầu chờ xử lý",noMyRequests:"Chưa có yêu cầu",editExpense:"Sửa",cancelEdit:"Hủy sửa",expenseUpdated:"Đã cập nhật khoản chi.",
+    wageAutoApplied:"Đã tự động điền lương theo tổ và ngày hiệu lực.",
+    wageAutoMissing:"Chưa có mức lương trước ngày này. Vui lòng nhập lương ngày thủ công.",attendanceTitle:"Chấm công và lương cá nhân",attendanceLoadMore:"Tải thêm chấm công",attendanceEmployee:"Nhân viên",attendanceDate:"Ngày chấm công",attendanceDepartment:"Tổ",attendanceDays:"Ngày công (cả ngày 1, nửa ngày 0,5; có thể nhập thủ công)",attendanceDailyWage:"Lương ngày",attendanceSave:"Lưu chấm công và lương",attendanceSaved:"Đã lưu chấm công và lương.",attendanceAuditTitle:"Lịch sử chỉnh sửa gần đây",attendanceAuditOpen:"Xem lịch sử chỉnh sửa",attendanceAuditLoading:"Đang tải lịch sử chỉnh sửa…",attendanceAuditEmpty:"Chưa có lịch sử chỉnh sửa cho chấm công này.",attendanceAuditBefore:"Trước khi sửa",attendanceAuditAfter:"Sau khi sửa",attendanceAuditError:"Không thể tải lịch sử chỉnh sửa: ",attendanceError:"Lưu thất bại: ",attendanceEmpty:"Chưa có dữ liệu",attendanceNoRate:"Chưa có mức lương, vui lòng nhập thủ công",attendanceRateApplied:"Đã tự động điền lương ngày",attendanceInvalid:"Vui lòng kiểm tra dữ liệu",attendanceAmount:"Lương",attendanceDaysLabel:"Ngày công",wageEffectiveDate:"Ngày hiệu lực mức lương",wageManual:"Nhập thủ công",attendanceMyError:"Không thể tải lương cá nhân: ",myPayrollTitle:"Chấm công và lương của tôi",myPayrollEmpty:"Chưa có dữ liệu lương cá nhân",myPayrollLoadMore:"Tải thêm dữ liệu",
+    batchTraceTitle:"Theo dõi lô",scrapApprovedLabel:"Số lượng báo phế đã duyệt",scrapPendingLabel:"Số lượng báo phế chờ duyệt",scrapRequestTitle:"Yêu cầu báo phế",scrapReviewNotePlaceholder:"Nhập lý do từ chối (tối đa 300 ký tự)",scrapRejectReasonRequired:"Phải nhập lý do từ chối",scrapHistoryTitle:"Lịch sử báo phế đã xử lý",scrapHistoryEmpty:"Chưa có lịch sử báo phế đã xử lý",scrapHistoryError:"Không thể tải lịch sử báo phế: ",scrapFilterAll:"Tất cả",scrapFilterStatus:"Trạng thái duyệt",scrapFilterDepartment:"Tổ",scrapFilterStartDate:"Từ ngày",scrapFilterEndDate:"Đến ngày",scrapFilterApply:"Lọc dữ liệu",scrapBatchQuantity:"Số lượng ban đầu của lô liên kết",scrapBatchDate:"Ngày của lô",scrapBatchColor:"Màu của lô",scrapBatchMissing:"Không tìm thấy hoặc không thể đọc lô liên kết",scrapBatchLabel:"Chọn lô báo phế",scrapBatchPlaceholder:"Chọn lô của bạn",scrapBatchHint:"Mỗi lô chỉ được gửi một yêu cầu báo phế; số lượng không được vượt quá số lượng lô.",scrapReason:"Lý do báo phế",submitScrapRequest:"Gửi yêu cầu báo phế",requestDate:"Ngày yêu cầu",myRequests:"Yêu cầu báo phế của tôi",requestSaved:"Đã gửi yêu cầu, đang chờ người phụ trách duyệt.",requestError:"Gửi yêu cầu thất bại: ",scrapPending:"Yêu cầu báo phế chờ xử lý",reviewApprove:"Duyệt",reviewReject:"Từ chối",statusSubmitted:"Chờ duyệt",statusApproved:"Đã duyệt",statusRejected:"Đã từ chối",noPendingRequests:"Không có yêu cầu chờ xử lý",noMyRequests:"Chưa có yêu cầu",editExpense:"Sửa",cancelEdit:"Hủy sửa",expenseUpdated:"Đã cập nhật khoản chi.",
     expenseAdminOnly:"Chỉ quản lý nhập",
     expenseMode:"Hình thức ghi nhận",
     expenseModeItem:"Ghi từng khoản",
@@ -720,6 +815,7 @@ const translations = {
     expenseCompany:"Chi phí chung công ty",
     expenseAmount:"Số tiền (VND)",
     expenseNote:"Ghi chú",
+    expenseDoubleCountWarning:"Trước khi nhập, vui lòng kiểm tra: nếu khoản này đã được ghi ở mục “Chi phí khác của bộ phận” trong kế toán hằng ngày thì không nhập lại. Hệ thống không tự động gộp hoặc nhận diện khoản trùng.",
     saveExpense:"Lưu chi phí",
     expenseRecent:"Các khoản chi gần đây",
     refreshExpenses:"Làm mới chi phí",
@@ -733,7 +829,7 @@ const translations = {
     expenseRecordDaily:"Tổng hợp ngày",
     expenseAdminOnlyDenied:"Chỉ người quản lý được quản lý chi phí kinh doanh.",
     expenseCompanyLabel:"Chi phí chung công ty",
-     expensePeriodLabel:"Kỳ thống kê chi phí",expensePeriodMonth:"Tháng này",expensePeriodHalf:"Nửa năm hiện tại",expensePeriodYear:"Năm nay",expensePeriodTotal:"Tổng chi phí trong kỳ",expensePeriodEmpty:"Không có chi phí trong kỳ này",expensePeriodDept:"Chi phí theo bộ phận",
+     expensePeriodLabel:"Kỳ thống kê chi phí",expensePeriodMonth:"Tháng này",expensePeriodHalf:"Nửa năm hiện tại",expensePeriodYear:"Năm nay",expensePeriodTotal:"Tổng chi phí trong kỳ",expensePeriodEmpty:"Không có chi phí trong kỳ này",expensePeriodDept:"Chi phí theo tổ",
   }
 };
 
@@ -744,6 +840,7 @@ let currentProfile = null;
 let handlingAuthState = false;
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
+let latestInviteId = "";
 let inviteCompletedUid = null;
 let employeeCache = [];
 
@@ -811,6 +908,7 @@ function showApp(user, identity){
   document.getElementById("userEmail").textContent = user.email || user.uid;
   currentRole = identity.role;
   currentProfile = identity.profile || null;
+   document.getElementById("myPayrollPanel").classList.toggle("hidden",identity.role!=="employee");
   const departmentIds = identity.role === "admin" ? [1,2,3] : identity.departmentIds;
   document.getElementById("deptRepair").classList.toggle("hidden", !departmentIds.includes(1));
   document.getElementById("deptClean").classList.toggle("hidden", !departmentIds.includes(2));
@@ -819,9 +917,10 @@ function showApp(user, identity){
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("scrapReviewContainer").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
+  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); loadAttendanceAdmin(); refreshExpenseList(); loadReviewQueues(); loadScrapHistory(); loadFinanceClosureHistory(); } else loadMyPayroll();
   currentDept = "";
 }
 function updateGoogleLinkButton(user){
@@ -920,6 +1019,7 @@ async function createEmployeeInvite(){
     crypto.getRandomValues(bytes);
     const inviteId = [...bytes].map(value => value.toString(16).padStart(2,"0")).join("");
     const inviteRef = doc(db,"employeeInvites",inviteId);
+    latestInviteId = inviteId;
     const repairTypeIds = selected.includes(1) ? [101,102] : [];
     await setDoc(inviteRef,{
       departmentIds:selected,
@@ -950,6 +1050,25 @@ async function createEmployeeInvite(){
 }
 
 document.getElementById("createInviteBtn").addEventListener("click",createEmployeeInvite);
+document.getElementById("revokeInviteBtn").addEventListener("click",async()=>{
+  const msg = document.getElementById("inviteMsg");
+  const button = document.getElementById("revokeInviteBtn");
+  if(!latestInviteId) return;
+  button.disabled = true;
+  msg.textContent = tr("inviteRevoking");
+  try{
+    await updateDoc(doc(db,"employeeInvites",latestInviteId),{
+      status:"revoked", revokedBy:auth.currentUser.uid, revokedAt:serverTimestamp()
+    });
+    latestInviteId = "";
+    latestInviteUrl = "";
+    document.getElementById("inviteResult").classList.add("hidden");
+    msg.textContent = tr("inviteRevoked");
+  }catch(error){
+    console.error("SIGMA invitation revoke error:",error);
+    msg.textContent = tr("inviteRevokeError") + (error.code || error.message || "unknown");
+  }finally{ button.disabled = false; }
+});
 document.getElementById("copyInviteBtn").addEventListener("click",async()=>{
   if(!latestInviteUrl) return;
   try{ await navigator.clipboard.writeText(latestInviteUrl); document.getElementById("inviteMsg").textContent = tr("inviteCopied"); }
@@ -974,6 +1093,7 @@ async function loadEmployees(){
     employeeCache = snapshot.docs.map(item => ({id:item.id,...item.data()}))
       .sort((a,b)=>(a.name || a.email || a.uid || "").localeCompare(b.name || b.email || b.uid || ""));
     renderEmployeeList(employeeCache);
+    fillAttendanceEmployees();
     setEmployeeManageMessage(employeeCache.length ? "" : tr("noEmployees"));
   }catch(error){
     console.error("SIGMA employee directory error:",error);
@@ -1010,6 +1130,15 @@ function renderEmployeeList(employees){
       label.append(checkbox,document.createTextNode(deptNames[id]));
       deptWrap.append(label);
     }
+    const specialWrap = document.createElement("label");
+    specialWrap.className = "employee-special-role";
+    const specialCheckbox = document.createElement("input");
+    specialCheckbox.type = "checkbox";
+    specialCheckbox.checked = employee.specialRole === true;
+    specialWrap.append(specialCheckbox,document.createTextNode(tr("specialRoleMarker")));
+    const specialHint = document.createElement("div");
+    specialHint.className = "small";
+    specialHint.textContent = tr("specialRoleHint");
     const actions = document.createElement("div");
     actions.className = "employee-actions";
     const save = document.createElement("button");
@@ -1025,6 +1154,7 @@ function renderEmployeeList(employees){
         await updateDoc(doc(db,"employees",employee.id),{
           departmentIds:selected,
           repairTypeIds:selected.includes(1) ? [101,102] : [],
+          specialRole:specialCheckbox.checked,
           updatedAt:serverTimestamp()
         });
         setEmployeeManageMessage(tr("accessSaved"));
@@ -1054,7 +1184,7 @@ function renderEmployeeList(employees){
       }finally{ toggle.disabled = false; }
     });
     actions.append(save,toggle);
-    card.append(name,email,status,deptWrap,actions);
+    card.append(name,email,status,deptWrap,specialWrap,specialHint,actions);
     root.append(card);
   }
 }
@@ -1090,8 +1220,119 @@ function expenseCategoryLabel(key){return tr(({transport:"expenseTransport",util
 function expenseDepartmentLabel(id){return Number(id)===0?tr("expenseCompanyLabel"):departmentLabel(Number(id));}
 
 let wageRatesCache=[];
-const departmentNames={1:"修色部门",2:"清洗部门",3:"修织部门"};
-function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Bộ phận Sửa màu",2:"Bộ phận Giặt",3:"Bộ phận Sửa dệt"}[id]||String(id));}
+
+function fillAttendanceEmployees(){const s=document.getElementById("attendanceEmployee");s.replaceChildren();employeeCache.filter(e=>e.status==="active").forEach(e=>{const o=document.createElement("option");o.value=e.uid;o.textContent=e.name||e.email||e.uid;s.append(o);});}
+function getAttendanceRate(d,date){return wageRatesCache.filter(x=>Number(x.departmentId)===Number(d)&&x.effectiveDate<=date).sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate))[0]||null;}
+function renderAttendance(rows,target,showName){
+ target.replaceChildren();
+ if(!rows.length){target.textContent=tr(showName?"attendanceEmpty":"myPayrollEmpty");return;}
+ rows.sort((a,b)=>b.workDate.localeCompare(a.workDate)||Number(a.departmentId)-Number(b.departmentId)||(showName?(a.employeeName||a.employeeUid||"").localeCompare(b.employeeName||b.employeeUid||""):0)).forEach(r=>{
+  const p=document.createElement("p");p.className="small";
+  p.textContent=(showName?(r.employeeName||r.employeeUid)+" · ":"")+r.workDate+" · "+departmentLabel(Number(r.departmentId))+" · "+tr("attendanceDaysLabel")+": "+r.payableDays+" · "+tr("attendanceRateLabel")+": "+Number(r.dailyWage).toLocaleString()+" VND · "+tr("attendanceAmount")+": "+Number(r.wageAmount).toLocaleString()+" VND · "+tr("wageEffectiveDate")+": "+(r.wageEffectiveDate==="manual"?tr("wageManual"):r.wageEffectiveDate);
+  target.append(p);
+  if(showName&&r.id){
+   const action=document.createElement("button");action.type="button";action.className="dark";action.textContent=tr("attendanceAuditOpen");
+   action.addEventListener("click",()=>loadAttendanceAuditHistory(r.id));
+   target.append(action);
+  }
+ });
+}
+let attendanceAdminCursor=null,attendanceAdminRows=[],attendanceAdminHasMore=false,attendanceAdminLoading=false;
+async function loadAttendanceAdmin(reset=true){
+ if(currentRole!=="admin"||attendanceAdminLoading)return;
+ const target=document.getElementById("attendanceAdminList"),button=document.getElementById("loadMoreAttendanceAdminBtn");
+ if(reset){attendanceAdminCursor=null;attendanceAdminRows=[];target.replaceChildren();button.classList.add("hidden");}
+ attendanceAdminLoading=true;button.disabled=true;
+ try{
+  const constraints=[];
+  if(attendanceAdminCursor)constraints.push(startAfter(attendanceAdminCursor));
+  constraints.push(limit(250));
+  const snap=await getDocs(query(collection(db,"employeeAttendance"),...constraints));
+  attendanceAdminRows.push(...snap.docs.map(x=>({id:x.id,...x.data()})));
+  attendanceAdminCursor=snap.docs.length?snap.docs[snap.docs.length-1]:null;
+  attendanceAdminHasMore=snap.size===250;
+  renderAttendance(attendanceAdminRows,target,true);
+  button.classList.toggle("hidden",!attendanceAdminHasMore);
+ }catch(e){target.textContent=tr("attendanceError")+(e.code||e.message);}
+ finally{attendanceAdminLoading=false;button.disabled=false;}
+}
+document.getElementById("loadMoreAttendanceAdminBtn").addEventListener("click",()=>loadAttendanceAdmin(false));
+let myPayrollCursor=null,myPayrollRows=[],myPayrollHasMore=false,myPayrollLoading=false;
+async function loadMyPayroll(reset=true){
+ if(currentRole!=="employee"||!auth.currentUser||myPayrollLoading)return;
+ const target=document.getElementById("myPayrollList"),button=document.getElementById("loadMorePayrollBtn");
+ if(reset){myPayrollCursor=null;myPayrollRows=[];target.replaceChildren();button.classList.add("hidden");}
+ myPayrollLoading=true;button.disabled=true;
+ try{
+  const constraints=[where("employeeUid","==",auth.currentUser.uid)];
+  if(myPayrollCursor)constraints.push(startAfter(myPayrollCursor));
+  constraints.push(limit(250));
+  const snap=await getDocs(query(collection(db,"employeeAttendance"),...constraints));
+  myPayrollRows.push(...snap.docs.map(x=>x.data()));
+  myPayrollCursor=snap.docs.length?snap.docs[snap.docs.length-1]:null;
+  myPayrollHasMore=snap.size===250;
+  renderAttendance(myPayrollRows,target,false);
+  button.classList.toggle("hidden",!myPayrollHasMore);
+ }catch(e){target.textContent=tr("attendanceMyError")+(e.code||e.message);}
+ finally{myPayrollLoading=false;button.disabled=false;}
+}
+document.getElementById("loadMorePayrollBtn").addEventListener("click",()=>loadMyPayroll(false));
+function updateAttendanceRate(){const d=Number(document.getElementById("attendanceDepartment").value),date=document.getElementById("attendanceDate").value,r=getAttendanceRate(d,date);document.getElementById("attendanceDailyWage").value=r?String(r.dailyWage):"";document.getElementById("attendanceMessage").textContent=r?tr("attendanceRateApplied"):tr("attendanceNoRate");}
+document.getElementById("attendanceDate").value=localWorkDate();document.getElementById("attendanceDate").addEventListener("change",updateAttendanceRate);document.getElementById("attendanceDepartment").addEventListener("change",updateAttendanceRate);
+async function loadAttendanceAuditHistory(attendanceId){
+ const target=document.getElementById("attendanceAuditHistory");
+ if(currentRole!=="admin"||!attendanceId){target.replaceChildren();return;}
+ target.textContent=tr("attendanceAuditLoading");
+ try{
+  const snap=await getDocs(query(collection(db,"employeeAttendanceAuditLogs"),where("attendanceId","==",attendanceId)));
+  const rows=snap.docs.map(item=>({id:item.id,...item.data()})).sort((a,b)=>{
+   const at=a.changedAt?.toMillis?.()||0,bt=b.changedAt?.toMillis?.()||0;return bt-at;
+  });
+  target.replaceChildren();
+  const title=document.createElement("strong");title.textContent=tr("attendanceAuditTitle");target.append(title);
+  if(!rows.length){const empty=document.createElement("p");empty.className="small";empty.textContent=tr("attendanceAuditEmpty");target.append(empty);return;}
+  rows.forEach(row=>{
+   const item=document.createElement("div");item.className="small";
+   const changed=row.changedAt?.toDate?.();
+   const stamp=changed?changed.toLocaleString():"";
+   const before=row.before||{},after=row.after||{};
+   item.textContent=stamp+" · "+(row.changedBy||"")+" · "+tr("attendanceAuditBefore")+": "+before.payableDays+"天 / "+Number(before.dailyWage||0).toLocaleString()+" VND / "+Number(before.wageAmount||0).toLocaleString()+" VND · "+tr("attendanceAuditAfter")+": "+after.payableDays+"天 / "+Number(after.dailyWage||0).toLocaleString()+" VND / "+Number(after.wageAmount||0).toLocaleString()+" VND";
+   target.append(item);
+  });
+ }catch(error){target.textContent=tr("attendanceAuditError")+(error.code||error.message||"");}
+}
+document.getElementById("attendanceForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
+ const uid=document.getElementById("attendanceEmployee").value,emp=employeeCache.find(x=>x.uid===uid),date=document.getElementById("attendanceDate").value,dept=Number(document.getElementById("attendanceDepartment").value),days=Number(document.getElementById("attendanceDays").value),wage=Number(document.getElementById("attendanceDailyWage").value),msg=document.getElementById("attendanceMessage"),btn=document.getElementById("saveAttendanceBtn");
+ if(!emp||!date||days<=0||days>1||!Number.isFinite(days)||!Number.isFinite(wage)||wage<0||!emp.departmentIds?.includes(dept)){msg.textContent=tr("attendanceInvalid");return;}
+ btn.disabled=true;
+ try{
+  const legacyRef=doc(db,"employeeAttendance",uid+"_"+date),groupRef=doc(db,"employeeAttendance",uid+"_"+date+"_"+dept),auditRef=doc(collection(db,"employeeAttendanceAuditLogs"));
+  const attendanceId=await runTransaction(db,async transaction=>{
+   const groupOld=await transaction.get(groupRef);
+   const legacyOld=groupOld.exists()?null:await transaction.get(legacyRef);
+   const useLegacy=!!legacyOld?.exists()&&Number(legacyOld.data().departmentId)===dept;
+   const ref=useLegacy?legacyRef:groupRef,old=useLegacy?legacyOld:groupOld;
+   const row={employeeUid:uid,employeeName:emp.name||emp.email||emp.uid,workDate:date,departmentId:dept,payableDays:days,dailyWage:wage,wageAmount:days*wage,wageEffectiveDate:getAttendanceRate(dept,date)?.effectiveDate||"manual",updatedAt:serverTimestamp()};
+   if(old.exists()){
+    const before=old.data(),after={...before,...row,lastAuditLogId:auditRef.id};
+    transaction.update(ref,{...row,lastAuditLogId:auditRef.id});
+    transaction.set(auditRef,{attendanceId:ref.id,employeeUid:uid,workDate:date,departmentId:dept,before,after,changedBy:auth.currentUser.uid,changedAt:serverTimestamp()});
+   }else{
+    transaction.set(ref,{...row,lastAuditLogId:null,createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});
+   }
+   return ref.id;
+  });
+  msg.textContent=tr("attendanceSaved");
+  await loadAttendanceAdmin();
+  await loadFinanceOverview();
+  await loadAttendanceAuditHistory(attendanceId);
+ }catch(x){msg.textContent=tr("attendanceError")+(x.code||x.message);}
+ finally{btn.disabled=false;}
+});
+
+const departmentNames={1:"修色组",2:"清洗组",3:"修织组"};
+function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Tổ Sửa màu",2:"Tổ Giặt",3:"Tổ Sửa dệt"}[id]||String(id));}
 function renderWageHistory(){
  const target=document.getElementById("wageRateHistory");
  const rows=[...wageRatesCache].sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate)||a.departmentId-b.departmentId);
@@ -1110,7 +1351,7 @@ async function loadWageRates(){
  try{
   const snap=await getDoc(doc(db,"appSettings","departmentWages"));
   wageRatesCache=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
-  renderWageHistory();applyEffectiveWage();
+  renderWageHistory();applyEffectiveWage();updateAttendanceRate();
  }catch(error){
   console.error("Wage history load error",error);
   target.textContent=tr("wageHistoryError")+(error.code||error.message||"unknown");
@@ -1153,10 +1394,15 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
 
 document.getElementById("expenseDate").value=localWorkDate();
 let editingExpenseId=null,editingExpenseCreatedAt=null,editingExpenseCreatedBy=null,editingExpenseIsSummary=false;
+let expenseListLoadSequence=0;
 async function refreshExpenseList(){
- const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
+ const target=document.getElementById("expenseList");
+ const requestId=++expenseListLoadSequence;
+ target.textContent=tr("expenseLoading");
  try{
-  const snap=await getDocs(collection(db,"operatingExpenses"));
+  const [start,end]=getFinanceDateRange(document.getElementById("expensePeriodType").value,localWorkDate());
+  const snap=await getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">=",start),where("expenseDate","<=",end)));
+  if(requestId!==expenseListLoadSequence)return;
   const rows=snap.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>String(b.expenseDate).localeCompare(String(a.expenseDate)));
   renderExpensePeriodSummary(rows);
   target.replaceChildren();
@@ -1168,14 +1414,15 @@ async function refreshExpenseList(){
    const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
    line.append(detail,edit);target.append(line);
   });
- }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){
+  if(requestId!==expenseListLoadSequence)return;
+  console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");
+ }
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
- const mode=document.getElementById("expensePeriodType").value,today=localWorkDate(),year=today.slice(0,4),month=Number(today.slice(5,7));
- let start=year+"-01-01",end=year+"-12-31";
- if(mode==="month"){start=today.slice(0,7)+"-01";end=today.slice(0,7)+"-31";}
- if(mode==="half"){start=year+(month<=6?"-01-01":"-07-01");end=year+(month<=6?"-06-30":"-12-31");}
+ const mode=document.getElementById("expensePeriodType").value;
+ const [start,end]=getFinanceDateRange(mode,localWorkDate());
  const selected=rows.filter(row=>row.expenseDate>=start&&row.expenseDate<=end);
  if(!selected.length){root.textContent=tr("expensePeriodEmpty");return;}
  const total=selected.reduce((sum,row)=>sum+Number(row.amount||0),0);
@@ -1265,7 +1512,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  const date=document.getElementById("accountingDate").value;
  const departmentId=Number(document.getElementById("accountingDepartment").value);
  const {v,revenue,labor,profit}=accountingValues();
- if(!date||!accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0)||!Number.isInteger(v.accountingHeadcount)||!Number.isInteger(v.accountingOutput)){
+ if(!date||![1,2,3].includes(departmentId)||!accountingInputs.every(id=>document.getElementById(id).value!==""&&Number.isFinite(v[id])&&v[id]>=0)||!Number.isInteger(v.accountingHeadcount)||!Number.isInteger(v.accountingOutput)){
   message.textContent=tr("accountingInvalid");return;
  }
  button.disabled=true;message.textContent=tr("accountingLoading");
@@ -1279,7 +1526,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
     unitPrice:v.accountingUnitPrice,dailyWagePerPerson:v.accountingDailyWage,
     materialCost:v.accountingMaterialCost,otherCost:v.accountingOtherCost,
     revenue,laborCost:labor,netProfit:profit,currency:"VND",
-    createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    createdBy:auth.currentUser.uid,lastAuditLogId:null,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
    });
   });
   message.textContent=tr("accountingSaved");await loadDashboard();
@@ -1287,43 +1534,373 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  finally{button.disabled=false;}
 });
 
-let financeRecordsCache=[],financeExpensesCache=[];
+let editingDailyRecordId=null;
+let editingDailyRecordVersion=null;
+const editAccountingFields=[
+ ["editAccountingHeadcount","headcount",true],
+ ["editAccountingOutput","outputQuantity",true],
+ ["editAccountingUnitPrice","unitPrice",false],
+ ["editAccountingDailyWage","dailyWagePerPerson",false],
+ ["editAccountingMaterialCost","materialCost",false],
+ ["editAccountingOtherCost","otherCost",false]
+];
+function accountingMoney(value){return Math.round(Number(value)||0).toLocaleString()+" VND";}
+function renderDailyAccountingHistory(){
+ const root=document.getElementById("dailyAccountingHistory");
+ if(!root)return;
+ root.replaceChildren();
+ if(currentRole!=="admin"){root.textContent="";return;}
+ const names={1:tr("repair"),2:tr("clean"),3:tr("weave")};
+ const records=[...financeRecordsCache].sort((a,b)=>b.workDate.localeCompare(a.workDate)||a.departmentId-b.departmentId);
+ if(!records.length){root.textContent=tr("accountingHistoryEmpty");return;}
+ records.forEach(record=>{
+  const row=document.createElement("div");row.className="work-record";
+  const title=document.createElement("strong");title.textContent=record.workDate+" · "+(names[record.departmentId]||record.departmentId);row.append(title);
+  const detail=document.createElement("div");detail.className="small";
+  detail.textContent=tr("accountingOutput")+": "+Number(record.outputQuantity||0).toLocaleString()+" · "+tr("netProfit")+": "+accountingMoney(record.netProfit);
+  row.append(detail);
+  const button=document.createElement("button");button.className="dark";button.type="button";button.textContent=tr("accountingEditButton");
+  button.addEventListener("click",()=>openDailyAccountingEdit(record.id));row.append(button);
+  root.append(row);
+ });
+}
+async function openDailyAccountingEdit(recordId){
+ if(currentRole!=="admin"||!recordId)return;
+ const form=document.getElementById("dailyAccountingEditForm"),message=document.getElementById("dailyAccountingEditMessage");
+ message.textContent=tr("accountingLoading");
+ try{
+  const snap=await getDoc(doc(db,"dailyRecords",recordId));
+  if(!snap.exists())throw new Error("RECORD_NOT_FOUND");
+  const data=snap.data();editingDailyRecordId=recordId;editingDailyRecordVersion=data.updatedAt?`${data.updatedAt.seconds}:${data.updatedAt.nanoseconds}`:null;
+  document.getElementById("dailyAccountingEditDate").textContent=data.workDate+" · "+({1:tr("repair"),2:tr("clean"),3:tr("weave")}[data.departmentId]||data.departmentId);
+  editAccountingFields.forEach(([id,key])=>{document.getElementById(id).value=String(data[key]??0);});
+  form.classList.remove("hidden");message.textContent="";
+  const auditRoot=document.getElementById("dailyAccountingAuditHistory");auditRoot.replaceChildren();
+  const auditSnap=await getDocs(query(collection(db,"dailyRecordAuditLogs"),where("recordId","==",recordId)));
+  const entries=auditSnap.docs.map(x=>x.data()).sort((a,b)=>(b.changedAt?.seconds||0)-(a.changedAt?.seconds||0));
+  if(!entries.length){auditRoot.textContent=tr("accountingAuditEmpty");return;}
+  const title=document.createElement("strong");title.textContent=tr("accountingHistoryTitle");auditRoot.append(title);
+  entries.forEach(entry=>{
+   const line=document.createElement("div");line.className="work-summary-row";
+   const time=entry.changedAt?.toDate?entry.changedAt.toDate().toLocaleString():"";
+   const fields=[
+    [tr("accountingHeadcount"),"headcount",false],
+    [tr("accountingOutput"),"outputQuantity",false],
+    [tr("accountingUnitPrice"),"unitPrice",true],
+    [tr("accountingDailyWage"),"dailyWagePerPerson",true],
+    [tr("accountingMaterialCost"),"materialCost",true],
+    [tr("accountingOtherCost"),"otherCost",true],
+    [tr("totalRevenue"),"revenue",true],
+    [tr("laborCostLabel"),"laborCost",true],
+    [tr("netProfit"),"netProfit",true]
+   ];
+   const changes=fields.filter(([,key])=>entry.before[key]!==entry.after[key]).map(([label,key,isMoney])=>label+": "+(isMoney?accountingMoney(entry.before[key]):Number(entry.before[key]||0).toLocaleString())+" → "+(isMoney?accountingMoney(entry.after[key]):Number(entry.after[key]||0).toLocaleString()));
+   line.textContent=time+" · "+changes.join("；")+" · "+entry.changedBy;
+   auditRoot.append(line);
+  });
+ }catch(error){message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
+}
+document.getElementById("cancelDailyAccountingEdit").addEventListener("click",()=>{
+ editingDailyRecordId=null;editingDailyRecordVersion=null;document.getElementById("dailyAccountingEditForm").classList.add("hidden");
+});
+document.getElementById("dailyAccountingEditForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(currentRole!=="admin"||!auth.currentUser||!editingDailyRecordId)return;
+ const message=document.getElementById("dailyAccountingEditMessage"),button=document.getElementById("saveDailyAccountingEdit");
+ const values={};
+ for(const [id,key,isInteger] of editAccountingFields){
+  const raw=document.getElementById(id).value,value=Number(raw);
+  if(raw===""||!Number.isFinite(value)||value<0||(isInteger&&!Number.isInteger(value))){message.textContent=tr("accountingInvalid");return;}
+  values[key]=value;
+ }
+ button.disabled=true;message.textContent=tr("accountingEditLoading");
+ try{
+  const recordRef=doc(db,"dailyRecords",editingDailyRecordId);
+  const auditRef=doc(collection(db,"dailyRecordAuditLogs"));
+  await runTransaction(db,async transaction=>{
+   const current=await transaction.get(recordRef);
+   if(!current.exists())throw new Error("RECORD_NOT_FOUND");
+   const before=current.data();
+   const currentVersion=before.updatedAt?`${before.updatedAt.seconds}:${before.updatedAt.nanoseconds}`:null;
+   if(currentVersion!==editingDailyRecordVersion)throw new Error("ACCOUNTING_RECORD_CHANGED");
+   const revenue=values.outputQuantity*values.unitPrice;
+   const laborCost=values.headcount*values.dailyWagePerPerson;
+   const netProfit=revenue-laborCost-values.materialCost-values.otherCost;
+   const after={...before,...values,revenue,laborCost,netProfit,lastAuditLogId:auditRef.id,updatedAt:serverTimestamp()};
+   transaction.update(recordRef,after);
+   transaction.set(auditRef,{
+    recordId:editingDailyRecordId,workDate:before.workDate,departmentId:before.departmentId,
+    before,after,changedBy:auth.currentUser.uid,changedAt:serverTimestamp()
+   });
+  });
+  const savedRecordId=editingDailyRecordId;
+  await loadFinanceOverview();
+  await openDailyAccountingEdit(savedRecordId);
+  message.textContent=tr("accountingEditSaved");
+ }catch(error){console.error("Daily accounting edit error",error);message.textContent=error.message==="ACCOUNTING_RECORD_CHANGED"?tr("accountingEditConflict"):tr("accountingEditError")+(error.code||error.message||"unknown");}
+ finally{button.disabled=false;}
+});
+
+let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[],financeAttendanceCache=[];
 function financeRange(mode){
- const t=localWorkDate(),y=t.slice(0,4),m=Number(t.slice(5,7));
- if(mode==="month")return[t.slice(0,7)+"-01",t.slice(0,7)+"-31"];
- if(mode==="half")return[y+(m<=6?"-01-01":"-07-01"),y+(m<=6?"-06-30":"-12-31")];
- return[y+"-01-01",y+"-12-31"];
+ const range=getFinanceDateRange(mode,localWorkDate());
+ return range||[];
 }
 function setFinanceDates(mode){
  if(mode==="custom")return;
  const [start,end]=financeRange(mode);document.getElementById("financeStartDate").value=start;document.getElementById("financeEndDate").value=end;renderFinanceOverview();
 }
+async function loadPayrollSourceHistory(collectionName,id,target,kind){
+ target.textContent=tr("financePayrollHistoryLoading");
+ try{
+  const field=kind==="attendance"?"attendanceId":"recordId";
+  const snap=await getDocs(query(collection(db,collectionName),where(field,"==",id)));
+  const rows=snap.docs.map(item=>item.data()).sort((a,b)=>(b.changedAt?.seconds||0)-(a.changedAt?.seconds||0));
+  target.replaceChildren();
+  if(!rows.length){target.textContent=tr("financePayrollHistoryEmpty");return;}
+  rows.forEach(entry=>{
+   const wrap=document.createElement("div");wrap.className="small";
+   const stamp=entry.changedAt?.toDate?entry.changedAt.toDate().toLocaleString():"";
+   const before=entry.before||{},after=entry.after||{};
+   const keys=kind==="attendance"?["payableDays","dailyWage","wageAmount"]:["headcount","outputQuantity","unitPrice","dailyWagePerPerson","materialCost","otherCost","revenue","laborCost","netProfit"];
+   const changes=keys.filter(key=>before[key]!==after[key]).map(key=>key+": "+String(before[key]??"—")+" → "+String(after[key]??"—"));
+   wrap.textContent=stamp+" · "+tr("financePayrollChangedBy")+": "+(entry.changedBy||"—")+" · "+(changes.length?changes.join("；"):tr("financePayrollHistoryEmpty"));
+   target.append(wrap);
+  });
+ }catch(error){target.textContent=tr("financePayrollHistoryError")+(error.code||error.message||"");}
+}
+async function showPayrollSourceDetails(row,target){
+ const money=value=>Math.round(Number(value)||0).toLocaleString()+" VND";
+ target.replaceChildren();
+ const title=document.createElement("strong");title.textContent=tr("financePayrollSourcesTitle");target.append(title);
+ const accounting=financeRecordsCache.filter(item=>item.workDate===row.workDate&&Number(item.departmentId)===row.departmentId);
+ const attendanceIds=new Set(row.employees.map(item=>item.attendanceId).filter(Boolean));
+ const attendance=financeAttendanceCache.filter(item=>attendanceIds.has(item.id));
+ if(!accounting.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financePayrollNoAccountingSource");target.append(empty);}
+ accounting.forEach(record=>{
+  const item=document.createElement("div");item.className="work-record";
+  const line=document.createElement("div");line.textContent=record.workDate+" · "+departmentLabel(record.departmentId)+" · "+tr("accountingHeadcount")+": "+Number(record.headcount||0)+" · "+tr("accountingOutput")+": "+Number(record.outputQuantity||0).toLocaleString()+" · "+tr("laborCostLabel")+": "+money(Number(record.laborCost||0));item.append(line);
+  const button=document.createElement("button");button.type="button";button.className="dark";button.textContent=tr("financePayrollOpenAccounting");button.addEventListener("click",()=>openDailyAccountingEdit(record.id));item.append(button);
+  target.append(item);
+ });
+ if(!attendance.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financePayrollNoAttendanceSource");target.append(empty);}
+ attendance.forEach(record=>{
+  const item=document.createElement("div");item.className="work-record";
+  const line=document.createElement("div");line.textContent=(record.employeeName||"")+" · "+tr("attendanceDaysLabel")+": "+record.payableDays+" · "+tr("attendanceRateLabel")+": "+money(Number(record.dailyWage||0))+" · "+tr("attendanceAmount")+": "+money(Number(record.wageAmount||0));item.append(line);
+  const button=document.createElement("button");button.type="button";button.className="dark";button.textContent=tr("financePayrollAttendanceHistory");const history=document.createElement("div");history.className="small";
+  button.addEventListener("click",()=>loadPayrollSourceHistory("employeeAttendanceAuditLogs",record.id,history,"attendance"));item.append(button,history);target.append(item);
+ });
+}
 function renderFinanceOverview(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
- const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport");
- if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();return;}
- const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end);
+ const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart"),scrapBreakdown=document.getElementById("financeScrapBreakdown"),audit=document.getElementById("financeReconciliation");
+ renderDailyAccountingHistory();
+ if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();audit.replaceChildren();return;}
+ const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved"),attendance=financeAttendanceCache.filter(x=>x.workDate>=start&&x.workDate<=end);
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
- const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount");
- document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
- root.replaceChildren();if(!rs.length&&!es.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");return;}
- const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);const names={1:tr("repair"),2:tr("clean"),3:tr("weave")};
- [1,2,3].forEach(id=>{const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);const p=sum(own,"revenue")-sum(own,"laborCost")-sum(own,"materialCost")-sum(own,"otherCost")-sum(ownE,"amount");const d=document.createElement("div");d.className="work-summary-row";d.textContent=names[id]+" · "+money(p);root.append(d);});
- const shared=sum(es.filter(x=>Number(x.departmentId)===0),"amount"),common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
+ const totals=calculateFinanceSummary(rs,es);
+ const payroll=calculatePayrollReconciliation(rs,attendance);
+ const {revenue,labor,materials,other,extra,invalidDeptCount:invalidDept,invalidExpenseCount:invalidExpense,invalidNumericCount:invalidNumeric,mathMismatchCount:mathMismatch,departments:deptResults,sharedExpenses:shared,companyProfit,overallProfit,profitGap,auditIssueCount}=totals;
+ const approvedScrap=sum(ss,"quantity");
+  document.getElementById("financeScrapQuantity").textContent=approvedScrap.toLocaleString()+" "+tr("unitPieces");
+  scrapBreakdown.replaceChildren();const scrapTitle=document.createElement("strong");scrapTitle.textContent=tr("financeScrapBreakdown");scrapBreakdown.append(scrapTitle);
+  const scrapDeptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};let knownScrap=0;
+  [1,2,3].forEach(id=>{const qty=sum(ss.filter(x=>Number(x.departmentId)===id),"quantity");knownScrap+=qty;const line=document.createElement("div");line.className="work-summary-row";line.textContent=scrapDeptNames[id]+" · "+qty.toLocaleString()+" "+tr("unitPieces");scrapBreakdown.append(line);});
+  const unassignedScrap=approvedScrap-knownScrap;if(unassignedScrap>0){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeScrapUnassigned")+" · "+unassignedScrap.toLocaleString()+" "+tr("unitPieces");scrapBreakdown.append(line);}
+  if(!ss.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financeScrapNoRecords");scrapBreakdown.append(empty);}
+ document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(companyProfit);
+ root.replaceChildren();chart.replaceChildren();
+ if(!rs.length&&!es.length&&!ss.length&&!attendance.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
+
+  audit.replaceChildren();const auditTitle=document.createElement("strong");auditTitle.textContent=tr("financeAuditTitle");audit.append(auditTitle);
+  const auditIssues=auditIssueCount;
+  const auditSummary=document.createElement("div");auditSummary.className="work-summary-row";auditSummary.textContent=auditIssues?tr("financeAuditIssues"):(!rs.length&&!es.length?tr("financeEmpty"):tr("financeAuditClean"));audit.append(auditSummary);
+  if(invalidDept){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidDept")+": "+invalidDept;audit.append(line);}
+  if(invalidExpense){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidExpense")+": "+invalidExpense;audit.append(line);}
+  if(mathMismatch){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditMath")+": "+mathMismatch;audit.append(line);}
+  if(invalidNumeric){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidNumeric")+": "+invalidNumeric;audit.append(line);}
+  if(profitGap>1){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditProfitGap")+": "+money(profitGap);audit.append(line);}
+  const payrollTitle=document.createElement("strong");payrollTitle.textContent=tr("financePayrollTitle");payrollTitle.style.display="block";payrollTitle.style.marginTop="12px";audit.append(payrollTitle);
+  if(!payroll.hasAttendance){const emptyPayroll=document.createElement("div");emptyPayroll.className="work-summary-row";emptyPayroll.textContent=tr("financePayrollEmpty");audit.append(emptyPayroll);}
+  else{
+   const payrollLines=[[tr("financePayrollAccounting"),payroll.accountingLabor],[tr("financePayrollAttendance"),payroll.payrollAmount],[tr("financePayrollDifference"),payroll.difference]];
+   payrollLines.forEach(([label,value])=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=label+": "+money(value);audit.append(line);});
+   payroll.groups.forEach(group=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=departmentLabel(group.id)+" · "+money(group.payrollAmount)+" / "+money(group.accountingLabor)+" · "+money(group.difference)+" · "+tr(({matched:"financePayrollStatusMatched",amount_mismatch:"financePayrollStatusMismatch",payroll_only:"financePayrollStatusPayrollOnly",accounting_only:"financePayrollStatusAccountingOnly",no_data:"financePayrollStatusNoData"})[group.status]||"financePayrollStatusNoData");audit.append(line);});
+   if(payroll.dailyComparisons.length){
+    const statusCounts=payroll.dailyComparisons.reduce((counts,row)=>{counts[row.status]=(counts[row.status]||0)+1;return counts;},{});
+    const statusSummary=document.createElement("div");statusSummary.className="work-summary-row";
+    statusSummary.textContent=tr("financePayrollExceptionSummary")+": "+tr("financePayrollStatusMismatch")+" "+(statusCounts.amount_mismatch||0)+" · "+tr("financePayrollStatusPayrollOnly")+" "+(statusCounts.payroll_only||0)+" · "+tr("financePayrollStatusAccountingOnly")+" "+(statusCounts.accounting_only||0)+" · "+tr("financePayrollStatusMatched")+" "+(statusCounts.matched||0);
+    audit.append(statusSummary);
+    const dailyTitle=document.createElement("div");dailyTitle.className="work-summary-row";dailyTitle.textContent=tr("financePayrollDailyBreakdown");audit.append(dailyTitle);
+    payroll.dailyComparisons.forEach(row=>{
+     const line=document.createElement("div");line.className="work-summary-row";line.textContent=row.workDate+" · "+departmentLabel(row.departmentId)+" · "+money(row.payrollAmount)+" / "+money(row.accountingLabor)+" · "+money(row.difference)+" · "+tr(({matched:"financePayrollStatusMatched",amount_mismatch:"financePayrollStatusMismatch",payroll_only:"financePayrollStatusPayrollOnly",accounting_only:"financePayrollStatusAccountingOnly",no_data:"financePayrollStatusNoData"})[row.status]||"financePayrollStatusNoData")+" · "+tr("financePayrollAttendanceCount")+": "+row.attendanceCount;audit.append(line);
+     row.employees.forEach(employee=>{
+      const detail=document.createElement("div");detail.className="small";detail.style.paddingLeft="16px";
+      detail.textContent="↳ "+employee.employeeName+" · "+tr("attendanceDaysLabel")+": "+employee.payableDays+" · "+tr("attendanceRateLabel")+": "+money(employee.dailyWage)+" · "+tr("attendanceAmount")+": "+money(employee.wageAmount)+" · "+tr("wageEffectiveDate")+": "+(employee.wageEffectiveDate==="manual"?tr("wageManual"):employee.wageEffectiveDate);
+      audit.append(detail);
+     });
+     const sourceButton=document.createElement("button");sourceButton.type="button";sourceButton.className="dark";sourceButton.textContent=tr("financePayrollViewSources");
+     const sourceRoot=document.createElement("div");sourceRoot.className="work-panel small hidden";
+     sourceButton.addEventListener("click",()=>{const opening=sourceRoot.classList.contains("hidden");sourceRoot.classList.toggle("hidden",!opening);if(opening&&!sourceRoot.dataset.loaded){sourceRoot.dataset.loaded="1";showPayrollSourceDetails(row,sourceRoot);}});
+     audit.append(sourceButton,sourceRoot);
+    });
+   }
+   if(payroll.invalidAttendanceCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollInvalid")+": "+payroll.invalidAttendanceCount;audit.append(line);}
+   if(payroll.undatedAttendanceCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollUndatedAttendance")+": "+payroll.undatedAttendanceCount;audit.append(line);}
+   if(payroll.unmatchedAccountingCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollUnmatchedAccounting")+": "+payroll.unmatchedAccountingCount;audit.append(line);}
+  }
+ const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
+ const deptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};
+ deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=(deptNames[x.id]||("组别 "+x.id))+" · "+money(x.profit);root.append(d);});
+ const common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
+ const reconciliation=document.createElement("div");reconciliation.className="work-summary-row";reconciliation.textContent=tr("netProfit")+": "+money(companyProfit);root.append(reconciliation);
+ const maxProfit=Math.max(1,...deptResults.map(x=>Math.abs(x.profit)));
+ deptResults.forEach(x=>{
+  const card=document.createElement("section");card.className="finance-dept-card";
+  const head=document.createElement("div");head.className="finance-dept-head";head.textContent=deptNames[x.id]||("组别 "+x.id);
+  const profit=document.createElement("span");profit.textContent=money(x.profit);head.append(profit);card.append(head);
+  const metrics=document.createElement("div");metrics.className="finance-dept-metrics";
+  [[tr("totalRevenue"),x.revenue],[tr("totalCost"),x.cost],[tr("netProfit"),x.profit]].forEach(([label,value])=>{
+   const item=document.createElement("div");item.className="finance-dept-metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=money(value);item.append(caption,strong);metrics.append(item);
+  });
+  card.append(metrics);
+  const track=document.createElement("div");track.className="finance-profit-track";track.setAttribute("role","img");track.setAttribute("aria-label",(deptNames[x.id]||("组别 "+x.id))+" "+tr("netProfit")+": "+money(x.profit));
+  const fill=document.createElement("div");fill.className="finance-profit-fill"+(x.profit<0?" negative":"");fill.style.width=(Math.abs(x.profit)/maxProfit*100)+"%";track.append(fill);card.append(track);chart.append(card);
+ });
+ const sharedNote=document.createElement("p");sharedNote.className="finance-shared-note";sharedNote.textContent=tr("expenseCompanyLabel")+": "+money(shared)+" · "+tr("netProfit")+" = "+money(companyProfit);chart.append(sharedNote);
  const months=new Map();
- const addMonth=(key)=>{if(!months.has(key))months.set(key,{revenue:0,labor:0,materials:0,other:0,expenses:0,shared:0});return months.get(key);};
- rs.forEach(x=>{const m=addMonth(String(x.workDate||"").slice(0,7));m.revenue+=Number(x.revenue||0);m.labor+=Number(x.laborCost||0);m.materials+=Number(x.materialCost||0);m.other+=Number(x.otherCost||0);});
- es.forEach(x=>{const m=addMonth(String(x.expenseDate||"").slice(0,7));m.expenses+=Number(x.amount||0);if(Number(x.departmentId)===0)m.shared+=Number(x.amount||0);});
+ const monthKeys=new Set([...rs.map(x=>String(x.workDate||"").slice(0,7)),...es.map(x=>String(x.expenseDate||"").slice(0,7))].filter(x=>/^\d{4}-\d{2}$/.test(x)));
+ monthKeys.forEach(key=>{
+  const monthRecords=rs.filter(x=>String(x.workDate||"").slice(0,7)===key);
+  const monthExpenses=es.filter(x=>String(x.expenseDate||"").slice(0,7)===key);
+  const summary=calculateFinanceSummary(monthRecords,monthExpenses);
+  months.set(key,{revenue:summary.revenue,labor:summary.labor,materials:summary.materials,other:summary.other,expenses:summary.extra,profit:summary.companyProfit});
+ });
  monthly.replaceChildren();if(!months.size){monthly.textContent=tr("financeMonthlyEmpty");return;}
  const table=document.createElement("div");table.className="table-wrap";const t=document.createElement("table");t.className="data-table";
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
- [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.revenue-cost;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
+ [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
 }
-document.getElementById("financePeriodType").addEventListener("change",event=>setFinanceDates(event.target.value));
-document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
-document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
+async function getAllFinanceDocs(collectionName,dateField,start,end){
+ return collectPaginatedDocuments(async(cursor,pageSize)=>{
+  const constraints=[where(dateField,">=",start),where(dateField,"<=",end),orderBy(dateField),orderBy(documentId())];
+  if(cursor)constraints.push(startAfter(cursor));
+  constraints.push(limit(pageSize));
+  return getDocs(query(collection(db,collectionName),...constraints));
+ });
+}
+let financeLoadSequence=0;
+document.getElementById("financePeriodType").addEventListener("change",event=>{setFinanceDates(event.target.value);loadFinanceOverview();});
+document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
+document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
+function getSelectedClosableFinanceMonth(){
+ const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
+ if(!start||!end||!/^\d{4}-\d{2}-01$/.test(start))return null;
+ const [expectedStart,expectedEnd]=getFinanceDateRange("month",start);
+ if(start!==expectedStart||end!==expectedEnd||end>=localWorkDate())return null;
+ return start.slice(0,7);
+}
+async function loadFinanceClosureHistory(){
+ const panel=document.getElementById("financeClosureHistoryPanel"),root=document.getElementById("financeClosureHistory");
+ if(!panel||!root)return;
+ panel.hidden=currentRole!=="admin";
+ if(panel.hidden)return;
+ root.textContent=tr("financeClosureHistoryLoading");
+ try{
+  const snap=await getDocs(query(collection(db,"financeClosures"),where("status","==","closed"),orderBy("periodId","desc"),limit(24)));
+  root.replaceChildren();
+  if(snap.empty){root.textContent=tr("financeClosureHistoryEmpty");return;}
+  for(const item of snap.docs){
+   const data=item.data(),snapshot=data.snapshot||{},finance=snapshot.finance||{};
+   const section=document.createElement("section");
+   section.style.cssText="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.15)";
+   const heading=document.createElement("strong");heading.textContent=item.id+" · "+tr("financeClosureHistoryProfit")+": "+Number(finance.companyProfit||0).toLocaleString()+" VND";
+   const counts=document.createElement("p");counts.textContent=tr("financeClosureHistoryCounts")+": "+Object.values(data.sourceCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);
+   const digest=document.createElement("p");digest.textContent=tr("financeClosureHistoryDigest")+": "+String(data.sourceDigest||"").slice(0,16)+"…";
+   const details=document.createElement("details");
+   const summary=document.createElement("summary");summary.textContent=lang==="zh"?"查看快照详情":"Xem chi tiết bản chụp";
+   const body=document.createElement("pre");body.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px";
+   body.textContent=JSON.stringify({finance:snapshot.finance,payrollReconciliation:snapshot.payrollReconciliation,scrap:snapshot.scrap,audit:snapshot.audit},null,2);
+   details.append(summary,body);section.append(heading,counts,digest,details);root.append(section);
+  }
+ }catch(error){root.textContent=tr("financeClosureHistoryError")+(error.code||error.message||"unknown");}
+}
+document.getElementById("refreshFinanceClosureHistoryBtn").addEventListener("click",loadFinanceClosureHistory);
+async function refreshFinanceClosureStatus(){
+ const panel=document.getElementById("financeClosurePanel"),button=document.getElementById("closeFinancePeriodBtn"),status=document.getElementById("financeClosureStatus");
+ if(!panel||!button||!status)return;
+ panel.hidden=currentRole!=="admin";
+ if(panel.hidden)return;
+ const periodId=getSelectedClosableFinanceMonth();
+ button.textContent=tr("financeCloseBtn");
+ if(!periodId){button.disabled=true;status.textContent=tr("financeClosureMonthOnly");return;}
+ button.disabled=true;status.textContent=tr("financeClosureWorking");
+ try{
+  const snapshot=await getDoc(doc(db,"financeClosures",periodId));
+  if(document.getElementById("financeStartDate").value.slice(0,7)!==periodId)return;
+  if(snapshot.exists()){
+   const data=snapshot.data();
+   if(data.status==="closed"){
+    status.textContent=tr("financeClosureClosed")+Object.values(data.sourceCounts||{}).reduce((sum,n)=>sum+Number(n||0),0);
+   }else{
+    const leaseUntil=data.leaseExpiresAt?.toMillis?.()||0;
+    const canRetry=data.status==="closing"&&leaseUntil<=Date.now();
+    status.textContent=canRetry?tr("financeClosureRetry"):tr("financeClosureClosing");
+    button.textContent=canRetry?tr("financeClosureRetryBtn"):tr("financeCloseBtn");
+    button.disabled=!canRetry;
+   }
+  }else{
+   status.textContent=tr("financeClosureOpen");button.disabled=false;
+  }
+ }catch(error){
+  status.textContent=tr("financeClosureError")+(error.code||error.message||"unknown");
+ }
+}
+document.getElementById("closeFinancePeriodBtn").addEventListener("click",async()=>{
+ const periodId=getSelectedClosableFinanceMonth();
+ if(!periodId||currentRole!=="admin")return;
+ const confirmed=confirm(tr("financeCloseConfirm").replace("{period}",periodId));
+ if(!confirmed)return;
+ const button=document.getElementById("closeFinancePeriodBtn"),status=document.getElementById("financeClosureStatus");
+ button.disabled=true;status.textContent=tr("financeClosureWorking");
+ try{
+  const closePeriod=httpsCallable(functionsClient,"closeFinancePeriod");
+  const response=await closePeriod({periodId});
+  status.textContent=tr("financeClosureDone")+Number(response.data.companyProfit||0).toLocaleString()+" VND";
+  await loadFinanceOverview();
+  await refreshFinanceClosureStatus();
+ }catch(error){
+  status.textContent=tr("financeClosureError")+(error.message||error.code||"unknown");
+  await refreshFinanceClosureStatus();
+ }
+});
 setFinanceDates("month");
-async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
+async function loadFinanceOverview(){
+ const root=document.getElementById("financeDepartmentSummary");
+ const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
+ const requestId=++financeLoadSequence;
+ refreshFinanceClosureStatus();
+ if(!start||!end||start>end){renderFinanceOverview();return;}
+ root.textContent=tr("financeLoading");
+ try{
+  const [a,b,s,p]=await Promise.all([
+   getAllFinanceDocs("dailyRecords","workDate",start,end),
+   getAllFinanceDocs("operatingExpenses","expenseDate",start,end),
+   getAllFinanceDocs("scrapRequests","requestDate",start,end),
+   getAllFinanceDocs("employeeAttendance","workDate",start,end)
+  ]);
+  if(requestId!==financeLoadSequence)return;
+  financeRecordsCache=a.map(x=>({id:x.id,...x.data()}));
+  financeExpensesCache=b.map(x=>x.data());
+  financeScrapCache=s.map(x=>x.data());
+  financeAttendanceCache=p.map(x=>({id:x.id,...x.data()}));
+  renderFinanceOverview();
+ }catch(e){
+  if(requestId!==financeLoadSequence)return;
+  console.error("Finance overview",e);
+  root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");
+ }
+}
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
@@ -1367,63 +1944,92 @@ document.getElementById("refreshDashboardBtn").addEventListener("click",loadDash
 
 const requestDepartments={repair:1,clean:2,weave:3};
 function requestStatusLabel(status){return tr(status==="approved"?"statusApproved":status==="rejected"?"statusRejected":"statusSubmitted");}
+let scrapWorkOrderCache=new Map();
 async function loadDeptRequests(){
  if(!currentDept||currentRole!=="employee"||!auth.currentUser)return;
- const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests");
+ const departmentId=requestDepartments[currentDept],root=document.getElementById("myDeptRequests"),sourceCollection=currentDept==="repair"?"repairWorkOrders":currentDept==="clean"?"cleanWorkOrders":"weaveWorkOrders";
  root.textContent=tr("accountingLoading");
  try{
-  const snap=await getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)));
-  root.replaceChildren();
-  if(!snap.size){root.textContent=tr("noMyRequests");return;}
-  snap.docs.map(x=>x.data()).sort((a,b)=>(b.requestDate||"").localeCompare(a.requestDate||"")).forEach(row=>{
-   const line=document.createElement("div");line.className="work-summary-row";
-   line.textContent=[row.requestDate,row.orderNo,row.styleNo,row.quantity,row.reason,requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);
-  });
+  const [scrap,orders]=await Promise.all([getDocs(query(collection(db,"scrapRequests"),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100))),getDocs(query(collection(db,sourceCollection),where("employeeUid","==",auth.currentUser.uid),where("departmentId","==",departmentId),limit(100)))]);
+  const requests=new Map(scrap.docs.map(x=>[x.id,x.data()]));scrapWorkOrderCache=new Map();
+  const select=document.getElementById("scrapRequestWorkOrder");select.replaceChildren();const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=tr("scrapBatchPlaceholder");select.append(placeholder);
+  orders.docs.forEach(item=>{const row=item.data(),key=sourceCollection+"/"+item.id,id="scrap_"+sourceCollection+"_"+item.id,existingRequest=requests.get(id);if(existingRequest&&existingRequest.status!=="rejected")return;scrapWorkOrderCache.set(key,{...row,id:item.id,sourceCollection,existingRequest});const option=document.createElement("option");option.value=key;option.textContent=[row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.(),row.orderNo||row.styleNo,row.color,row.quantity].filter(Boolean).join(" · ");select.append(option);});
+  select.value="";document.getElementById("scrapRequestQuantity").removeAttribute("max");root.replaceChildren();
+  const title=document.createElement("strong");title.textContent=tr("batchTraceTitle");root.append(title);
+  const byBatch=new Map(scrap.docs.map(x=>{const row=x.data();return[(row.sourceCollection||"")+"/"+(row.workOrderId||""),row];}));
+  const batches=orders.docs.map(x=>({id:x.id,row:x.data()})).sort((x,y)=>(y.row.workDate||y.row.createdAt?.seconds||0).toString().localeCompare((x.row.workDate||x.row.createdAt?.seconds||0).toString()));
+  if(!batches.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
+  batches.forEach(batch=>{const row=batch.row,s=byBatch.get(sourceCollection+"/"+batch.id),line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.workDate||row.createdAt?.toDate?.().toLocaleDateString?.()||"",row.orderNo,row.styleNo,row.color,Number(row.quantity||0).toLocaleString(),s?.status==="approved"?tr("scrapApprovedLabel")+": "+Number(s.quantity||0).toLocaleString():s?.status==="submitted"?tr("scrapPendingLabel")+": "+Number(s.quantity||0).toLocaleString():s?.status==="rejected"?tr("statusRejected"):""].filter(Boolean).join(" · ");root.append(line);});
+  const heading=document.createElement("strong");heading.textContent=tr("scrapRequestTitle");root.append(heading);
+  if(!scrap.docs.length){const p=document.createElement("p");p.className="small";p.textContent=tr("noMyRequests");root.append(p);}
+  scrap.docs.map(x=>x.data()).sort((x,y)=>(y.requestDate||y.createdAt?.seconds||0).toString().localeCompare((x.requestDate||x.createdAt?.seconds||0).toString())).forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=[row.requestDate,row.orderNo,row.styleNo,Number(row.quantity||0).toLocaleString(),requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);});
  }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
 }
-function bindScrapRequestForm(){
- const prefix="scrapRequest";
- document.getElementById(prefix+"Form").addEventListener("submit",async event=>{
-  event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
-  const date=document.getElementById(prefix+"Date").value,quantity=Number(document.getElementById(prefix+"Quantity").value);
-  if(!date||!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)return;
-  const button=document.getElementById("submitScrapRequest"),message=document.getElementById(prefix+"Message");button.disabled=true;
-  try{
-   const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:document.getElementById(prefix+"OrderNo").value.trim(),styleNo:document.getElementById(prefix+"StyleNo").value.trim(),quantity,note:document.getElementById(prefix+"Note").value.trim(),reason:document.getElementById(prefix+"Reason").value.trim(),status:"submitted",createdAt:serverTimestamp()};
-   await addDoc(collection(db,"scrapRequests"),payload);
-   document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
-  }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
-  finally{button.disabled=false;}
- });
-}
-bindScrapRequestForm();
-
-async function loadScrapReviewQueue(){
- if(currentRole!=="admin")return;
- const root=document.getElementById("scrapReviewQueue");root.textContent=tr("accountingLoading");
+document.getElementById("scrapRequestWorkOrder").addEventListener("change",()=>{const batch=scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value),q=document.getElementById("scrapRequestQuantity");q.max=batch?.quantity||"";document.getElementById("scrapRequestOrderNo").value=batch?.orderNo||"";document.getElementById("scrapRequestStyleNo").value=batch?.styleNo||"";});
+document.getElementById("scrapRequestForm").addEventListener("submit",async event=>{
+ event.preventDefault();if(currentRole!=="employee"||!auth.currentUser||!requestDepartments[currentDept])return;
+ const date=document.getElementById("scrapRequestDate").value,workOrder=scrapWorkOrderCache.get(document.getElementById("scrapRequestWorkOrder").value),quantity=Number(document.getElementById("scrapRequestQuantity").value);
+ if(!date||!workOrder||!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(workOrder.quantity)||quantity>1000000)return;
+ const button=document.getElementById("submitScrapRequest"),message=document.getElementById("scrapRequestMessage");button.disabled=true;
+ try{const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:workOrder.orderNo||"",styleNo:workOrder.styleNo||"",quantity,note:document.getElementById("scrapRequestNote").value.trim(),status:"submitted",createdAt:serverTimestamp(),reason:document.getElementById("scrapRequestReason").value.trim(),workOrderId:workOrder.id,sourceCollection:workOrder.sourceCollection};const id="scrap_"+workOrder.sourceCollection+"_"+workOrder.id,ref=doc(db,"scrapRequests",id);if(workOrder.existingRequest?.status==="rejected"){const {createdAt,...data}=payload;data.updatedAt=serverTimestamp();await updateDoc(ref,data);}else await setDoc(ref,payload);document.getElementById("scrapRequestForm").reset();document.getElementById("scrapRequestDate").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();}
+ catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}finally{button.disabled=false;}
+});
+async function loadScrapHistory(){
+ const panel=document.getElementById("scrapHistoryPanel"),filters=document.getElementById("scrapHistoryFilters"),root=document.getElementById("scrapHistoryList");
+ if(currentRole!=="admin"){panel.classList.add("hidden");return;}
+ panel.classList.remove("hidden");root.textContent=tr("accountingLoading");
  try{
-  const snap=await getDocs(query(collection(db,"scrapRequests"),where("status","==","submitted"),limit(100)));
-  root.replaceChildren();
-  if(!snap.size){root.textContent=tr("noPendingRequests");return;}
-  snap.docs.forEach(item=>{
-   const row=item.data(),line=document.createElement("article");line.className="work-record";
-   const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");
-   const note=document.createElement("div");note.className="small";note.textContent=[row.reason,row.note,"UID "+row.employeeUid].filter(Boolean).join(" · ");
-   const actions=document.createElement("div");actions.className="employee-actions";
-   [["approved","reviewApprove","primary"],["rejected","reviewReject","dark"]].forEach(([status,key,cls])=>{
-    const button=document.createElement("button");button.type="button";button.className=cls;button.textContent=tr(key);
-    button.addEventListener("click",async()=>{
-     button.disabled=true;
-     try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:""});await loadScrapReviewQueue();}
-     catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
-     finally{button.disabled=false;}
-    });actions.append(button);
+  const snap=await getDocs(query(collection(db,"scrapRequests"),where("status","in",["approved","rejected"]),limit(100)));
+  const rows=snap.docs.map(item=>({id:item.id,...item.data()})).sort((a,b)=>String(b.requestDate||"").localeCompare(String(a.requestDate||"")));
+  const allowedCollections=new Set(["repairWorkOrders","cleanWorkOrders","weaveWorkOrders"]);
+  const details=await Promise.all(rows.map(async row=>{
+   if(!allowedCollections.has(row.sourceCollection)||!row.workOrderId)return {batch:null,original:null};
+   try{
+    const batchSnap=await getDoc(doc(db,row.sourceCollection,row.workOrderId));
+    if(!batchSnap.exists())return {batch:null,original:null};
+    const batch=batchSnap.data();return {batch,original:null};
+   }catch(error){return {batch:null,original:null};}
+  }));
+  filters.replaceChildren();
+  const status=document.createElement("select");status.setAttribute("aria-label",tr("scrapFilterStatus"));
+  [["all",tr("scrapFilterAll")],["approved",tr("statusApproved")],["rejected",tr("statusRejected")]].forEach(([v,label])=>{const o=document.createElement("option");o.value=v;o.textContent=label;status.append(o);});
+  const department=document.createElement("select");department.setAttribute("aria-label",tr("scrapFilterDepartment"));
+  [["all",tr("scrapFilterAll")],["1",tr("repair")],["2",tr("clean")],["3",tr("weave")]].forEach(([v,label])=>{const o=document.createElement("option");o.value=v;o.textContent=label;department.append(o);});
+  const from=document.createElement("input");from.type="date";from.setAttribute("aria-label",tr("scrapFilterStartDate"));
+  const to=document.createElement("input");to.type="date";to.setAttribute("aria-label",tr("scrapFilterEndDate"));
+  const apply=document.createElement("button");apply.type="button";apply.className="primary";apply.textContent=tr("scrapFilterApply");
+  filters.append(status,department,from,to,apply);
+  const render=()=>{
+   const selected=rows.map((row,index)=>({row,detail:details[index]})).filter(({row})=>(status.value==="all"||row.status===status.value)&&(department.value==="all"||String(row.departmentId)===department.value)&&(!from.value||String(row.requestDate||"")>=from.value)&&(!to.value||String(row.requestDate||"")<=to.value));
+   root.replaceChildren();
+   if(!selected.length){root.textContent=tr("scrapHistoryEmpty");return;}
+   selected.forEach(({row,detail:batchDetail})=>{
+    const line=document.createElement("article");line.className="work-record";
+    const state=row.status==="approved"?tr("statusApproved"):tr("statusRejected");
+    const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity,state].filter(Boolean).join(" · ");
+    const detail=document.createElement("div");detail.className="small";
+    const batch=batchDetail.batch;
+    const repairLabel=batch?.repairTypeId?(Number(batch.repairTypeId)===101?tr("sprayRepair"):tr("handRepair")):"";
+    const batchLines=batch?[
+     tr("scrapBatchQuantity")+": "+Number(batch.quantity||0).toLocaleString(),
+     batch.workDate?tr("scrapBatchDate")+": "+batch.workDate:"",
+     batch.color?tr("scrapBatchColor")+": "+batch.color:"",
+     repairLabel,
+         ].filter(Boolean):[tr("scrapBatchMissing")];
+    detail.textContent=[...batchLines,row.reason||"",row.note||"",row.reviewNote||""].filter(Boolean).join(" · ");
+    line.append(head,detail);root.append(line);
    });
-   line.append(head,note,actions);root.append(line);
-  });
+  };
+  apply.addEventListener("click",render);render();
+ }catch(error){root.textContent=tr("scrapHistoryError")+(error.code||error.message||"unknown");}
+}
+async function loadReviewQueues(){
+ if(currentRole!=="admin")return;const root=document.getElementById("scrapReviewQueue");root.textContent=tr("accountingLoading");
+ try{const snap=await getDocs(query(collection(db,"scrapRequests"),where("status","==","submitted"),limit(100)));root.replaceChildren();if(!snap.size){root.textContent=tr("noPendingRequests");return;}
+ snap.docs.forEach(item=>{const row=item.data(),line=document.createElement("article");line.className="work-record";const head=document.createElement("strong");head.textContent=[row.requestDate,departmentLabel(row.departmentId),row.orderNo,row.styleNo,row.quantity].filter(Boolean).join(" · ");const note=document.createElement("div");note.className="small";note.textContent=[row.reason||"",row.note||""].filter(Boolean).join(" · ");const actions=document.createElement("div");actions.className="employee-actions";const reviewNote=document.createElement("textarea");reviewNote.maxLength=300;reviewNote.placeholder=tr("scrapReviewNotePlaceholder");reviewNote.setAttribute("aria-label",tr("scrapReviewNotePlaceholder"));actions.append(reviewNote);
+ [["approved","reviewApprove","primary"],["rejected","reviewReject","dark"]].forEach(([status,key,cls])=>{const button=document.createElement("button");button.type="button";button.className=cls;button.textContent=tr(key);button.addEventListener("click",async()=>{const reason=reviewNote.value.trim();if(status==="rejected"&&!reason){root.dataset.message=tr("scrapRejectReasonRequired");reviewNote.focus();return;}button.disabled=true;try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:reason});await loadReviewQueues();await loadScrapHistory();}catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}finally{button.disabled=false;}});actions.append(button);});line.append(head,note,actions);root.append(line);});
  }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
 }
-
 function setRepairWorkMessage(message,isError=false){
   const el=document.getElementById("repairWorkMessage");
   if(!el) return;
@@ -1698,8 +2304,8 @@ window.openDept = function(key){
 function showDeptTitle(){
   const keys = {repair:"deptRepair", clean:"deptClean", weave:"deptWeave"};
   const labels = {
-    zh:{deptRepair:"修色部门",deptClean:"清洗部门",deptWeave:"修织部门"},
-    vi:{deptRepair:"Bộ phận Sửa màu",deptClean:"Bộ phận Giặt",deptWeave:"Bộ phận Sửa dệt"}
+    zh:{deptRepair:"修色组",deptClean:"清洗组",deptWeave:"修织组"},
+    vi:{deptRepair:"Tổ Sửa màu",deptClean:"Tổ Giặt",deptWeave:"Tổ Sửa dệt"}
   };
   document.getElementById("deptTitle").textContent = labels[lang][keys[currentDept]];
 }

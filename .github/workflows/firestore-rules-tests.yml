@@ -1,26 +1,37 @@
 name: Firestore Rules Tests
 
+concurrency:
+  group: firestore-rules-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/finance-department-comparison]
     paths:
       - "firestore.rules"
       - "firebase.json"
       - "package.json"
+      - "package-lock.json"
       - "tests/**"
       - "index.html"
       - "scripts/**"
+      - "functions/**"
       - ".github/workflows/firestore-rules-tests.yml"
   pull_request:
     paths:
       - "firestore.rules"
       - "firebase.json"
       - "package.json"
+      - "package-lock.json"
       - "tests/**"
       - "index.html"
       - "scripts/**"
+      - "functions/**"
       - ".github/workflows/firestore-rules-tests.yml"
+
+permissions:
+  contents: read
 
 jobs:
   firestore-rules:
@@ -37,9 +48,28 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Cloud Functions dependencies
+        run: npm --prefix functions install --ignore-scripts --no-audit
+      - name: Audit Cloud Functions production dependencies
+        run: npm --prefix functions audit --omit=dev --audit-level=high
+      - name: Report dependency audit details
+        run: |
+          npm audit --json > npm-audit.json || true
+          node --input-type=module -e 'import fs from "node:fs"; const report=JSON.parse(fs.readFileSync("npm-audit.json","utf8")); console.log("NPM AUDIT SUMMARY", JSON.stringify(report.metadata?.vulnerabilities || {})); for (const [name,item] of Object.entries(report.vulnerabilities || {})) console.log(JSON.stringify({name,severity:item.severity,isDirect:item.isDirect,range:item.range,fixAvailable:item.fixAvailable,via:(item.via || []).map(v=>typeof v==="string"?v:{name:v.name,title:v.title,url:v.url,range:v.range})}));'
+      - name: Block Critical and High dependency advisories
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const v=JSON.parse(fs.readFileSync("npm-audit.json","utf8")).metadata?.vulnerabilities || {}; if ((v.critical || 0) > 0 || (v.high || 0) > 0) { console.error("Critical/High dependency advisories must be fixed before merging."); process.exit(1); } console.log("No Critical or High dependency advisories.");'
+      - name: Explain vulnerable dependency paths and audit production dependencies
+        run: |
+          npm explain tar || true
+          npm explain @grpc/grpc-js || true
+          npm explain @firebase/firestore || true
+          npm audit --omit=dev --audit-level=high
       - name: Check client JavaScript syntax
         run: npm run check:client
+      - name: Run finance calculation unit tests
+        run: npm run test:finance
       - name: Run Firestore rules tests
         run: npm run test:rules

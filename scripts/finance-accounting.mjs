@@ -1,0 +1,266 @@
+const GROUP_IDS = [1, 2, 3];
+const EXPENSE_GROUP_IDS = [0, 1, 2, 3];
+
+const RECORD_FIELDS = {
+  revenue: { required: true },
+  laborCost: { required: true },
+  materialCost: { required: false },
+  otherCost: { required: false },
+  outputQuantity: { required: true, integer: true },
+  unitPrice: { required: true },
+  headcount: { required: true, integer: true },
+  dailyWagePerPerson: { required: true },
+  netProfit: { required: true, signed: true }
+};
+
+function readNumber(row, key, options = {}) {
+  const source = row && typeof row === "object" ? row : {};
+  if (!(key in source) && options.required === false) return { value: 0, valid: true };
+  const raw = source[key];
+  const hasNumericInput = typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "");
+  const value = Number(raw);
+  const valid = hasNumericInput && Number.isFinite(value)
+    && (options.signed || value >= 0)
+    && (!options.integer || Number.isInteger(value));
+  return { value: valid ? value : 0, valid };
+}
+
+function normalizeRecords(records) {
+  let invalidNumericCount = 0;
+  let invalidNumericFieldCount = 0;
+  const normalized = records.map(row => {
+    const values = {};
+    let valid = true;
+    for (const [key, options] of Object.entries(RECORD_FIELDS)) {
+      const parsed = readNumber(row, key, options);
+      values[key] = parsed.value;
+      if (!parsed.valid) {
+        invalidNumericFieldCount += 1;
+        valid = false;
+      }
+    }
+    if (!valid) invalidNumericCount += 1;
+    return { row, values, valid };
+  });
+  return { normalized, invalidNumericCount, invalidNumericFieldCount };
+}
+
+export function calculateFinanceSummary(records = [], expenses = []) {
+  const { normalized: normalizedRecords, invalidNumericCount: invalidRecordNumbers, invalidNumericFieldCount } =
+    normalizeRecords(records);
+  let invalidExpenseNumbers = 0;
+  let invalidExpenseFieldCount = 0;
+  const normalizedExpenses = expenses.map(row => {
+    const parsed = readNumber(row, "amount", { required: true });
+    if (!parsed.valid || parsed.value <= 0) {
+      invalidExpenseNumbers += 1;
+      invalidExpenseFieldCount += 1;
+    }
+    return { row, amount: parsed.valid && parsed.value > 0 ? parsed.value : 0 };
+  });
+  const invalidNumericCount = invalidRecordNumbers + invalidExpenseNumbers;
+
+  const sum = (rows, getter) => rows.reduce((total, row) => total + getter(row), 0);
+  // Never let a partially malformed daily record affect the reported financial totals.
+  const hasAllowedDepartment = (row, allowedIds) => row && typeof row === "object"
+    && Number.isInteger(row.departmentId) && allowedIds.includes(row.departmentId);
+  const validRecords = normalizedRecords.filter(item => item.valid && hasAllowedDepartment(item.row, GROUP_IDS));
+  const validExpenses = normalizedExpenses.filter(item => hasAllowedDepartment(item.row, EXPENSE_GROUP_IDS));
+  const revenue = sum(validRecords, item => item.values.revenue);
+  const labor = sum(validRecords, item => item.values.laborCost);
+  const materials = sum(validRecords, item => item.values.materialCost);
+  const other = sum(validRecords, item => item.values.otherCost);
+  const extra = sum(validExpenses, item => item.amount);
+
+  const invalidDeptCount = records.filter(
+    row => !hasAllowedDepartment(row, GROUP_IDS)
+  ).length;
+  const invalidExpenseCount = expenses.filter(
+    row => !hasAllowedDepartment(row, EXPENSE_GROUP_IDS)
+  ).length;
+  // Only audit formulas for records that belong to a supported group and
+  // have valid numeric fields. Invalid department IDs are reported separately.
+  const mathMismatchCount = normalizedRecords.filter(({ row, values, valid }) =>
+    valid && hasAllowedDepartment(row, GROUP_IDS) && (
+      Math.abs(values.revenue - values.outputQuantity * values.unitPrice) > 1 ||
+      Math.abs(values.laborCost - values.headcount * values.dailyWagePerPerson) > 1 ||
+      Math.abs(values.netProfit - (
+        values.revenue - values.laborCost - values.materialCost - values.otherCost
+      )) > 1
+    )
+  ).length;
+
+  const departments = GROUP_IDS.map(id => {
+    const own = validRecords.filter(item => item.row.departmentId === id);
+    const ownExpenses = validExpenses.filter(item => item.row.departmentId === id);
+    const departmentRevenue = sum(own, item => item.values.revenue);
+    const departmentLabor = sum(own, item => item.values.laborCost);
+    const departmentMaterials = sum(own, item => item.values.materialCost);
+    const departmentOther = sum(own, item => item.values.otherCost);
+    const departmentExpenses = sum(ownExpenses, item => item.amount);
+    const cost = departmentLabor + departmentMaterials + departmentOther + departmentExpenses;
+
+    return {
+      id,
+      revenue: departmentRevenue,
+      cost,
+      profit: departmentRevenue - cost
+    };
+  });
+
+  const sharedExpenses = sum(
+    validExpenses.filter(item => item.row.departmentId === 0),
+    item => item.amount
+  );
+  const departmentProfit = departments.reduce((total, row) => total + row.profit, 0);
+  const companyProfit = departmentProfit - sharedExpenses;
+  const overallProfit = revenue - labor - materials - other - extra;
+  const profitGap = Math.abs(companyProfit - overallProfit);
+
+  return {
+    revenue,
+    labor,
+    materials,
+    other,
+    extra,
+    departments,
+    sharedExpenses,
+    departmentProfit,
+    companyProfit,
+    overallProfit,
+    profitGap,
+    invalidDeptCount,
+    invalidExpenseCount,
+    invalidNumericCount,
+    invalidNumericFieldCount: invalidNumericFieldCount + invalidExpenseFieldCount,
+    mathMismatchCount,
+    auditIssueCount: invalidDeptCount + invalidExpenseCount + invalidNumericCount +
+      mathMismatchCount + (profitGap > 1 ? 1 : 0)
+  };
+}
+
+
+/**
+ * Compare payroll attendance snapshots with daily accounting labor cost.
+ * This is a reference-only reconciliation and must never be added to profit costs.
+ */
+export function calculatePayrollReconciliation(dailyRecords = [], attendance = []) {
+  const groups = [1, 2, 3].map(id => ({
+    id,
+    accountingLabor: 0,
+    payrollAmount: 0,
+    difference: 0
+  }));
+  const daily = new Map();
+  let invalidAttendanceCount = 0;
+  let undatedAttendanceCount = 0;
+  let unmatchedAccountingCount = 0;
+  const validWorkDate = value => {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const parsed = new Date(value + "T00:00:00.000Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  };
+  const getDaily = (workDate, departmentId) => {
+    const key = workDate + "|" + departmentId;
+    if (!daily.has(key)) daily.set(key, {
+      workDate, departmentId, accountingLabor: 0, payrollAmount: 0, difference: 0, employees: []
+    });
+    return daily.get(key);
+  };
+  for (const row of dailyRecords) {
+    if (!row || !Number.isInteger(row.departmentId)) continue;
+    const group = groups.find(item => item.id === row.departmentId);
+    const amount = Number(row.laborCost);
+    if (!group || !Number.isFinite(amount) || amount < 0) continue;
+    group.accountingLabor += amount;
+    if (validWorkDate(row.workDate)) {
+      getDaily(row.workDate, row.departmentId).accountingLabor += amount;
+    } else {
+      // Keep valid department totals intact, but disclose records that cannot
+      // be matched to attendance by date.
+      unmatchedAccountingCount += 1;
+    }
+  }
+  const uniqueAttendance = new Map();
+  const deduplicatedAttendance = [];
+  for (const row of attendance) {
+    const uid = typeof row?.employeeUid === "string" ? row.employeeUid.trim() : "";
+    if (!uid || !validWorkDate(row.workDate) || !Number.isInteger(row.departmentId)) {
+      deduplicatedAttendance.push(row);
+      continue;
+    }
+    const key = uid + "|" + row.workDate + "|" + row.departmentId;
+    const existingIndex = uniqueAttendance.get(key);
+    if (existingIndex === undefined) {
+      uniqueAttendance.set(key, deduplicatedAttendance.length);
+      deduplicatedAttendance.push(row);
+      continue;
+    }
+    const existing = deduplicatedAttendance[existingIndex];
+    const canonicalId = uid + "_" + row.workDate + "_" + row.departmentId;
+    const existingIsCanonical = existing?.id === canonicalId;
+    const rowIsCanonical = row?.id === canonicalId;
+    if (rowIsCanonical && !existingIsCanonical) deduplicatedAttendance[existingIndex] = row;
+  }
+  for (const row of deduplicatedAttendance) {
+    // Keep legacy rows with no date in department totals, but reject malformed supplied dates.
+    if (row && row.workDate !== undefined && row.workDate !== null && !validWorkDate(row.workDate)) {
+      invalidAttendanceCount += 1;
+      continue;
+    }
+    const group = row && groups.find(item => item.id === row.departmentId);
+    const amount = row && typeof row.wageAmount === "number" ? row.wageAmount : NaN;
+    if (!group || !Number.isFinite(amount) || amount < 0) {
+      invalidAttendanceCount += 1;
+      continue;
+    }
+    group.payrollAmount += amount;
+    if (!validWorkDate(row.workDate)) undatedAttendanceCount += 1;
+    if (validWorkDate(row.workDate)) {
+      const dailyRow = getDaily(row.workDate, row.departmentId);
+      dailyRow.payrollAmount += amount;
+      dailyRow.employees.push({
+        attendanceId: typeof row.id === "string" ? row.id : null,
+        employeeUid: typeof row.employeeUid === "string" ? row.employeeUid : null,
+        employeeName: typeof row.employeeName === "string" && row.employeeName.trim()
+          ? row.employeeName.trim() : "Unknown employee",
+        payableDays: Number.isFinite(row.payableDays) ? row.payableDays : 0,
+        dailyWage: Number.isFinite(row.dailyWage) ? row.dailyWage : 0,
+        wageEffectiveDate: typeof row.wageEffectiveDate === "string" ? row.wageEffectiveDate : "manual",
+        wageAmount: amount
+      });
+    }
+  }
+  const getStatus = (payrollAmount, accountingLabor) => {
+    if (payrollAmount === 0 && accountingLabor === 0) return "no_data";
+    if (payrollAmount > 0 && accountingLabor === 0) return "payroll_only";
+    if (accountingLabor > 0 && payrollAmount === 0) return "accounting_only";
+    if (Math.abs(payrollAmount - accountingLabor) <= 1) return "matched";
+    return "amount_mismatch";
+  };
+  groups.forEach(group => {
+    group.difference = group.payrollAmount - group.accountingLabor;
+    group.status = getStatus(group.payrollAmount, group.accountingLabor);
+  });
+  const dailyComparisons = [...daily.values()]
+    .map(row => ({
+      ...row,
+      difference: row.payrollAmount - row.accountingLabor,
+      attendanceCount: row.employees.length,
+      status: getStatus(row.payrollAmount, row.accountingLabor)
+    }))
+    .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.departmentId - b.departmentId);
+  const accountingLabor = groups.reduce((sum, group) => sum + group.accountingLabor, 0);
+  const payrollAmount = groups.reduce((sum, group) => sum + group.payrollAmount, 0);
+  return {
+    groups,
+    dailyComparisons,
+    accountingLabor,
+    payrollAmount,
+    difference: payrollAmount - accountingLabor,
+    invalidAttendanceCount,
+    undatedAttendanceCount,
+    unmatchedAccountingCount,
+    hasAttendance: attendance.length > 0
+  };
+}
