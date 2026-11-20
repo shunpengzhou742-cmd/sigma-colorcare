@@ -198,6 +198,8 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
       const dailyRow = getDaily(row.workDate, row.departmentId);
       dailyRow.payrollAmount += amount;
       dailyRow.employees.push({
+        attendanceId: typeof row.id === "string" ? row.id : null,
+        employeeUid: typeof row.employeeUid === "string" ? row.employeeUid : null,
         employeeName: typeof row.employeeName === "string" && row.employeeName.trim()
           ? row.employeeName.trim() : "Unknown employee",
         payableDays: Number.isFinite(row.payableDays) ? row.payableDays : 0,
