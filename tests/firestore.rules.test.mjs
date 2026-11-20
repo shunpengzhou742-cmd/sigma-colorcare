@@ -468,6 +468,88 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("immediately revokes and restores work-order access when an admin changes department assignments", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1, 2], [101, 102]));
+      await setDoc(doc(db, "repairWorkOrders/department-access-repair"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-20", orderNo: "ACCESS-1",
+        styleNo: "STYLE-1", color: "Black", quantity: 10, note: "",
+        status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(db, "cleanWorkOrders/department-access-clean"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-20", orderNo: "ACCESS-2", styleNo: "STYLE-2",
+        color: "Black", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const employee = googleDb();
+    const { getDoc, updateDoc } = await import("firebase/firestore");
+    const repairRef = doc(employee, "repairWorkOrders/department-access-repair");
+    const cleanRef = doc(employee, "cleanWorkOrders/department-access-clean");
+    await assertSucceeds(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      departmentIds: [2],
+      repairTypeIds: [],
+      updatedAt: serverTimestamp()
+    }));
+    await assertFails(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      departmentIds: [1, 2],
+      repairTypeIds: [101, 102],
+      updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+  });
+
+  it("restores employee access after an admin re-enables a disabled profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com", [2], []),
+        status: "disabled"
+      });
+      await setDoc(doc(db, "cleanWorkOrders/reactivated-clean"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-20", orderNo: "ACTIVE-1", styleNo: "STYLE-1",
+        color: "Black", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const employee = googleDb();
+    const { addDoc, collection, getDoc, updateDoc } = await import("firebase/firestore");
+    const cleanRef = doc(employee, "cleanWorkOrders/reactivated-clean");
+    await assertFails(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      status: "active",
+      updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(getDoc(cleanRef));
+    await assertSucceeds(addDoc(collection(employee, "cleanWorkOrders"), {
+      employeeUid: "employee-1",
+      createdBy: "employee-1",
+      departmentId: 2,
+      workDate: "2026-11-20",
+      orderNo: "ACTIVE-2",
+      styleNo: "STYLE-2",
+      color: "Black",
+      quantity: 12,
+      note: "",
+      status: "submitted",
+      createdAt: serverTimestamp()
+    }));
+  });
+
   it("rejects an admin changing immutable employee role fields", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
