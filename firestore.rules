@@ -92,12 +92,12 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.keys().hasAll([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.keys().hasOnly([
           'uid', 'name', 'email', 'roleType', 'status', 'departmentIds',
-          'repairTypeIds', 'invitationId', 'createdAt',
+          'repairTypeIds', 'specialRole', 'invitationId', 'createdAt',
           'createdBy', 'updatedAt'
         ])
         && request.resource.data.uid == request.auth.uid
@@ -105,6 +105,7 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.roleType == 1
+        && request.resource.data.specialRole == false
         && request.resource.data.status == 'active'
         && request.resource.data.departmentIds is list
         && request.resource.data.repairTypeIds is list
@@ -122,7 +123,7 @@ service cloud.firestore {
 
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'departmentIds', 'repairTypeIds', 'status', 'updatedAt'
+          'departmentIds', 'repairTypeIds', 'status', 'specialRole', 'updatedAt'
         ])
         && request.resource.data.departmentIds is list
         && request.resource.data.departmentIds.size() >= 1
@@ -133,6 +134,7 @@ service cloud.firestore {
             ? request.resource.data.repairTypeIds == [101, 102]
             : request.resource.data.repairTypeIds == [])
         && request.resource.data.status in ['active', 'disabled']
+        && request.resource.data.specialRole is bool
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
