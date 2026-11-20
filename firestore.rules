@@ -134,7 +134,7 @@ service cloud.firestore {
             ? request.resource.data.repairTypeIds == [101, 102]
             : request.resource.data.repairTypeIds == [])
         && request.resource.data.status in ['active', 'disabled']
-        && request.resource.data.specialRole is bool
+        && (!request.resource.data.keys().hasAny(['specialRole']) || request.resource.data.specialRole is bool)
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
