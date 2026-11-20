@@ -153,7 +153,7 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
   const getDaily = (workDate, departmentId) => {
     const key = workDate + "|" + departmentId;
     if (!daily.has(key)) daily.set(key, {
-      workDate, departmentId, accountingLabor: 0, payrollAmount: 0, difference: 0
+      workDate, departmentId, accountingLabor: 0, payrollAmount: 0, difference: 0, employees: []
     });
     return daily.get(key);
   };
@@ -173,7 +173,17 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
       continue;
     }
     group.payrollAmount += amount;
-    if (validWorkDate(row.workDate)) getDaily(row.workDate, row.departmentId).payrollAmount += amount;
+    if (validWorkDate(row.workDate)) {
+      const dailyRow = getDaily(row.workDate, row.departmentId);
+      dailyRow.payrollAmount += amount;
+      dailyRow.employees.push({
+        employeeName: typeof row.employeeName === "string" && row.employeeName.trim()
+          ? row.employeeName.trim() : "Unknown employee",
+        payableDays: Number.isFinite(row.payableDays) ? row.payableDays : 0,
+        dailyWage: Number.isFinite(row.dailyWage) ? row.dailyWage : 0,
+        wageAmount: amount
+      });
+    }
   }
   groups.forEach(group => { group.difference = group.payrollAmount - group.accountingLabor; });
   const dailyComparisons = [...daily.values()]
