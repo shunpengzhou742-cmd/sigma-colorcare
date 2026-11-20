@@ -192,7 +192,7 @@ test("breaks payroll reconciliation differences down by work date and group", ()
   ]);
   assert.equal(result.difference, 35000);
   assert.deepEqual(result.dailyComparisons[3].employees, [
-    { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }
+    { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }
   ]);
 });
 
@@ -239,12 +239,12 @@ test("prefers group-specific attendance over duplicate legacy rows but preserves
     {
       departmentId: 1,
       payrollAmount: 50000,
-      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }]
+      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }]
     },
     {
       departmentId: 2,
       payrollAmount: 40000,
-      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 80000, wageAmount: 40000 }]
+      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 80000, wageEffectiveDate: "manual", wageAmount: 40000 }]
     }
   ]);
 });
