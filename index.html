@@ -1509,6 +1509,7 @@ async function openDailyAccountingEdit(recordId){
     [tr("accountingMaterialCost"),"materialCost",true],
     [tr("accountingOtherCost"),"otherCost",true],
     [tr("totalRevenue"),"revenue",true],
+    [tr("totalCost"),"laborCost",true],
     [tr("netProfit"),"netProfit",true]
    ];
    const changes=fields.filter(([,key])=>entry.before[key]!==entry.after[key]).map(([label,key,isMoney])=>label+": "+(isMoney?accountingMoney(entry.before[key]):Number(entry.before[key]||0).toLocaleString())+" → "+(isMoney?accountingMoney(entry.after[key]):Number(entry.after[key]||0).toLocaleString()));
