@@ -73,6 +73,10 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
   );
 
   assert.equal(result.invalidNumericCount, 5);
+  assert.equal(result.revenue, 1800, "malformed daily records must not affect revenue");
+  assert.equal(result.labor, 350, "malformed daily records must not affect labor");
+  assert.equal(result.materials, 80, "malformed daily records must not affect materials");
+  assert.equal(result.companyProfit, 1355, "malformed daily records must not affect reported group profit");
   assert.ok(Number.isFinite(result.revenue));
   assert.ok(Number.isFinite(result.companyProfit));
   assert.ok(Number.isFinite(result.overallProfit));
