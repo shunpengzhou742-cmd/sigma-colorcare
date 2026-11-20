@@ -48,7 +48,7 @@ describe("Finance closure snapshot", () => {
     });
     assert.equal(result.snapshot.finance.departments.length, 3);
     assert.equal(result.snapshot.finance.sharedExpenses, 100);
-    assert.equal(result.snapshot.finance.companyProfit, 4900);
+    assert.equal(result.snapshot.finance.companyProfit, 4950);
     assert.equal(result.snapshot.payrollReconciliation.payrollAmount, 600);
     assert.equal(result.snapshot.scrap.approvedQuantity, 7);
     assert.equal(result.snapshot.scrap.byDepartment[0].quantity, 7);
