@@ -1143,21 +1143,55 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
     }));
   });
 
-  it("allows only the admin to correct a saved attendance record", async () => {
+  it("requires an immutable audit snapshot when an admin corrects attendance", async () => {
+    const attendancePath = "employeeAttendance/employee-1_2026-11-19";
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
-      await setDoc(doc(context.firestore(), "employeeAttendance/employee-1_2026-11-19"), {
+      await setDoc(doc(context.firestore(), attendancePath), {
         employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
         departmentId:1, payableDays:0.5, dailyWage:350000, wageAmount:175000,
         wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
         createdAt:Timestamp.now(), updatedAt:Timestamp.now()
       });
     });
-    await assertFails(updateDoc(doc(googleDb("employee-1"), "employeeAttendance/employee-1_2026-11-19"), {
+    const attendanceRef = doc(adminDb(), attendancePath);
+    await assertFails(updateDoc(attendanceRef, {
       payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
     }));
-    await assertSucceeds(updateDoc(doc(adminDb(), "employeeAttendance/employee-1_2026-11-19"), {
+    await assertFails(updateDoc(attendanceRef, {
+      payableDays:1, wageAmount:350000, lastAuditLogId:"missing-log", updatedAt:serverTimestamp()
+    }));
+    await assertFails(updateDoc(doc(googleDb("employee-1"), attendancePath), {
       payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
+    }));
+
+    await assertSucceeds(runTransaction(adminDb(), async transaction => {
+      const current = await transaction.get(attendanceRef);
+      const before = current.data();
+      const logRef = doc(collection(adminDb(), "employeeAttendanceAuditLogs"));
+      const after = {
+        ...before,
+        payableDays:1,
+        wageAmount:350000,
+        lastAuditLogId:logRef.id,
+        updatedAt:serverTimestamp()
+      };
+      transaction.update(attendanceRef, {
+        payableDays:1,
+        wageAmount:350000,
+        lastAuditLogId:logRef.id,
+        updatedAt:serverTimestamp()
+      });
+      transaction.set(logRef, {
+        attendanceId:current.id,
+        employeeUid:before.employeeUid,
+        workDate:before.workDate,
+        departmentId:before.departmentId,
+        before,
+        after,
+        changedBy:"admin-1",
+        changedAt:serverTimestamp()
+      });
     }));
   });
 
