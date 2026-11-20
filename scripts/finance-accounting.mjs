@@ -88,7 +88,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
 
   const departments = GROUP_IDS.map(id => {
     const own = validRecords.filter(item => item.row.departmentId === id);
-    const ownExpenses = validExpenses.filter(item => Number(item.row.departmentId) === id);
+    const ownExpenses = validExpenses.filter(item => item.row.departmentId === id);
     const departmentRevenue = sum(own, item => item.values.revenue);
     const departmentLabor = sum(own, item => item.values.laborCost);
     const departmentMaterials = sum(own, item => item.values.materialCost);
