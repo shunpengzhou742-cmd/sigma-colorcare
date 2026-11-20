@@ -1606,7 +1606,7 @@ function renderFinanceOverview(){
   else{
    const payrollLines=[[tr("financePayrollAccounting"),payroll.accountingLabor],[tr("financePayrollAttendance"),payroll.payrollAmount],[tr("financePayrollDifference"),payroll.difference]];
    payrollLines.forEach(([label,value])=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=label+": "+money(value);audit.append(line);});
-   payroll.groups.forEach(group=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=deptNames[group.id]+" · "+money(group.payrollAmount)+" / "+money(group.accountingLabor)+" · "+money(group.difference);audit.append(line);});
+   payroll.groups.forEach(group=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=departmentLabel(group.id)+" · "+money(group.payrollAmount)+" / "+money(group.accountingLabor)+" · "+money(group.difference);audit.append(line);});
    if(payroll.invalidAttendanceCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollInvalid")+": "+payroll.invalidAttendanceCount;audit.append(line);}
   }
  const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
