@@ -49,6 +49,10 @@ jobs:
           java-version: 21
       - name: Install locked dependencies
         run: npm ci
+      - name: Install Cloud Functions dependencies
+        run: npm --prefix functions install --ignore-scripts --no-audit
+      - name: Audit Cloud Functions production dependencies
+        run: npm --prefix functions audit --omit=dev
       - name: Report dependency audit details
         run: |
           npm audit --json > npm-audit.json || true
