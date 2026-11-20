@@ -1797,10 +1797,10 @@ async function loadFinanceOverview(){
    getAllFinanceDocs("employeeAttendance","workDate",start,end)
   ]);
   if(requestId!==financeLoadSequence)return;
-  financeRecordsCache=a.docs.map(x=>({id:x.id,...x.data()}));
-  financeExpensesCache=b.docs.map(x=>x.data());
-  financeScrapCache=s.docs.map(x=>x.data());
-  financeAttendanceCache=p.docs.map(x=>({id:x.id,...x.data()}));
+  financeRecordsCache=a.map(x=>({id:x.id,...x.data()}));
+  financeExpensesCache=b.map(x=>x.data());
+  financeScrapCache=s.map(x=>x.data());
+  financeAttendanceCache=p.map(x=>({id:x.id,...x.data()}));
   renderFinanceOverview();
  }catch(e){
   if(requestId!==financeLoadSequence)return;
