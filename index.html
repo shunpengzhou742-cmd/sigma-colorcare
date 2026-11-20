@@ -508,6 +508,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 import { calculateFinanceSummary } from "./scripts/finance-accounting.mjs";
+import { getFinanceDateRange } from "./scripts/finance-period.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -1411,10 +1412,8 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
 
 let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[];
 function financeRange(mode){
- const t=localWorkDate(),y=t.slice(0,4),m=Number(t.slice(5,7));
- if(mode==="month")return[t.slice(0,7)+"-01",t.slice(0,7)+"-31"];
- if(mode==="half")return[y+(m<=6?"-01-01":"-07-01"),y+(m<=6?"-06-30":"-12-31")];
- return[y+"-01-01",y+"-12-31"];
+ const range=getFinanceDateRange(mode,localWorkDate());
+ return range||[];
 }
 function setFinanceDates(mode){
  if(mode==="custom")return;
