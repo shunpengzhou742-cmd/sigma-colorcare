@@ -1154,7 +1154,8 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
         createdAt:Timestamp.now(), updatedAt:Timestamp.now()
       });
     });
-    const attendanceRef = doc(adminDb(), attendancePath);
+    const admin = adminDb();
+    const attendanceRef = doc(admin, attendancePath);
     await assertFails(updateDoc(attendanceRef, {
       payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
     }));
@@ -1165,10 +1166,10 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
       payableDays:1, wageAmount:350000, updatedAt:serverTimestamp()
     }));
 
-    await assertSucceeds(runTransaction(adminDb(), async transaction => {
+    await assertSucceeds(runTransaction(admin, async transaction => {
       const current = await transaction.get(attendanceRef);
       const before = current.data();
-      const logRef = doc(collection(adminDb(), "employeeAttendanceAuditLogs"));
+      const logRef = doc(collection(admin, "employeeAttendanceAuditLogs"));
       const after = {
         ...before,
         payableDays:1,
