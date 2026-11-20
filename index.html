@@ -1445,7 +1445,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
     unitPrice:v.accountingUnitPrice,dailyWagePerPerson:v.accountingDailyWage,
     materialCost:v.accountingMaterialCost,otherCost:v.accountingOtherCost,
     revenue,laborCost:labor,netProfit:profit,currency:"VND",
-    createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    createdBy:auth.currentUser.uid,lastAuditLogId:null,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
    });
   });
   message.textContent=tr("accountingSaved");await loadDashboard();
