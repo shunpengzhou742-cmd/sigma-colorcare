@@ -525,6 +525,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, orderBy, documentId, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 import { calculateFinanceSummary, calculatePayrollReconciliation } from "./scripts/finance-accounting.mjs";
+import { collectPaginatedDocuments } from "./scripts/finance-pagination.mjs";
 import { getFinanceDateRange } from "./scripts/finance-period.mjs";
 
 const firebaseConfig = {
@@ -1767,22 +1768,13 @@ function renderFinanceOverview(){
  monthly.replaceChildren();if(!months.size){monthly.textContent=tr("financeMonthlyEmpty");return;}
  const table=document.createElement("div");table.className="table-wrap";const t=document.createElement("table");t.className="data-table";
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
- [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
-}
-async function getAllFinanceDocs(collectionName,dateField,start,end){
- const pageSize=250,documents=[];let cursor=null,lastCursorId=null;
- while(true){
+ [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=valuasync function getAllFinanceDocs(collectionName,dateField,start,end){
+ return collectPaginatedDocuments(async(cursor,pageSize)=>{
   const constraints=[where(dateField,">=",start),where(dateField,"<=",end),orderBy(dateField),orderBy(documentId())];
   if(cursor)constraints.push(startAfter(cursor));
   constraints.push(limit(pageSize));
-  const snapshot=await getDocs(query(collection(db,collectionName),...constraints));
-  documents.push(...snapshot.docs);
-  if(snapshot.size<pageSize)break;
-  const nextCursor=snapshot.docs[snapshot.docs.length-1];
-  if(!nextCursor||nextCursor.id===lastCursorId)throw new Error("FINANCE_PAGINATION_CURSOR_STALLED");
-  cursor=nextCursor;lastCursorId=nextCursor.id;
- }
- return documents;
+  return getDocs(query(collection(db,collectionName),...constraints));
+ });
 }
 let financeLoadSequence=0;
 document.getElementById("financePeriodType").addEventListener("change",event=>{setFinanceDates(event.target.value);loadFinanceOverview();});
