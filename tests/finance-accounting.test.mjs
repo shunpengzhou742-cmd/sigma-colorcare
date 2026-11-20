@@ -72,7 +72,8 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
     [{ departmentId: 0, amount: "invalid" }]
   );
 
-  assert.equal(result.invalidNumericCount, 5);
+  assert.equal(result.invalidNumericCount, 2);
+  assert.equal(result.invalidNumericFieldCount, 5);
   assert.equal(result.revenue, 1800, "malformed daily records must not affect revenue");
   assert.equal(result.labor, 350, "malformed daily records must not affect labor");
   assert.equal(result.materials, 80, "malformed daily records must not affect materials");
@@ -80,7 +81,7 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
   assert.ok(Number.isFinite(result.revenue));
   assert.ok(Number.isFinite(result.companyProfit));
   assert.ok(Number.isFinite(result.overallProfit));
-  assert.equal(result.auditIssueCount, 5);
+  assert.equal(result.auditIssueCount, 2);
 });
 
 test("returns zeroed totals for an empty period", () => {
