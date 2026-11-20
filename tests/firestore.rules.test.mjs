@@ -600,6 +600,19 @@ describe("SIGMA financial privacy Firestore rules", () => {
       });
     }));
     await assertSucceeds(getDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1")));
+    await assertFails(runTransaction(db, async transaction => {
+      const current = await transaction.get(ref);
+      const before = current.data();
+      const after = {
+        ...before, outputQuantity: 500, revenue: 5000000, netProfit: 4450000,
+        lastAuditLogId: "audit-wrong-metadata", updatedAt: serverTimestamp()
+      };
+      transaction.update(ref, after);
+      transaction.set(doc(db, "dailyRecordAuditLogs/audit-wrong-metadata"), {
+        recordId: ref.id, workDate: "2026-11-21", departmentId: before.departmentId,
+        before, after, changedBy: "admin-1", changedAt: serverTimestamp()
+      });
+    }));
     await assertFails(getDoc(doc(googleDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
     await assertFails(updateDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1"), { changedBy: "attacker" }));
     const { deleteDoc } = await import("firebase/firestore");
