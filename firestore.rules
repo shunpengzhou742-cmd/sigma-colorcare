@@ -332,6 +332,11 @@ service cloud.firestore {
             'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
             'createdBy', 'createdAt', 'updatedAt'
           ])
+          && data.keys().hasOnly([
+            'employeeUid', 'employeeName', 'workDate', 'departmentId',
+            'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
+            'createdBy', 'createdAt', 'updatedAt', 'lastAuditLogId'
+          ])
           && data.employeeUid is string
           && data.employeeUid.size() > 0
           && data.employeeUid.size() <= 128
@@ -380,10 +385,49 @@ service cloud.firestore {
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
+        && request.resource.data.lastAuditLogId is string
+        && existsAfter(/databases/$(database)/documents/employeeAttendance/$(attendanceId))
+        && existsAfter(/databases/$(database)/documents/employeeAttendanceAuditLogs/$(request.resource.data.lastAuditLogId))
+        && getAfter(/databases/$(database)/documents/employeeAttendanceAuditLogs/$(request.resource.data.lastAuditLogId)).data.attendanceId == attendanceId
+        && getAfter(/databases/$(database)/documents/employeeAttendanceAuditLogs/$(request.resource.data.lastAuditLogId)).data.before == resource.data
+        && getAfter(/databases/$(database)/documents/employeeAttendanceAuditLogs/$(request.resource.data.lastAuditLogId)).data.after == request.resource.data
         && exists(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid))
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.departmentIds.hasAny([request.resource.data.departmentId]);
 
       allow delete: if false;
+    }
+
+    match /employeeAttendanceAuditLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'attendanceId', 'employeeUid', 'workDate', 'departmentId',
+          'before', 'after', 'changedBy', 'changedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'attendanceId', 'employeeUid', 'workDate', 'departmentId',
+          'before', 'after', 'changedBy', 'changedAt'
+        ])
+        && request.resource.data.attendanceId is string
+        && request.resource.data.employeeUid is string
+        && request.resource.data.workDate is string
+        && request.resource.data.departmentId in [1, 2, 3]
+        && request.resource.data.before is map
+        && request.resource.data.after is map
+        && request.resource.data.changedBy == request.auth.uid
+        && request.resource.data.changedAt == request.time
+        && exists(/databases/$(database)/documents/employeeAttendance/$(request.resource.data.attendanceId))
+        && existsAfter(/databases/$(database)/documents/employeeAttendance/$(request.resource.data.attendanceId))
+        && request.resource.data.before == get(/databases/$(database)/documents/employeeAttendance/$(request.resource.data.attendanceId)).data
+        && request.resource.data.after == getAfter(/databases/$(database)/documents/employeeAttendance/$(request.resource.data.attendanceId)).data
+        && request.resource.data.employeeUid == request.resource.data.before.employeeUid
+        && request.resource.data.employeeUid == request.resource.data.after.employeeUid
+        && request.resource.data.workDate == request.resource.data.before.workDate
+        && request.resource.data.workDate == request.resource.data.after.workDate
+        && request.resource.data.departmentId == request.resource.data.before.departmentId
+        && request.resource.data.departmentId == request.resource.data.after.departmentId
+        && getAfter(/databases/$(database)/documents/employeeAttendance/$(request.resource.data.attendanceId)).data.lastAuditLogId == logId;
+      allow update, delete: if false;
     }
 
     match /appSettings/departmentWages {
