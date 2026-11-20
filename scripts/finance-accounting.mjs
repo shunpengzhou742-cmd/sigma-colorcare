@@ -149,7 +149,7 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
   }));
   const daily = new Map();
   let invalidAttendanceCount = 0;
-  const validWorkDate = value => typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value);
+  const validWorkDate = value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
   const getDaily = (workDate, departmentId) => {
     const key = workDate + "|" + departmentId;
     if (!daily.has(key)) daily.set(key, {
