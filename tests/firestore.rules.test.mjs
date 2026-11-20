@@ -1233,16 +1233,23 @@ describe("SIGMA finance period closure locks", () => {
       sourceDigest: "a".repeat(64), schemaVersion: 1
     };
   }
-  it("allows an immutable closure and blocks later edits", async () => {
+  async function seedClosure(periodId) {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "financeClosures/" + periodId), closure(periodId));
+    });
+  }
+  it("allows only the trusted backend to create an immutable closure", async () => {
     const db = adminDb(), ref = doc(db, "financeClosures/2026-11");
     const { deleteDoc } = await import("firebase/firestore");
-    await assertSucceeds(setDoc(ref, closure("2026-11")));
+    await assertFails(setDoc(ref, closure("2026-11")));
+    await seedClosure("2026-11");
+    await assertSucceeds(getDoc(ref));
     await assertFails(updateDoc(ref, { status: "reopened" }));
     await assertFails(deleteDoc(ref));
     await assertFails(setDoc(doc(db, "financeClosures/2026-12"), {...closure("2026-12"), sourceDigest: "invalid"}));
   });
   it("blocks locked-month writes but permits open-month writes", async () => {
-    await assertSucceeds(setDoc(doc(adminDb(), "financeClosures/2026-11"), closure("2026-11")));
+    await seedClosure("2026-11");
     const db = adminDb(), timestamp = Timestamp.now();
     const expense = {
       expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
