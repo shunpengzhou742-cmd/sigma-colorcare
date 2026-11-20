@@ -523,7 +523,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, orderBy, documentId, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 import { calculateFinanceSummary, calculatePayrollReconciliation } from "./scripts/finance-accounting.mjs";
 import { getFinanceDateRange } from "./scripts/finance-period.mjs";
 
@@ -1770,17 +1770,17 @@ function renderFinanceOverview(){
  [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
 }
 async function getAllFinanceDocs(collectionName,dateField,start,end){
- const pageSize=250,documents=[];let cursor=null;
+ const pageSize=250,documents=[];let cursor=null,lastCursorId=null;
  while(true){
-  const constraints=[where(dateField,">=",start),where(dateField,"<=",end)];
+  const constraints=[where(dateField,">=",start),where(dateField,"<=",end),orderBy(dateField),orderBy(documentId())];
   if(cursor)constraints.push(startAfter(cursor));
   constraints.push(limit(pageSize));
   const snapshot=await getDocs(query(collection(db,collectionName),...constraints));
   documents.push(...snapshot.docs);
   if(snapshot.size<pageSize)break;
   const nextCursor=snapshot.docs[snapshot.docs.length-1];
-  if(!nextCursor||nextCursor===cursor)throw new Error("FINANCE_PAGINATION_CURSOR_STALLED");
-  cursor=nextCursor;
+  if(!nextCursor||nextCursor.id===lastCursorId)throw new Error("FINANCE_PAGINATION_CURSOR_STALLED");
+  cursor=nextCursor;lastCursorId=nextCursor.id;
  }
  return documents;
 }
