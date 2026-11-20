@@ -27,6 +27,7 @@ on:
       - "tests/**"
       - "index.html"
       - "scripts/**"
+      - "functions/**"
       - ".github/workflows/firestore-rules-tests.yml"
 
 permissions:
@@ -65,7 +66,7 @@ jobs:
           npm explain tar || true
           npm explain @grpc/grpc-js || true
           npm explain @firebase/firestore || true
-          npm audit --omit=dev
+          npm audit --omit=dev --audit-level=high
       - name: Check client JavaScript syntax
         run: npm run check:client
       - name: Run finance calculation unit tests
