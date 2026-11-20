@@ -1479,11 +1479,34 @@ function renderFinanceOverview(){
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
  [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
 }
-document.getElementById("financePeriodType").addEventListener("change",event=>setFinanceDates(event.target.value));
-document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
-document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
+let financeLoadSequence=0;
+document.getElementById("financePeriodType").addEventListener("change",event=>{setFinanceDates(event.target.value);loadFinanceOverview();});
+document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
+document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
 setFinanceDates("month");
-async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b,s]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses")),getDocs(collection(db,"scrapRequests"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());financeScrapCache=s.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
+async function loadFinanceOverview(){
+ const root=document.getElementById("financeDepartmentSummary");
+ const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
+ const requestId=++financeLoadSequence;
+ if(!start||!end||start>end){renderFinanceOverview();return;}
+ root.textContent=tr("financeLoading");
+ try{
+  const [a,b,s]=await Promise.all([
+   getDocs(query(collection(db,"dailyRecords"),where("workDate",">=",start),where("workDate","<=",end))),
+   getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">=",start),where("expenseDate","<=",end))),
+   getDocs(query(collection(db,"scrapRequests"),where("requestDate",">=",start),where("requestDate","<=",end)))
+  ]);
+  if(requestId!==financeLoadSequence)return;
+  financeRecordsCache=a.docs.map(x=>x.data());
+  financeExpensesCache=b.docs.map(x=>x.data());
+  financeScrapCache=s.docs.map(x=>x.data());
+  renderFinanceOverview();
+ }catch(e){
+  if(requestId!==financeLoadSequence)return;
+  console.error("Finance overview",e);
+  root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");
+ }
+}
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
