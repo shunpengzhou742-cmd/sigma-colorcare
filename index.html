@@ -1429,7 +1429,7 @@ function renderFinanceOverview(){
  });
  const sharedNote=document.createElement("p");sharedNote.className="finance-shared-note";sharedNote.textContent=tr("expenseCompanyLabel")+": "+money(shared)+" · "+tr("netProfit")+" = "+money(companyProfit);chart.append(sharedNote);
  const months=new Map();
- const monthKeys=new Set([...rs.map(x=>String(x.workDate||"").slice(0,7)),...es.map(x=>String(x.expenseDate||"").slice(0,7))].filter(x=>/^\\d{4}-\\d{2}$/.test(x)));
+ const monthKeys=new Set([...rs.map(x=>String(x.workDate||"").slice(0,7)),...es.map(x=>String(x.expenseDate||"").slice(0,7))].filter(x=>/^\d{4}-\d{2}$/.test(x)));
  monthKeys.forEach(key=>{
   const monthRecords=rs.filter(x=>String(x.workDate||"").slice(0,7)===key);
   const monthExpenses=es.filter(x=>String(x.expenseDate||"").slice(0,7)===key);
