@@ -78,13 +78,17 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   const invalidExpenseCount = expenses.filter(
     row => !hasAllowedDepartment(row, EXPENSE_GROUP_IDS)
   ).length;
-  const mathMismatchCount = normalizedRecords.filter(({ row, values, valid }) => valid && (
-    Math.abs(values.revenue - values.outputQuantity * values.unitPrice) > 1 ||
-    Math.abs(values.laborCost - values.headcount * values.dailyWagePerPerson) > 1 ||
-    Math.abs(values.netProfit - (
-      values.revenue - values.laborCost - values.materialCost - values.otherCost
-    )) > 1
-  )).length;
+  // Only audit formulas for records that belong to a supported group and
+  // have valid numeric fields. Invalid department IDs are reported separately.
+  const mathMismatchCount = normalizedRecords.filter(({ row, values, valid }) =>
+    valid && hasAllowedDepartment(row, GROUP_IDS) && (
+      Math.abs(values.revenue - values.outputQuantity * values.unitPrice) > 1 ||
+      Math.abs(values.laborCost - values.headcount * values.dailyWagePerPerson) > 1 ||
+      Math.abs(values.netProfit - (
+        values.revenue - values.laborCost - values.materialCost - values.otherCost
+      )) > 1
+    )
+  ).length;
 
   const departments = GROUP_IDS.map(id => {
     const own = validRecords.filter(item => item.row.departmentId === id);
