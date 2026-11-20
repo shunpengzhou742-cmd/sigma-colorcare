@@ -583,6 +583,7 @@ const translations = {
     financePending:"等待接入真实核算数据",
     totalRevenue:"总收入",
     totalCost:"总成本",
+    laborCostLabel:"人工成本",
     netProfit:"公司净利润",
     financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
@@ -718,6 +719,7 @@ const translations = {
     financePending:"Chờ kết nối dữ liệu kế toán thực tế",
     totalRevenue:"Tổng doanh thu",
     totalCost:"Tổng chi phí",
+    laborCostLabel:"Chi phí nhân công",
     netProfit:"Lợi nhuận ròng",
     financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
@@ -1509,7 +1511,7 @@ async function openDailyAccountingEdit(recordId){
     [tr("accountingMaterialCost"),"materialCost",true],
     [tr("accountingOtherCost"),"otherCost",true],
     [tr("totalRevenue"),"revenue",true],
-    [tr("totalCost"),"laborCost",true],
+    [tr("laborCostLabel"),"laborCost",true],
     [tr("netProfit"),"netProfit",true]
    ];
    const changes=fields.filter(([,key])=>entry.before[key]!==entry.after[key]).map(([label,key,isMoney])=>label+": "+(isMoney?accountingMoney(entry.before[key]):Number(entry.before[key]||0).toLocaleString())+" → "+(isMoney?accountingMoney(entry.after[key]):Number(entry.after[key]||0).toLocaleString()));
