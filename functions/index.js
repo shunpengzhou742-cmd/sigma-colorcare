@@ -5,7 +5,7 @@ import { buildFinanceClosureSnapshot, createFinanceSourceDigest, getFinanceMonth
 
 initializeApp();
 const db = getFirestore();
-const PAGE_SIZE = 400;
+const PAGE_SIZE = 200;
 const SOURCE_COLLECTIONS = [
   ["dailyRecords", "workDate"],
   ["operatingExpenses", "expenseDate"],
