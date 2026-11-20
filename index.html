@@ -1276,10 +1276,15 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
 
 document.getElementById("expenseDate").value=localWorkDate();
 let editingExpenseId=null,editingExpenseCreatedAt=null,editingExpenseCreatedBy=null,editingExpenseIsSummary=false;
+let expenseListLoadSequence=0;
 async function refreshExpenseList(){
- const target=document.getElementById("expenseList");target.textContent=tr("expenseLoading");
+ const target=document.getElementById("expenseList");
+ const requestId=++expenseListLoadSequence;
+ target.textContent=tr("expenseLoading");
  try{
-  const snap=await getDocs(collection(db,"operatingExpenses"));
+  const [start,end]=getFinanceDateRange(document.getElementById("expensePeriodType").value,localWorkDate());
+  const snap=await getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">=",start),where("expenseDate","<=",end)));
+  if(requestId!==expenseListLoadSequence)return;
   const rows=snap.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>String(b.expenseDate).localeCompare(String(a.expenseDate)));
   renderExpensePeriodSummary(rows);
   target.replaceChildren();
