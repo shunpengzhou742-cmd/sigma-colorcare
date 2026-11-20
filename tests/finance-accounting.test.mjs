@@ -19,7 +19,7 @@ test("calculates each group's profit and subtracts shared expenses once", () => 
   assert.deepEqual(result.departments.map(row => row.profit), [700, 355, 240]);
   assert.equal(result.sharedExpenses, 100);
   assert.equal(result.departmentProfit, 1295);
-  assert.equal(result.companyProfit, 1255);
+  assert.equal(result.companyProfit, 1195);
   assert.equal(result.overallProfit, 1195);
   assert.equal(result.profitGap, 0);
   assert.equal(result.auditIssueCount, 0);
@@ -100,7 +100,7 @@ test("rejects malformed expense department IDs instead of treating them as share
   assert.equal(result.sharedExpenses, 100);
   assert.equal(result.extra, 100);
   assert.equal(result.invalidExpenseCount, 4);
-  assert.equal(result.companyProfit, 1195);
+  assert.equal(result.companyProfit, 1255);
   assert.equal(result.auditIssueCount, 4);
 });
 
