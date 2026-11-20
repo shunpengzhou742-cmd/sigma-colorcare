@@ -1429,13 +1429,17 @@ function renderFinanceOverview(){
  });
  const sharedNote=document.createElement("p");sharedNote.className="finance-shared-note";sharedNote.textContent=tr("expenseCompanyLabel")+": "+money(shared)+" · "+tr("netProfit")+" = "+money(companyProfit);chart.append(sharedNote);
  const months=new Map();
- const addMonth=key=>{if(!months.has(key))months.set(key,{revenue:0,labor:0,materials:0,other:0,expenses:0});return months.get(key);};
- rs.forEach(x=>{const m=addMonth(String(x.workDate||"").slice(0,7));m.revenue+=Number(x.revenue||0);m.labor+=Number(x.laborCost||0);m.materials+=Number(x.materialCost||0);m.other+=Number(x.otherCost||0);});
- es.forEach(x=>{const m=addMonth(String(x.expenseDate||"").slice(0,7));m.expenses+=Number(x.amount||0);});
+ const monthKeys=new Set([...rs.map(x=>String(x.workDate||"").slice(0,7)),...es.map(x=>String(x.expenseDate||"").slice(0,7))].filter(x=>/^\\d{4}-\\d{2}$/.test(x)));
+ monthKeys.forEach(key=>{
+  const monthRecords=rs.filter(x=>String(x.workDate||"").slice(0,7)===key);
+  const monthExpenses=es.filter(x=>String(x.expenseDate||"").slice(0,7)===key);
+  const summary=calculateFinanceSummary(monthRecords,monthExpenses);
+  months.set(key,{revenue:summary.revenue,labor:summary.labor,materials:summary.materials,other:summary.other,expenses:summary.extra,profit:summary.companyProfit});
+ });
  monthly.replaceChildren();if(!months.size){monthly.textContent=tr("financeMonthlyEmpty");return;}
  const table=document.createElement("div");table.className="table-wrap";const t=document.createElement("table");t.className="data-table";
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
- [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.revenue-cost;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
+ [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
 }
 document.getElementById("financePeriodType").addEventListener("change",event=>setFinanceDates(event.target.value));
 document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
