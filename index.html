@@ -1652,12 +1652,13 @@ async function loadPayrollSourceHistory(collectionName,id,target,kind){
    const before=entry.before||{},after=entry.after||{};
    const keys=kind==="attendance"?["payableDays","dailyWage","wageAmount"]:["headcount","outputQuantity","unitPrice","dailyWagePerPerson","materialCost","otherCost","revenue","laborCost","netProfit"];
    const changes=keys.filter(key=>before[key]!==after[key]).map(key=>key+": "+String(before[key]??"—")+" → "+String(after[key]??"—"));
-   wrap.textContent=stamp+" · "+tr("financePayrollChangedBy")+": "+(entry.changedBy||"—")+" · "+tr("financePayrollBefore")+": "+(changes.length?changes.join("；"):"—")+" · "+tr("financePayrollAfter")+": "+(changes.length?"已记录":"—");
+   wrap.textContent=stamp+" · "+tr("financePayrollChangedBy")+": "+(entry.changedBy||"—")+" · "+(changes.length?changes.join("；"):tr("financePayrollHistoryEmpty"));
    target.append(wrap);
   });
  }catch(error){target.textContent=tr("financePayrollHistoryError")+(error.code||error.message||"");}
 }
 async function showPayrollSourceDetails(row,target){
+ const money=value=>Math.round(Number(value)||0).toLocaleString()+" VND";
  target.replaceChildren();
  const title=document.createElement("strong");title.textContent=tr("financePayrollSourcesTitle");target.append(title);
  const accounting=financeRecordsCache.filter(item=>item.workDate===row.workDate&&Number(item.departmentId)===row.departmentId);
