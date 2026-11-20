@@ -555,7 +555,8 @@ describe("SIGMA financial privacy Firestore rules", () => {
   });
 
   it("validates daily accounting writes and preserves record identity metadata", async () => {
-    const ref = doc(adminDb(), "dailyRecords/2026-11-20_1");
+    const db = adminDb();
+    const ref = doc(db, "dailyRecords/2026-11-20_1");
     const valid = {
       workDate: "2026-11-20", departmentId: 1, headcount: 2, outputQuantity: 300,
       unitPrice: 10000, dailyWagePerPerson: 200000, materialCost: 100000,
@@ -581,7 +582,7 @@ describe("SIGMA financial privacy Firestore rules", () => {
       outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     }));
-    await assertSucceeds(runTransaction(adminDb(), async transaction => {
+    await assertSucceeds(runTransaction(db, async transaction => {
       const current = await transaction.get(ref);
       const before = current.data();
       const after = {
@@ -589,14 +590,14 @@ describe("SIGMA financial privacy Firestore rules", () => {
         lastAuditLogId: "audit-2026-11-20-1", updatedAt: serverTimestamp()
       };
       transaction.update(ref, after);
-      transaction.set(doc(adminDb(), "dailyRecordAuditLogs/audit-2026-11-20-1"), {
+      transaction.set(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1"), {
         recordId: ref.id, workDate: before.workDate, departmentId: before.departmentId,
         before, after, changedBy: "admin-1", changedAt: serverTimestamp()
       });
     }));
-    await assertSucceeds(getDoc(doc(adminDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
+    await assertSucceeds(getDoc(doc(db, "dailyRecordAuditLogs/audit-2026-11-20-1")));
     await assertFails(getDoc(doc(googleDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
-    await assertFails(setDoc(doc(adminDb(), "dailyRecordAuditLogs/forged"), {
+    await assertFails(setDoc(doc(db, "dailyRecordAuditLogs/forged"), {
       recordId: ref.id, workDate: "2026-11-20", departmentId: 1,
       before: valid, after: valid, changedBy: "admin-1", changedAt: serverTimestamp()
     }));
