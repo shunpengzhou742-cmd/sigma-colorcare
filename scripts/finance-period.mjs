@@ -1,4 +1,4 @@
-const DATE_PATTERN = /^(\\d{4})-(\\d{2})-(\\d{2})$/;
+const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function parseDate(value) {
   if (typeof value !== "string") return null;
