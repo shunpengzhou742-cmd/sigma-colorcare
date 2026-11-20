@@ -1596,7 +1596,7 @@ function renderFinanceOverview(){
 
   audit.replaceChildren();const auditTitle=document.createElement("strong");auditTitle.textContent=tr("financeAuditTitle");audit.append(auditTitle);
   const auditIssues=auditIssueCount;
-  const auditSummary=document.createElement("div");auditSummary.className="work-summary-row";auditSummary.textContent=auditIssues?tr("financeAuditIssues"):tr("financeAuditClean");audit.append(auditSummary);
+  const auditSummary=document.createElement("div");auditSummary.className="work-summary-row";auditSummary.textContent=auditIssues?tr("financeAuditIssues"):(!rs.length&&!es.length?tr("financeEmpty"):tr("financeAuditClean"));audit.append(auditSummary);
   if(invalidDept){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidDept")+": "+invalidDept;audit.append(line);}
   if(invalidExpense){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidExpense")+": "+invalidExpense;audit.append(line);}
   if(mathMismatch){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditMath")+": "+mathMismatch;audit.append(line);}
