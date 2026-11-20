@@ -1768,7 +1768,9 @@ function renderFinanceOverview(){
  monthly.replaceChildren();if(!months.size){monthly.textContent=tr("financeMonthlyEmpty");return;}
  const table=document.createElement("div");table.className="table-wrap";const t=document.createElement("table");t.className="data-table";
  const head=document.createElement("tr");[tr("financeMonth"),tr("totalRevenue"),tr("totalCost"),tr("netProfit")].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.append(th);});t.append(head);
- [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=valuasync function getAllFinanceDocs(collectionName,dateField,start,end){
+ [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([month,v])=>{const cost=v.labor+v.materials+v.other+v.expenses,profit=v.profit;const row=document.createElement("tr");[month,money(v.revenue),money(cost),money(profit)].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.append(td);});t.append(row);});table.append(t);monthly.append(table);
+}
+async function getAllFinanceDocs(collectionName,dateField,start,end){
  return collectPaginatedDocuments(async(cursor,pageSize)=>{
   const constraints=[where(dateField,">=",start),where(dateField,"<=",end),orderBy(dateField),orderBy(documentId())];
   if(cursor)constraints.push(startAfter(cursor));
