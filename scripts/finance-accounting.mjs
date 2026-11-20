@@ -207,9 +207,23 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
       });
     }
   }
-  groups.forEach(group => { group.difference = group.payrollAmount - group.accountingLabor; });
+  const getStatus = (payrollAmount, accountingLabor) => {
+    if (payrollAmount > 0 && accountingLabor === 0) return "payroll_only";
+    if (accountingLabor > 0 && payrollAmount === 0) return "accounting_only";
+    if (Math.abs(payrollAmount - accountingLabor) <= 1) return "matched";
+    return "amount_mismatch";
+  };
+  groups.forEach(group => {
+    group.difference = group.payrollAmount - group.accountingLabor;
+    group.status = getStatus(group.payrollAmount, group.accountingLabor);
+  });
   const dailyComparisons = [...daily.values()]
-    .map(row => ({ ...row, difference: row.payrollAmount - row.accountingLabor }))
+    .map(row => ({
+      ...row,
+      difference: row.payrollAmount - row.accountingLabor,
+      attendanceCount: row.employees.length,
+      status: getStatus(row.payrollAmount, row.accountingLabor)
+    }))
     .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.departmentId - b.departmentId);
   const accountingLabor = groups.reduce((sum, group) => sum + group.accountingLabor, 0);
   const payrollAmount = groups.reduce((sum, group) => sum + group.payrollAmount, 0);
