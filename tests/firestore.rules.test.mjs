@@ -78,6 +78,7 @@ function employeeData(uid, email, departments = [1], repairTypes = [101, 102]) {
     status: "active",
     departmentIds: departments,
     repairTypeIds: repairTypes,
+    specialRole: false,
     invitationId: "invite-valid",
     createdAt: serverTimestamp(),
     createdBy: "admin-1",
@@ -549,16 +550,26 @@ describe("SIGMA financial privacy Firestore rules", () => {
     await assertFails(getDoc(doc(googleDb(), "dailyRecords/2026-11-19_1")));
   });
 
-  it("rejects obsolete special-role fields on employee profiles", async () => {
+  it("allows only the admin to assign or revoke the special-role marker", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
-        uid: "employee-1", roleType: 1, status: "active",
-        departmentIds: [1]
+        uid: "employee-1", name: "Test Employee", email: "employee@example.com",
+        roleType: 1, status: "active", departmentIds: [1],
+        repairTypeIds: [101, 102], specialRole: false,
+        invitationId: "invite-valid", createdAt: Timestamp.now(),
+        createdBy: "admin-1", updatedAt: Timestamp.now()
       });
     });
-    const { updateDoc } = await import("firebase/firestore");
-    await assertFails(updateDoc(doc(googleDb(), "employees/employee-1"), {
-      specialRole: true
+    const employeeRef = doc(googleDb(), "employees/employee-1");
+    const adminRef = doc(adminDb(), "employees/employee-1");
+    await assertFails(updateDoc(employeeRef, {
+      specialRole: true, updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(adminRef, {
+      specialRole: true, updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(adminRef, {
+      specialRole: false, updatedAt: serverTimestamp()
     }));
   });
 });
