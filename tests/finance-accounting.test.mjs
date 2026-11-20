@@ -151,6 +151,8 @@ test("reconciles payroll attendance separately without changing daily accounting
   assert.equal(result.difference, -10000);
   assert.deepEqual(result.groups.map(row => row.difference), [0, -10000, 0]);
   assert.equal(result.invalidAttendanceCount, 0);
+  assert.equal(result.undatedAttendanceCount, 4);
+  assert.equal(result.unmatchedAccountingCount, 3);
   assert.equal(result.hasAttendance, true);
 });
 
@@ -210,6 +212,29 @@ test("rejects impossible attendance dates instead of silently hiding them from d
   assert.equal(result.payrollAmount, 180000);
   assert.equal(result.invalidAttendanceCount, 2);
   assert.deepEqual(result.dailyComparisons.map(row => row.workDate), ["2024-02-29", "2026-02-28"]);
+});
+
+
+test("reports records that contribute to group totals but cannot be matched by date", () => {
+  const result = calculatePayrollReconciliation(
+    [
+      { departmentId: 1, laborCost: 100000 },
+      { workDate: "not-a-date", departmentId: 2, laborCost: 50000 },
+      { workDate: "2026-11-20", departmentId: 3, laborCost: 25000 }
+    ],
+    [
+      { departmentId: 1, wageAmount: 40000 },
+      { workDate: "2026-11-20", departmentId: 3, wageAmount: 25000 },
+      { workDate: "2026-02-30", departmentId: 2, wageAmount: 70000 }
+    ]
+  );
+
+  assert.equal(result.accountingLabor, 175000);
+  assert.equal(result.payrollAmount, 65000);
+  assert.equal(result.unmatchedAccountingCount, 2);
+  assert.equal(result.undatedAttendanceCount, 1);
+  assert.equal(result.invalidAttendanceCount, 1);
+  assert.deepEqual(result.dailyComparisons.map(row => row.workDate), ["2026-11-20"]);
 });
 
 test("classifies payroll-only, accounting-only and matched daily rows", () => {
