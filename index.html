@@ -507,6 +507,7 @@ import {
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { calculateFinanceSummary } from "./scripts/finance-accounting.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -1387,11 +1388,9 @@ function renderFinanceOverview(){
  if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();audit.replaceChildren();return;}
  const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved");
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
- const revenue=sum(rs,"revenue"),labor=sum(rs,"laborCost"),materials=sum(rs,"materialCost"),other=sum(rs,"otherCost"),extra=sum(es,"amount"),approvedScrap=sum(ss,"quantity");
-  const validDeptIds=[1,2,3],validExpenseIds=[0,1,2,3];
-  const invalidDept=rs.filter(x=>!validDeptIds.includes(Number(x.departmentId))).length;
-  const invalidExpense=es.filter(x=>!validExpenseIds.includes(Number(x.departmentId))).length;
-  const mathMismatch=rs.filter(x=>Math.abs(Number(x.revenue||0)-Number(x.outputQuantity||0)*Number(x.unitPrice||0))>1||Math.abs(Number(x.laborCost||0)-Number(x.headcount||0)*Number(x.dailyWagePerPerson||0))>1||Math.abs(Number(x.netProfit||0)-(Number(x.revenue||0)-Number(x.laborCost||0)-Number(x.materialCost||0)-Number(x.otherCost||0)))>1).length;
+ const totals=calculateFinanceSummary(rs,es);
+ const {revenue,labor,materials,other,extra,invalidDeptCount:invalidDept,invalidExpenseCount:invalidExpense,mathMismatchCount:mathMismatch,departments:deptResults,sharedExpenses:shared,companyProfit,overallProfit,profitGap,auditIssueCount}=totals;
+ const approvedScrap=sum(ss,"quantity");
   document.getElementById("financeScrapQuantity").textContent=approvedScrap.toLocaleString()+" "+tr("unitPieces");
   scrapBreakdown.replaceChildren();const scrapTitle=document.createElement("strong");scrapTitle.textContent=tr("financeScrapBreakdown");scrapBreakdown.append(scrapTitle);
   const scrapDeptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};let knownScrap=0;
@@ -1401,18 +1400,9 @@ function renderFinanceOverview(){
  document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
  root.replaceChildren();chart.replaceChildren();
  if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
- const names={1:tr("repair"),2:tr("clean"),3:tr("weave")},deptResults=[];
- [1,2,3].forEach(id=>{
-  const own=rs.filter(x=>Number(x.departmentId)===id),ownE=es.filter(x=>Number(x.departmentId)===id);
-  const r=sum(own,"revenue"),l=sum(own,"laborCost"),m=sum(own,"materialCost"),o=sum(own,"otherCost"),e=sum(ownE,"amount"),cost=l+m+o+e,p=r-cost;
-  deptResults.push({id,name:names[id],revenue:r,cost,profit:p});
- });
- const shared=sum(es.filter(x=>![1,2,3].includes(Number(x.departmentId))),"amount");
- const departmentProfit=deptResults.reduce((v,x)=>v+x.profit,0);
- const companyProfit=departmentProfit-shared;
-  const overallProfit=revenue-labor-materials-other-extra,profitGap=Math.abs(companyProfit-overallProfit);
+
   audit.replaceChildren();const auditTitle=document.createElement("strong");auditTitle.textContent=tr("financeAuditTitle");audit.append(auditTitle);
-  const auditIssues=invalidDept+invalidExpense+mathMismatch+(profitGap>1?1:0);
+  const auditIssues=auditIssueCount;
   const auditSummary=document.createElement("div");auditSummary.className="work-summary-row";auditSummary.textContent=auditIssues?tr("financeAuditIssues"):tr("financeAuditClean");audit.append(auditSummary);
   if(invalidDept){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidDept")+": "+invalidDept;audit.append(line);}
   if(invalidExpense){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidExpense")+": "+invalidExpense;audit.append(line);}
