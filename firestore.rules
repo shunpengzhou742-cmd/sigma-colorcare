@@ -443,56 +443,7 @@ service cloud.firestore {
           'createdBy', 'createdAt', 'updatedAt'
         ])
         && data.workDate is string
-        && data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-        && data.departmentId in [1, 2, 3]
-        && data.headcount is int
-        && data.headcount >= 0
-        && data.outputQuantity is int
-        && data.outputQuantity >= 0
-        && data.unitPrice is number
-        && data.unitPrice >= 0
-        && data.dailyWagePerPerson is number
-        && data.dailyWagePerPerson >= 0
-        && data.materialCost is number
-        && data.materialCost >= 0
-        && data.otherCost is number
-        && data.otherCost >= 0
-        && data.revenue is number
-        && data.revenue == data.outputQuantity * data.unitPrice
-        && data.laborCost is number
-        && data.laborCost == data.headcount * data.dailyWagePerPerson
-        && data.netProfit is number
-        && data.netProfit == data.revenue - data.laborCost - data.materialCost - data.otherCost
-        && data.currency == 'VND'
-        && data.createdBy is string
-        && data.createdBy.size() > 0
-        && data.createdBy.size() <= 128;
-    }
-
-
-    match /dailyRecords/{recordId} {
-      allow get, list: if isAdmin();
-      allow create: if isAdmin()
-        && validDailyRecord(request.resource.data)
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
-      allow update: if isAdmin()
-        && validDailyRecord(request.resource.data)
-        && request.resource.data.workDate == resource.data.workDate
-        && request.resource.data.departmentId == resource.data.departmentId
-        && request.resource.data.createdBy == resource.data.createdBy
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+        && data.workDate.size() == 10
         && data.createdAt is timestamp
         && data.updatedAt is timestamp
         && data.departmentId is int
