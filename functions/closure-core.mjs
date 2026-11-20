@@ -52,12 +52,26 @@ export function buildFinanceClosureSnapshot({
     departmentId: id,
     quantity: sumQuantity(approved.filter(row => Number(row.departmentId) === id))
   }));
+  const payrollSnapshot = {
+    groups: payroll.groups,
+    dailyComparisons: payroll.dailyComparisons.map(({ employees, ...row }) => ({
+      ...row,
+      employeeCount: employees.length
+    })),
+    accountingLabor: payroll.accountingLabor,
+    payrollAmount: payroll.payrollAmount,
+    difference: payroll.difference,
+    invalidAttendanceCount: payroll.invalidAttendanceCount,
+    undatedAttendanceCount: payroll.undatedAttendanceCount,
+    unmatchedAccountingCount: payroll.unmatchedAccountingCount,
+    hasAttendance: payroll.hasAttendance
+  };
   return {
     ...range,
     status: "closed",
     snapshot: {
       finance,
-      payrollReconciliation: payroll,
+      payrollReconciliation: payrollSnapshot,
       scrap: {
         approvedQuantity: sumQuantity(approved),
         byDepartment: scrapByDepartment
