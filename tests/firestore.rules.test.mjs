@@ -1221,3 +1221,56 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
   });
 
 });
+
+
+describe("SIGMA finance period closure locks", () => {
+  function closure(periodId) {
+    return {
+      periodId, startDate: periodId + "-01", endDate: periodId + "-30",
+      status: "closed", closedAt: serverTimestamp(), closedBy: "admin-1",
+      snapshot: { companyProfit: 123456, departments: [] },
+      sourceCounts: { dailyRecords: 1, operatingExpenses: 1, employeeAttendance: 1, scrapRequests: 0 },
+      sourceDigest: "a".repeat(64), schemaVersion: 1
+    };
+  }
+  it("allows an immutable closure and blocks later edits", async () => {
+    const db = adminDb(), ref = doc(db, "financeClosures/2026-11");
+    const { deleteDoc } = await import("firebase/firestore");
+    await assertSucceeds(setDoc(ref, closure("2026-11")));
+    await assertFails(updateDoc(ref, { status: "reopened" }));
+    await assertFails(deleteDoc(ref));
+    await assertFails(setDoc(doc(db, "financeClosures/2026-12"), {...closure("2026-12"), sourceDigest: "invalid"}));
+  });
+  it("blocks locked-month writes but permits open-month writes", async () => {
+    await assertSucceeds(setDoc(doc(adminDb(), "financeClosures/2026-11"), closure("2026-11")));
+    const db = adminDb(), timestamp = Timestamp.now();
+    const expense = {
+      expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
+      entryMode: "item", amount: 100000, note: "Test", currency: "VND",
+      createdBy: "admin-1", createdAt: timestamp, updatedAt: timestamp
+    };
+    await assertFails(setDoc(doc(db, "operatingExpenses/locked-expense"), {...expense, createdAt: serverTimestamp(), updatedAt: serverTimestamp()}));
+    await assertSucceeds(setDoc(doc(db, "operatingExpenses/open-expense"), {...expense, expenseDate: "2026-12-01", createdAt: serverTimestamp(), updatedAt: serverTimestamp()}));
+    const daily = {
+      workDate: "2026-11-19", departmentId: 1, headcount: 1,
+      outputQuantity: 10, unitPrice: 1000, dailyWagePerPerson: 100,
+      materialCost: 100, otherCost: 0, revenue: 10000, laborCost: 100,
+      netProfit: 9800, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(), lastAuditLogId: null
+    };
+    await assertFails(setDoc(doc(db, "dailyRecords/locked-daily"), daily));
+    await assertSucceeds(setDoc(doc(db, "dailyRecords/open-daily"), {...daily, workDate: "2026-12-01"}));
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
+    });
+    const attendance = {
+      employeeUid: "employee-1", employeeName: "Test Employee",
+      workDate: "2026-11-19", departmentId: 1, payableDays: 1,
+      dailyWage: 350000, wageAmount: 350000, wageEffectiveDate: "2026-11-01",
+      createdBy: "admin-1", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    };
+    await assertFails(setDoc(doc(db, "employeeAttendance/locked-attendance"), attendance));
+    await assertSucceeds(setDoc(doc(db, "employeeAttendance/open-attendance"), {...attendance, workDate: "2026-12-01", wageEffectiveDate: "2026-12-01"}));
+    await assertFails(updateDoc(doc(db, "operatingExpenses/open-expense"), {...expense, expenseDate: "2026-11-20", updatedAt: serverTimestamp()}));
+  });
+});
