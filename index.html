@@ -1397,7 +1397,7 @@ function renderFinanceOverview(){
   [1,2,3].forEach(id=>{const qty=sum(ss.filter(x=>Number(x.departmentId)===id),"quantity");knownScrap+=qty;const line=document.createElement("div");line.className="work-summary-row";line.textContent=scrapDeptNames[id]+" · "+qty.toLocaleString()+" "+tr("unitPieces");scrapBreakdown.append(line);});
   const unassignedScrap=approvedScrap-knownScrap;if(unassignedScrap>0){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeScrapUnassigned")+" · "+unassignedScrap.toLocaleString()+" "+tr("unitPieces");scrapBreakdown.append(line);}
   if(!ss.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financeScrapNoRecords");scrapBreakdown.append(empty);}
- document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(revenue-labor-materials-other-extra);
+ document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(companyProfit);
  root.replaceChildren();chart.replaceChildren();
  if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
 
@@ -1409,20 +1409,21 @@ function renderFinanceOverview(){
   if(mathMismatch){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditMath")+": "+mathMismatch;audit.append(line);}
   if(profitGap>1){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditProfitGap")+": "+money(profitGap);audit.append(line);}
  const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
- deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=x.name+" · "+money(x.profit);root.append(d);});
+ const deptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};
+ deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=(deptNames[x.id]||("组别 "+x.id))+" · "+money(x.profit);root.append(d);});
  const common=document.createElement("div");common.className="work-summary-row";common.textContent=tr("expenseCompanyLabel")+": "+money(shared);root.append(common);
  const reconciliation=document.createElement("div");reconciliation.className="work-summary-row";reconciliation.textContent=tr("netProfit")+": "+money(companyProfit);root.append(reconciliation);
  const maxProfit=Math.max(1,...deptResults.map(x=>Math.abs(x.profit)));
  deptResults.forEach(x=>{
   const card=document.createElement("section");card.className="finance-dept-card";
-  const head=document.createElement("div");head.className="finance-dept-head";head.textContent=x.name;
+  const head=document.createElement("div");head.className="finance-dept-head";head.textContent=deptNames[x.id]||("组别 "+x.id);
   const profit=document.createElement("span");profit.textContent=money(x.profit);head.append(profit);card.append(head);
   const metrics=document.createElement("div");metrics.className="finance-dept-metrics";
   [[tr("totalRevenue"),x.revenue],[tr("totalCost"),x.cost],[tr("netProfit"),x.profit]].forEach(([label,value])=>{
    const item=document.createElement("div");item.className="finance-dept-metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=money(value);item.append(caption,strong);metrics.append(item);
   });
   card.append(metrics);
-  const track=document.createElement("div");track.className="finance-profit-track";track.setAttribute("role","img");track.setAttribute("aria-label",x.name+" "+tr("netProfit")+": "+money(x.profit));
+  const track=document.createElement("div");track.className="finance-profit-track";track.setAttribute("role","img");track.setAttribute("aria-label",(deptNames[x.id]||("组别 "+x.id))+" "+tr("netProfit")+": "+money(x.profit));
   const fill=document.createElement("div");fill.className="finance-profit-fill"+(x.profit<0?" negative":"");fill.style.width=(Math.abs(x.profit)/maxProfit*100)+"%";track.append(fill);card.append(track);chart.append(card);
  });
  const sharedNote=document.createElement("p");sharedNote.className="finance-shared-note";sharedNote.textContent=tr("expenseCompanyLabel")+": "+money(shared)+" · "+tr("netProfit")+" = "+money(companyProfit);chart.append(sharedNote);
