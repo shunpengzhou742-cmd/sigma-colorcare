@@ -1453,6 +1453,97 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
  finally{button.disabled=false;}
 });
 
+let editingDailyRecordId=null;
+const editAccountingFields=[
+ ["editAccountingHeadcount","headcount",true],
+ ["editAccountingOutput","outputQuantity",true],
+ ["editAccountingUnitPrice","unitPrice",false],
+ ["editAccountingDailyWage","dailyWagePerPerson",false],
+ ["editAccountingMaterialCost","materialCost",false],
+ ["editAccountingOtherCost","otherCost",false]
+];
+function accountingMoney(value){return Math.round(Number(value)||0).toLocaleString()+" VND";}
+function renderDailyAccountingHistory(){
+ const root=document.getElementById("dailyAccountingHistory");
+ if(!root)return;
+ root.replaceChildren();
+ if(currentRole!=="admin"){root.textContent="";return;}
+ const names={1:tr("repair"),2:tr("clean"),3:tr("weave")};
+ const records=[...financeRecordsCache].sort((a,b)=>b.workDate.localeCompare(a.workDate)||a.departmentId-b.departmentId);
+ if(!records.length){root.textContent=tr("accountingHistoryEmpty");return;}
+ records.forEach(record=>{
+  const row=document.createElement("div");row.className="work-record";
+  const title=document.createElement("strong");title.textContent=record.workDate+" · "+(names[record.departmentId]||record.departmentId);row.append(title);
+  const detail=document.createElement("div");detail.className="small";
+  detail.textContent=tr("accountingOutput")+": "+Number(record.outputQuantity||0).toLocaleString()+" · "+tr("netProfit")+": "+accountingMoney(record.netProfit);
+  row.append(detail);
+  const button=document.createElement("button");button.className="dark";button.type="button";button.textContent=tr("accountingEditButton");
+  button.addEventListener("click",()=>openDailyAccountingEdit(record.id));row.append(button);
+  root.append(row);
+ });
+}
+async function openDailyAccountingEdit(recordId){
+ if(currentRole!=="admin"||!recordId)return;
+ const form=document.getElementById("dailyAccountingEditForm"),message=document.getElementById("dailyAccountingEditMessage");
+ message.textContent=tr("accountingLoading");
+ try{
+  const snap=await getDoc(doc(db,"dailyRecords",recordId));
+  if(!snap.exists())throw new Error("RECORD_NOT_FOUND");
+  const data=snap.data();editingDailyRecordId=recordId;
+  document.getElementById("dailyAccountingEditDate").textContent=data.workDate+" · "+({1:tr("repair"),2:tr("clean"),3:tr("weave")}[data.departmentId]||data.departmentId);
+  editAccountingFields.forEach(([id,key])=>{document.getElementById(id).value=String(data[key]??0);});
+  form.classList.remove("hidden");message.textContent="";
+  const auditRoot=document.getElementById("dailyAccountingAuditHistory");auditRoot.replaceChildren();
+  const auditSnap=await getDocs(query(collection(db,"dailyRecordAuditLogs"),where("recordId","==",recordId)));
+  const entries=auditSnap.docs.map(x=>x.data()).sort((a,b)=>(b.changedAt?.seconds||0)-(a.changedAt?.seconds||0));
+  if(!entries.length){auditRoot.textContent=tr("accountingAuditEmpty");return;}
+  const title=document.createElement("strong");title.textContent=tr("accountingHistoryTitle");auditRoot.append(title);
+  entries.forEach(entry=>{
+   const line=document.createElement("div");line.className="work-summary-row";
+   const time=entry.changedAt?.toDate?entry.changedAt.toDate().toLocaleString():"";
+   line.textContent=time+" · "+tr("accountingOutput")+": "+Number(entry.before.outputQuantity||0).toLocaleString()+" → "+Number(entry.after.outputQuantity||0).toLocaleString()+" · "+tr("netProfit")+": "+accountingMoney(entry.before.netProfit)+" → "+accountingMoney(entry.after.netProfit)+" · "+entry.changedBy;
+   auditRoot.append(line);
+  });
+ }catch(error){message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
+}
+document.getElementById("cancelDailyAccountingEdit").addEventListener("click",()=>{
+ editingDailyRecordId=null;document.getElementById("dailyAccountingEditForm").classList.add("hidden");
+});
+document.getElementById("dailyAccountingEditForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(currentRole!=="admin"||!auth.currentUser||!editingDailyRecordId)return;
+ const message=document.getElementById("dailyAccountingEditMessage"),button=document.getElementById("saveDailyAccountingEdit");
+ const values={};
+ for(const [id,key,isInteger] of editAccountingFields){
+  const raw=document.getElementById(id).value,value=Number(raw);
+  if(raw===""||!Number.isFinite(value)||value<0||(isInteger&&!Number.isInteger(value))){message.textContent=tr("accountingInvalid");return;}
+  values[key]=value;
+ }
+ button.disabled=true;message.textContent=tr("accountingEditLoading");
+ try{
+  const recordRef=doc(db,"dailyRecords",editingDailyRecordId);
+  const auditRef=doc(collection(db,"dailyRecordAuditLogs"));
+  await runTransaction(db,async transaction=>{
+   const current=await transaction.get(recordRef);
+   if(!current.exists())throw new Error("RECORD_NOT_FOUND");
+   const before=current.data();
+   const revenue=values.outputQuantity*values.unitPrice;
+   const laborCost=values.headcount*values.dailyWagePerPerson;
+   const netProfit=revenue-laborCost-values.materialCost-values.otherCost;
+   const after={...before,...values,revenue,laborCost,netProfit,lastAuditLogId:auditRef.id,updatedAt:serverTimestamp()};
+   transaction.update(recordRef,after);
+   transaction.set(auditRef,{
+    recordId:editingDailyRecordId,workDate:before.workDate,departmentId:before.departmentId,
+    before,after,changedBy:auth.currentUser.uid,changedAt:serverTimestamp()
+   });
+  });
+  message.textContent=tr("accountingEditSaved");
+  await loadFinanceOverview();
+  await openDailyAccountingEdit(editingDailyRecordId);
+ }catch(error){console.error("Daily accounting edit error",error);message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
+ finally{button.disabled=false;}
+});
+
 let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[];
 function financeRange(mode){
  const range=getFinanceDateRange(mode,localWorkDate());
@@ -1465,6 +1556,7 @@ function setFinanceDates(mode){
 function renderFinanceOverview(){
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
  const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart"),scrapBreakdown=document.getElementById("financeScrapBreakdown"),audit=document.getElementById("financeReconciliation");
+ renderDailyAccountingHistory();
  if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();audit.replaceChildren();return;}
  const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved");
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
@@ -1539,7 +1631,7 @@ async function loadFinanceOverview(){
    getDocs(query(collection(db,"scrapRequests"),where("requestDate",">=",start),where("requestDate","<=",end)))
   ]);
   if(requestId!==financeLoadSequence)return;
-  financeRecordsCache=a.docs.map(x=>x.data());
+  financeRecordsCache=a.docs.map(x=>({id:x.id,...x.data()}));
   financeExpensesCache=b.docs.map(x=>x.data());
   financeScrapCache=s.docs.map(x=>x.data());
   renderFinanceOverview();
