@@ -202,6 +202,7 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
           ? row.employeeName.trim() : "Unknown employee",
         payableDays: Number.isFinite(row.payableDays) ? row.payableDays : 0,
         dailyWage: Number.isFinite(row.dailyWage) ? row.dailyWage : 0,
+        wageEffectiveDate: typeof row.wageEffectiveDate === "string" ? row.wageEffectiveDate : "manual",
         wageAmount: amount
       });
     }
