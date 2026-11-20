@@ -147,12 +147,23 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     payrollAmount: 0,
     difference: 0
   }));
+  const daily = new Map();
   let invalidAttendanceCount = 0;
+  const validWorkDate = value => typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value);
+  const getDaily = (workDate, departmentId) => {
+    const key = workDate + "|" + departmentId;
+    if (!daily.has(key)) daily.set(key, {
+      workDate, departmentId, accountingLabor: 0, payrollAmount: 0, difference: 0
+    });
+    return daily.get(key);
+  };
   for (const row of dailyRecords) {
     if (!row || !Number.isInteger(row.departmentId)) continue;
     const group = groups.find(item => item.id === row.departmentId);
     const amount = Number(row.laborCost);
-    if (group && Number.isFinite(amount) && amount >= 0) group.accountingLabor += amount;
+    if (!group || !Number.isFinite(amount) || amount < 0) continue;
+    group.accountingLabor += amount;
+    if (validWorkDate(row.workDate)) getDaily(row.workDate, row.departmentId).accountingLabor += amount;
   }
   for (const row of attendance) {
     const group = row && groups.find(item => item.id === row.departmentId);
@@ -162,12 +173,17 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
       continue;
     }
     group.payrollAmount += amount;
+    if (validWorkDate(row.workDate)) getDaily(row.workDate, row.departmentId).payrollAmount += amount;
   }
   groups.forEach(group => { group.difference = group.payrollAmount - group.accountingLabor; });
+  const dailyComparisons = [...daily.values()]
+    .map(row => ({ ...row, difference: row.payrollAmount - row.accountingLabor }))
+    .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.departmentId - b.departmentId);
   const accountingLabor = groups.reduce((sum, group) => sum + group.accountingLabor, 0);
   const payrollAmount = groups.reduce((sum, group) => sum + group.payrollAmount, 0);
   return {
     groups,
+    dailyComparisons,
     accountingLabor,
     payrollAmount,
     difference: payrollAmount - accountingLabor,
