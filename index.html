@@ -219,6 +219,14 @@ body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
 body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
 @media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
 
+/* Admin workspace navigation */
+#adminWorkspaceNav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0 4px;padding:8px;background:#e8f0fa;border:1px solid #d8e4f2;border-radius:16px;position:sticky;top:8px;z-index:20;box-shadow:0 5px 18px #1e4e8010}
+#adminWorkspaceNav button{min-width:0;padding:11px 5px;border:1px solid transparent;border-radius:11px;background:transparent;color:#526b87;font-size:12px;font-weight:750;line-height:1.35}
+#adminWorkspaceNav button[aria-current='page']{background:#fff;border-color:#d5e3f3;color:#155da7;box-shadow:0 3px 10px #174b8318}
+.admin-workspace-page.hidden{display:none!important}
+#dashboardPanel .admin-subpage{display:flex;flex-direction:column;gap:0}
+#dashboardPanel .admin-subpage.hidden{display:none!important}
+@media(max-width:560px){#adminWorkspaceNav{gap:4px;padding:5px;top:4px}#adminWorkspaceNav button{font-size:10px;padding:10px 2px;border-radius:9px}}
 </style>
 </head>
 <body>
@@ -804,6 +812,37 @@ function showLogin(){
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
 }
+let adminWorkspaceReady = false;
+function setupAdminWorkspace(){
+ if(adminWorkspaceReady)return;
+ const appView=document.getElementById('appView'),dashboard=document.getElementById('dashboardPanel');if(!appView||!dashboard)return;
+ const nav=document.createElement('nav');nav.id='adminWorkspaceNav';nav.className='hidden';nav.setAttribute('aria-label','管理功能导航');
+ [['overview','dashboardTitle'],['finance','businessFinance'],['accounting','dailyAccountingTitle'],['people','employeeManageTitle'],['departments','deptOverview']].forEach(([key,labelKey])=>{const b=document.createElement('button');b.type='button';b.dataset.page=key;b.dataset.i18n=labelKey;b.textContent=tr(labelKey);b.addEventListener('click',()=>window.switchAdminPage(key));nav.appendChild(b);});
+ appView.insertBefore(nav,dashboard);
+ const nodes=Array.from(dashboard.children),findIndex=selector=>nodes.findIndex(n=>n.matches?.(selector)||n.querySelector?.(selector));
+ const fs=findIndex('#financePeriodType'),as=findIndex('#dailyAccountingForm'),es=findIndex('#expenseForm'),ds=findIndex('.dept-overview-grid');
+ if([fs,as,es,ds].some(n=>n<0))throw new Error('无法识别经营看板分区，停止调整页面结构');
+ const pages={overview:document.createElement('section'),finance:document.createElement('section'),accounting:document.createElement('section')};
+ Object.entries(pages).forEach(([key,el])=>{el.className='admin-subpage'+(key==='overview'?'':' hidden');el.dataset.adminSection=key;});
+ dashboard.insertBefore(pages.overview,dashboard.children[1]);dashboard.insertBefore(pages.finance,pages.overview.nextSibling);dashboard.insertBefore(pages.accounting,pages.finance.nextSibling);
+ nodes.slice(1).forEach((node,offset)=>{const index=offset+1;let key='finance';if(index<fs-1||index>=ds-1)key='overview';else if(index>=as-1&&index<es-1)key='accounting';pages[key].appendChild(node);});
+ const people=document.createElement('section');people.id='peopleWorkspace';people.className='admin-workspace-page hidden';['scrapReviewPanel','invitePanel','employeeManagePanel'].forEach(id=>{const el=document.getElementById(id);if(el)people.appendChild(el);});
+ const departments=document.createElement('section');departments.id='departmentWorkspace';departments.className='admin-workspace-page';const deptButton=document.getElementById('deptRepair');const heading=deptButton?.previousElementSibling?.matches('h3')?deptButton.previousElementSibling:null;if(heading)departments.appendChild(heading);['deptRepair','deptClean','deptWeave'].forEach(id=>{const el=document.getElementById(id);if(el)departments.appendChild(el);});
+ appView.appendChild(people);appView.appendChild(departments);adminWorkspaceReady=true;
+}
+window.switchAdminPage=function(key){
+ setupAdminWorkspace();const valid=['overview','finance','accounting','people','departments'];if(!valid.includes(key))key='overview';
+ const nav=document.getElementById('adminWorkspaceNav');nav?.querySelectorAll('button').forEach(b=>{const active=b.dataset.page===key;b.setAttribute('aria-current',active?'page':'false');});
+ const dashboard=document.getElementById('dashboardPanel');dashboard?.classList.toggle('hidden',currentRole!=='admin'||!['overview','finance','accounting'].includes(key));dashboard?.querySelectorAll('[data-admin-section]').forEach(el=>el.classList.toggle('hidden',el.dataset.adminSection!==key));
+ const headingKeys={overview:'dashboardTitle',finance:'businessFinance',accounting:'dailyAccountingTitle'};
+ const heading=document.querySelector('#dashboardPanel .dashboard-heading h2');
+ if(heading&&headingKeys[key]){heading.dataset.i18n=headingKeys[key];heading.textContent=tr(headingKeys[key]);}
+ const kicker=document.querySelector('#dashboardPanel .dashboard-kicker');if(kicker)kicker.classList.toggle('hidden',key!=='overview');
+ const dashboardDate=document.getElementById('dashboardDate');if(dashboardDate)dashboardDate.classList.toggle('hidden',key!=='overview');
+ document.getElementById('peopleWorkspace')?.classList.toggle('hidden',key!=='people'||currentRole!=='admin');document.getElementById('departmentWorkspace')?.classList.toggle('hidden',key!=='departments');
+ if(key==='people'&&currentRole==='admin'){loadEmployees();loadScrapReviewQueue();}window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function showApp(user, identity){
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
@@ -817,12 +856,14 @@ function showApp(user, identity){
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
-  document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
+  setupAdminWorkspace();
+  document.getElementById("adminWorkspaceNav").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
+  if(identity.role === "admin"){ loadDashboard(); loadWageRates(); refreshExpenseList(); }
   currentDept = "";
+  window.switchAdminPage(identity.role === "admin" ? "overview" : "departments");
 }
 function updateGoogleLinkButton(user){
   const button = document.getElementById("googleLinkBtn");
