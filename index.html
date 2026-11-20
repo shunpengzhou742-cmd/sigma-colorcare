@@ -293,6 +293,10 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <select id="financePeriodType"><option value="month" data-i18n="financeMonth">本月</option><option value="half" data-i18n="financeHalf">本半年</option><option value="year" data-i18n="financeYear">本年度</option><option value="custom" data-i18n="financeCustom">自定义日期范围</option></select>
         <div class="form-grid"><label><span data-i18n="financeStart">开始日期</span><input id="financeStartDate" type="date"></label><label><span data-i18n="financeEnd">结束日期</span><input id="financeEndDate" type="date"></label></div>
       </div>
+      <div id="financeClosurePanel" class="work-panel">
+        <button id="closeFinancePeriodBtn" type="button" class="dark" data-i18n="financeCloseBtn">结账所选月份</button>
+        <p id="financeClosureStatus" class="small" aria-live="polite" data-i18n="financeClosureMonthOnly">请选择一个已经结束的完整月份。</p>
+      </div>
       <div class="finance-grid"><article><span data-i18n="totalRevenue">总收入</span><strong id="financeRevenue">—</strong></article><article><span data-i18n="totalCost">总成本</span><strong id="financeCost">—</strong></article><article><span data-i18n="netProfit">公司净利润</span><strong id="financeProfit">—</strong></article><article><span data-i18n="scrapApprovedLabel">已批准报废数量</span><strong id="financeScrapQuantity">—</strong></article></div>
       <div id="financeDepartmentSummary" class="work-panel small" data-i18n="financeLoading">正在读取财务数据……</div>
        <div id="financeScrapBreakdown" class="work-panel small"></div>
@@ -524,6 +528,7 @@ import {
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, orderBy, documentId, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { calculateFinanceSummary, calculatePayrollReconciliation } from "./scripts/finance-accounting.mjs";
 import { collectPaginatedDocuments } from "./scripts/finance-pagination.mjs";
 import { getFinanceDateRange } from "./scripts/finance-period.mjs";
@@ -540,6 +545,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functionsClient = getFunctions(app, "asia-southeast1");
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({prompt:"select_account"});
 
@@ -586,7 +592,7 @@ const translations = {
     totalCost:"总成本",
     laborCostLabel:"人工成本",
     netProfit:"公司净利润",
-    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
+    financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeCloseBtn:"结账所选月份",financeClosureOpen:"该月份尚未结账。结账后财务源数据将锁定。",financeClosureClosing:"该月份正在结账，源数据已锁定。",financeClosureClosed:"已结账并锁定。数据笔数：",financeClosureMonthOnly:"请选择一个已经结束的完整月份。",financeCloseConfirm:"确认结账 {period}？结账后不能直接修改该月份的财务源数据。",financeClosureWorking:"正在生成结账快照……",financeClosureError:"结账失败：",financeClosureDone:"结账完成。公司净利润：",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
     financeNote:"统计基于修色部各组每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用；考勤工资仅用于人工成本核对，不会再次扣减利润。",financeScrapBreakdown:"各组已批准报废数量",financeScrapUnassigned:"未识别组别报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：组别归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"组别编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditInvalidNumeric:"数字字段异常的核算或费用记录",financeAuditProfitGap:"公司总利润与各组汇总差额",financePayrollTitle:"考勤工资与每日核算人工成本对照（仅核对，不重复计入利润）",financePayrollEmpty:"所选周期暂无考勤工资记录",financePayrollAccounting:"每日核算人工成本",financePayrollAttendance:"考勤工资合计",financePayrollDifference:"差额（考勤工资－每日人工）",financePayrollInvalid:"异常考勤工资记录",financePayrollUndatedAttendance:"未填写有效日期的考勤记录（已计入部门工资总额，无法按日核对）",financePayrollUnmatchedAccounting:"未填写有效日期的每日核算记录（已计入部门人工总额，无法按日核对）",financePayrollStatusMatched:"金额一致",financePayrollStatusMismatch:"金额不一致",financePayrollStatusPayrollOnly:"只有考勤工资",financePayrollStatusAccountingOnly:"只有每日核算人工",financePayrollStatusNoData:"暂无数据",financePayrollAttendanceCount:"考勤人数",financePayrollExceptionSummary:"日期核对分类统计",financePayrollViewSources:"查看原始记录与修改历史",financePayrollSourcesTitle:"核对来源记录",financePayrollNoAccountingSource:"没有对应的每日核算记录",financePayrollNoAttendanceSource:"没有对应的考勤记录",financePayrollOpenAccounting:"打开核算记录及修改历史",financePayrollAttendanceHistory:"查看考勤修改历史",financePayrollHistoryLoading:"正在读取修改历史……",financePayrollHistoryEmpty:"该记录暂无修改历史",financePayrollHistoryError:"读取修改历史失败：",financePayrollBefore:"修改前",financePayrollAfter:"修改后",financePayrollChangedBy:"修改人",
     financePayrollDailyBreakdown:"按日期和业务组核对差额",
@@ -724,7 +730,7 @@ const translations = {
     totalCost:"Tổng chi phí",
     laborCostLabel:"Chi phí nhân công",
     netProfit:"Lợi nhuận ròng",
-    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
+    financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeCloseBtn:"Chốt tháng đã chọn",financeClosureOpen:"Tháng này chưa chốt. Dữ liệu tài chính sẽ bị khóa sau khi chốt.",financeClosureClosing:"Tháng đang được chốt, dữ liệu nguồn đã khóa.",financeClosureClosed:"Đã chốt và khóa. Số lượng dữ liệu: ",financeClosureMonthOnly:"Hãy chọn một tháng đầy đủ đã kết thúc.",financeCloseConfirm:"Xác nhận chốt tháng {period}? Sau khi chốt không thể sửa trực tiếp dữ liệu tài chính của tháng.",financeClosureWorking:"Đang tạo bản chụp quyết toán…",financeClosureError:"Chốt tháng thất bại: ",financeClosureDone:"Đã chốt. Lợi nhuận ròng công ty: ",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
     financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi; tiền công từ chấm công chỉ dùng để đối chiếu chi phí nhân công, không trừ lợi nhuận lần nữa.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditInvalidNumeric:"Bản ghi kế toán hoặc chi phí có trường số liệu không hợp lệ",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",financePayrollTitle:"Đối chiếu lương chấm công và chi phí nhân công kế toán (chỉ đối chiếu, không trừ lợi nhuận lần nữa)",financePayrollEmpty:"Không có dữ liệu lương chấm công trong kỳ đã chọn",financePayrollAccounting:"Chi phí nhân công theo kế toán ngày",financePayrollAttendance:"Tổng lương chấm công",financePayrollDifference:"Chênh lệch (lương chấm công − nhân công kế toán)",financePayrollInvalid:"Bản ghi lương chấm công bất thường",financePayrollUndatedAttendance:"Bản ghi chấm công thiếu ngày hợp lệ (đã tính vào tổng lương bộ phận, không thể đối chiếu theo ngày)",financePayrollUnmatchedAccounting:"Bản ghi kế toán ngày thiếu ngày hợp lệ (đã tính vào tổng nhân công bộ phận, không thể đối chiếu theo ngày)",financePayrollStatusMatched:"Số tiền khớp",financePayrollStatusMismatch:"Số tiền không khớp",financePayrollStatusPayrollOnly:"Chỉ có lương chấm công",financePayrollStatusAccountingOnly:"Chỉ có nhân công kế toán ngày",financePayrollStatusNoData:"Chưa có dữ liệu",financePayrollAttendanceCount:"Số nhân viên chấm công",financePayrollExceptionSummary:"Tổng hợp phân loại đối chiếu theo ngày",financePayrollViewSources:"Xem bản ghi gốc và lịch sử chỉnh sửa",financePayrollSourcesTitle:"Bản ghi nguồn đối chiếu",financePayrollNoAccountingSource:"Không có bản ghi kế toán hằng ngày tương ứng",financePayrollNoAttendanceSource:"Không có bản ghi chấm công tương ứng",financePayrollOpenAccounting:"Mở bản ghi kế toán và lịch sử chỉnh sửa",financePayrollAttendanceHistory:"Xem lịch sử chỉnh sửa chấm công",financePayrollHistoryLoading:"Đang tải lịch sử chỉnh sửa…",financePayrollHistoryEmpty:"Bản ghi này chưa có lịch sử chỉnh sửa",financePayrollHistoryError:"Lỗi tải lịch sử chỉnh sửa: ",financePayrollBefore:"Trước khi sửa",financePayrollAfter:"Sau khi sửa",financePayrollChangedBy:"Người chỉnh sửa",
     financePayrollDailyBreakdown:"Đối chiếu chênh lệch theo ngày và tổ",
@@ -1782,11 +1788,60 @@ let financeLoadSequence=0;
 document.getElementById("financePeriodType").addEventListener("change",event=>{setFinanceDates(event.target.value);loadFinanceOverview();});
 document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";loadFinanceOverview();});
+function getSelectedClosableFinanceMonth(){
+ const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
+ if(!start||!end||!/^\\d{4}-\\d{2}-01$/.test(start))return null;
+ const [expectedStart,expectedEnd]=getFinanceDateRange("month",start);
+ if(start!==expectedStart||end!==expectedEnd||end>=localWorkDate())return null;
+ return start.slice(0,7);
+}
+async function refreshFinanceClosureStatus(){
+ const panel=document.getElementById("financeClosurePanel"),button=document.getElementById("closeFinancePeriodBtn"),status=document.getElementById("financeClosureStatus");
+ if(!panel||!button||!status)return;
+ panel.hidden=currentRole!=="admin";
+ if(panel.hidden)return;
+ const periodId=getSelectedClosableFinanceMonth();
+ if(!periodId){button.disabled=true;status.textContent=tr("financeClosureMonthOnly");return;}
+ button.disabled=true;status.textContent=tr("financeClosureWorking");
+ try{
+  const snapshot=await getDoc(doc(db,"financeClosures",periodId));
+  if(document.getElementById("financeStartDate").value.slice(0,7)!==periodId)return;
+  if(snapshot.exists()){
+   const data=snapshot.data();
+   status.textContent=data.status==="closed"
+    ?tr("financeClosureClosed")+Object.values(data.sourceCounts||{}).reduce((sum,n)=>sum+Number(n||0),0)
+    :tr("financeClosureClosing");
+  }else{
+   status.textContent=tr("financeClosureOpen");button.disabled=false;
+  }
+ }catch(error){
+  status.textContent=tr("financeClosureError")+(error.code||error.message||"unknown");
+ }
+}
+document.getElementById("closeFinancePeriodBtn").addEventListener("click",async()=>{
+ const periodId=getSelectedClosableFinanceMonth();
+ if(!periodId||currentRole!=="admin")return;
+ const confirmed=confirm(tr("financeCloseConfirm").replace("{period}",periodId));
+ if(!confirmed)return;
+ const button=document.getElementById("closeFinancePeriodBtn"),status=document.getElementById("financeClosureStatus");
+ button.disabled=true;status.textContent=tr("financeClosureWorking");
+ try{
+  const closePeriod=httpsCallable(functionsClient,"closeFinancePeriod");
+  const response=await closePeriod({periodId});
+  status.textContent=tr("financeClosureDone")+Number(response.data.companyProfit||0).toLocaleString()+" VND";
+  await loadFinanceOverview();
+  await refreshFinanceClosureStatus();
+ }catch(error){
+  status.textContent=tr("financeClosureError")+(error.message||error.code||"unknown");
+  await refreshFinanceClosureStatus();
+ }
+});
 setFinanceDates("month");
 async function loadFinanceOverview(){
  const root=document.getElementById("financeDepartmentSummary");
  const start=document.getElementById("financeStartDate").value,end=document.getElementById("financeEndDate").value;
  const requestId=++financeLoadSequence;
+ refreshFinanceClosureStatus();
  if(!start||!end||start>end){renderFinanceOverview();return;}
  root.textContent=tr("financeLoading");
  try{
