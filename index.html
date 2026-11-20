@@ -1295,10 +1295,8 @@ async function refreshExpenseList(){
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
- const mode=document.getElementById("expensePeriodType").value,today=localWorkDate(),year=today.slice(0,4),month=Number(today.slice(5,7));
- let start=year+"-01-01",end=year+"-12-31";
- if(mode==="month"){start=today.slice(0,7)+"-01";end=today.slice(0,7)+"-31";}
- if(mode==="half"){start=year+(month<=6?"-01-01":"-07-01");end=year+(month<=6?"-06-30":"-12-31");}
+ const mode=document.getElementById("expensePeriodType").value;
+ const [start,end]=getFinanceDateRange(mode,localWorkDate());
  const selected=rows.filter(row=>row.expenseDate>=start&&row.expenseDate<=end);
  if(!selected.length){root.textContent=tr("expensePeriodEmpty");return;}
  const total=selected.reduce((sum,row)=>sum+Number(row.amount||0),0);
