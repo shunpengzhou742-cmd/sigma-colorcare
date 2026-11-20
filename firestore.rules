@@ -376,6 +376,7 @@ service cloud.firestore {
         && validAttendance(request.resource.data)
         && request.resource.data.employeeUid == resource.data.employeeUid
         && request.resource.data.workDate == resource.data.workDate
+        && request.resource.data.departmentId == resource.data.departmentId
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
