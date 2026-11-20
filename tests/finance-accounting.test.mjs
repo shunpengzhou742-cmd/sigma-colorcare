@@ -180,7 +180,7 @@ test("breaks payroll reconciliation differences down by work date and group", ()
       { workDate: "2026-11-18", departmentId: 1, wageAmount: 90000 },
       { workDate: "2026-11-19", departmentId: 1, wageAmount: 120000 },
       { workDate: "2026-11-19", departmentId: 2, wageAmount: 75000 },
-      { workDate: "2026-11-20", departmentId: 2, wageAmount: 50000 }
+      { workDate: "2026-11-20", departmentId: 2, employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }
     ]
   );
 
@@ -191,4 +191,7 @@ test("breaks payroll reconciliation differences down by work date and group", ()
     { workDate: "2026-11-20", departmentId: 2, accountingLabor: 0, payrollAmount: 50000, difference: 50000 }
   ]);
   assert.equal(result.difference, 35000);
+  assert.deepEqual(result.dailyComparisons[3].employees, [
+    { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }
+  ]);
 });
