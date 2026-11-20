@@ -440,7 +440,7 @@ service cloud.firestore {
           'workDate', 'departmentId', 'headcount', 'outputQuantity',
           'unitPrice', 'dailyWagePerPerson', 'materialCost', 'otherCost',
           'revenue', 'laborCost', 'netProfit', 'currency',
-          'createdBy', 'createdAt', 'updatedAt'
+          'createdBy', 'createdAt', 'updatedAt', 'lastAuditLogId'
         ])
         && data.workDate is string
         && data.workDate.size() == 10
@@ -477,6 +477,7 @@ service cloud.firestore {
       allow get, list: if isAdmin();
       allow create: if isAdmin()
         && validDailyRecord(request.resource.data)
+        && request.resource.data.lastAuditLogId == null
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
@@ -486,8 +487,39 @@ service cloud.firestore {
         && request.resource.data.departmentId == resource.data.departmentId
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.lastAuditLogId is string
+        && existsAfter(/databases/$(database)/documents/dailyRecordAuditLogs/$(request.resource.data.lastAuditLogId))
+        && getAfter(/databases/$(database)/documents/dailyRecordAuditLogs/$(request.resource.data.lastAuditLogId)).data.recordId == recordId
+        && getAfter(/databases/$(database)/documents/dailyRecordAuditLogs/$(request.resource.data.lastAuditLogId)).data.before == resource.data
+        && getAfter(/databases/$(database)/documents/dailyRecordAuditLogs/$(request.resource.data.lastAuditLogId)).data.after == request.resource.data;
       allow delete: if false;
+    }
+
+    match /dailyRecordAuditLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'recordId', 'workDate', 'departmentId', 'before', 'after',
+          'changedBy', 'changedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'recordId', 'workDate', 'departmentId', 'before', 'after',
+          'changedBy', 'changedAt'
+        ])
+        && request.resource.data.recordId is string
+        && request.resource.data.workDate is string
+        && request.resource.data.departmentId in [1, 2, 3]
+        && request.resource.data.before is map
+        && request.resource.data.after is map
+        && request.resource.data.changedBy == request.auth.uid
+        && request.resource.data.changedAt == request.time
+        && exists(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId))
+        && existsAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId))
+        && request.resource.data.before == get(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data
+        && request.resource.data.after == getAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data
+        && getAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data.lastAuditLogId == logId;
+      allow update, delete: if false;
     }
 
     match /{document=**} {
