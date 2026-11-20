@@ -1037,6 +1037,26 @@ describe("SIGMA employee attendance and personal payroll rules", () => {
     await assertFails(getDoc(doc(googleDb("employee-1"), "employeeAttendance/employee-1_2026-11-19")));
   });
 
+
+  it("prevents an attendance correction from moving a record to another department", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1, 2]));
+      await setDoc(doc(context.firestore(), "employeeAttendance/employee-1_2026-11-19_1"), {
+        employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+        departmentId:1, payableDays:1, dailyWage:350000, wageAmount:350000,
+        wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+        createdAt:Timestamp.now(), updatedAt:Timestamp.now()
+      });
+    });
+    const { updateDoc } = await import("firebase/firestore");
+    await assertFails(updateDoc(doc(adminDb(), "employeeAttendance/employee-1_2026-11-19_1"), {
+      employeeUid:"employee-1", employeeName:"Test Employee", workDate:"2026-11-19",
+      departmentId:2, payableDays:1, dailyWage:350000, wageAmount:350000,
+      wageEffectiveDate:"2026-11-01", createdBy:"admin-1",
+      createdAt:Timestamp.now(), updatedAt:serverTimestamp()
+    }));
+  });
+
   it("allows only the admin to correct a saved attendance record", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1]));
