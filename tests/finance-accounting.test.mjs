@@ -63,7 +63,8 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
       ...records[0],
       revenue: "not-a-number",
       unitPrice: "invalid",
-      netProfit: "invalid"
+      netProfit: "invalid",
+      materialCost: null
     }
   ];
   const result = calculateFinanceSummary(
@@ -71,11 +72,11 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
     [{ departmentId: 0, amount: "invalid" }]
   );
 
-  assert.equal(result.invalidNumericCount, 4);
+  assert.equal(result.invalidNumericCount, 5);
   assert.ok(Number.isFinite(result.revenue));
   assert.ok(Number.isFinite(result.companyProfit));
   assert.ok(Number.isFinite(result.overallProfit));
-  assert.equal(result.auditIssueCount, 4);
+  assert.equal(result.auditIssueCount, 5);
 });
 
 test("returns zeroed totals for an empty period", () => {
