@@ -56,6 +56,28 @@ test("flags invalid group IDs and inconsistent daily calculations", () => {
   assert.equal(result.auditIssueCount, 3);
 });
 
+test("flags malformed numeric fields without allowing NaN to corrupt totals", () => {
+  const malformedRecords = [
+    ...records,
+    {
+      ...records[0],
+      revenue: "not-a-number",
+      unitPrice: "invalid",
+      netProfit: "invalid"
+    }
+  ];
+  const result = calculateFinanceSummary(
+    malformedRecords,
+    [{ departmentId: 0, amount: "invalid" }]
+  );
+
+  assert.equal(result.invalidNumericCount, 4);
+  assert.ok(Number.isFinite(result.revenue));
+  assert.ok(Number.isFinite(result.companyProfit));
+  assert.ok(Number.isFinite(result.overallProfit));
+  assert.equal(result.auditIssueCount, 4);
+});
+
 test("returns zeroed totals for an empty period", () => {
   const result = calculateFinanceSummary([], []);
 
