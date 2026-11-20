@@ -185,15 +185,35 @@ test("breaks payroll reconciliation differences down by work date and group", ()
   );
 
   assert.deepEqual(result.dailyComparisons.map(({ employees, ...row }) => row), [
-    { workDate: "2026-11-18", departmentId: 1, accountingLabor: 100000, payrollAmount: 90000, difference: -10000 },
-    { workDate: "2026-11-19", departmentId: 1, accountingLabor: 120000, payrollAmount: 120000, difference: 0 },
-    { workDate: "2026-11-19", departmentId: 2, accountingLabor: 80000, payrollAmount: 75000, difference: -5000 },
-    { workDate: "2026-11-20", departmentId: 2, accountingLabor: 0, payrollAmount: 50000, difference: 50000 }
+    { workDate: "2026-11-18", departmentId: 1, accountingLabor: 100000, payrollAmount: 90000, difference: -10000, attendanceCount: 1, status: "amount_mismatch" },
+    { workDate: "2026-11-19", departmentId: 1, accountingLabor: 120000, payrollAmount: 120000, difference: 0, attendanceCount: 1, status: "matched" },
+    { workDate: "2026-11-19", departmentId: 2, accountingLabor: 80000, payrollAmount: 75000, difference: -5000, attendanceCount: 1, status: "amount_mismatch" },
+    { workDate: "2026-11-20", departmentId: 2, accountingLabor: 0, payrollAmount: 50000, difference: 50000, attendanceCount: 1, status: "payroll_only" }
   ]);
   assert.equal(result.difference, 35000);
+  assert.deepEqual(result.groups.map(row => row.status), ["amount_mismatch", "amount_mismatch", "accounting_only"]);
   assert.deepEqual(result.dailyComparisons[3].employees, [
     { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }
   ]);
+});
+
+test("classifies payroll-only, accounting-only and matched daily rows", () => {
+  const result = calculatePayrollReconciliation(
+    [
+      { workDate: "2026-11-20", departmentId: 1, laborCost: 100000 },
+      { workDate: "2026-11-21", departmentId: 2, laborCost: 80000 },
+      { workDate: "2026-11-22", departmentId: 3, laborCost: 50000 }
+    ],
+    [
+      { workDate: "2026-11-20", departmentId: 1, wageAmount: 100000 },
+      { workDate: "2026-11-21", departmentId: 2, wageAmount: 0 },
+      { workDate: "2026-11-23", departmentId: 3, wageAmount: 40000 }
+    ]
+  );
+  assert.deepEqual(result.dailyComparisons.map(row => row.status), [
+    "matched", "accounting_only", "payroll_only"
+  ]);
+  assert.deepEqual(result.dailyComparisons.map(row => row.attendanceCount), [1, 0, 1]);
 });
 
 test("prefers group-specific attendance over duplicate legacy rows but preserves cross-group work", () => {
