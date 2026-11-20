@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { calculateFinanceSummary, calculatePayrollReconciliation } from "../scripts/finance-accounting.mjs";
 
 export function getFinanceMonthRange(periodId) {
-  if (typeof periodId !== "string" || !/^(\\d{4})-(0[1-9]|1[0-2])$/.test(periodId)) {
+  if (typeof periodId !== "string" || !/^(\d{4})-(0[1-9]|1[0-2])$/.test(periodId)) {
     throw new TypeError("periodId must use YYYY-MM format");
   }
   const [year, month] = periodId.split("-").map(Number);
