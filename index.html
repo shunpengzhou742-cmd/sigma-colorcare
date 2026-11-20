@@ -35,7 +35,7 @@ button:active{transform:scale(.975);filter:brightness(1.12)}button:disabled{opac
 .status{font-size:10px;padding:5px 9px;border-radius:20px;background:rgba(15,23,42,.65);color:#dbeafe;border:1px solid rgba(255,255,255,.16)}.statusrow{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
 .small{font-size:12px;margin-top:9px;color:#cbd5e1;line-height:1.6}#loginMsg{min-height:18px;line-height:1.6;overflow-wrap:anywhere;color:#cbd5e1}.invite-dept{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle}
 .hidden{display:none!important}.warning{background:rgba(245,158,11,.14);color:#fde68a;border:1px solid rgba(251,191,36,.35);padding:12px;border-radius:12px;font-size:12px;margin:12px 0}
-#appView{display:block}#appView>.card{display:flex;justify-content:space-between;align-items:center;gap:10px}#appView h3{font-size:17px;margin:26px 4px 12px;color:#e0e7ff}
+#appView{display:block}#appView>.card:first-child{display:flex;justify-content:space-between;align-items:center;gap:10px}#appView h3{font-size:17px;margin:26px 4px 12px;color:#e0e7ff}
 #userEmail{overflow-wrap:anywhere;font-weight:700;margin-top:4px}.google-link{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#e0f2fe;margin-top:10px;font-size:11px;width:100%;padding:9px}
 #logoutBtn,.dark{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:white}
 .dept{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:18px;margin-top:12px;border:1px solid rgba(255,255,255,.23);border-radius:18px;color:#fff;background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,.06));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 12px 30px rgba(0,0,0,.16);min-height:76px}.dept .small{color:#cbd5e1}.dept b{font-size:22px;color:#a5f3fc}.repair{border-left:3px solid #60a5fa}.clean{border-left:3px solid #22d3ee}.weave{border-left:3px solid #a78bfa}
@@ -78,11 +78,11 @@ button{border-radius:11px}
 #logoutBtn,.dark{background:#edf3fa!important;border:1px solid #d7e2ef!important;color:#315577!important}
 .google-link{background:#f2f7fd!important;border:1px solid #d8e5f3!important;color:#2864a5!important}
 #appView h3{color:#1d4f85;margin:22px 2px 12px;font-size:17px}
-#appView>.dept{width:calc((100% - 24px)/3);min-height:132px;display:inline-flex;vertical-align:top;margin:10px 8px 0 0;padding:18px;background:#fff!important;border:1px solid #dfe8f3!important;border-left:4px solid #2b75c9!important;border-radius:16px!important;box-shadow:0 5px 16px #1e4e8010!important;color:#173f70!important;backdrop-filter:none!important}
-#appView>.dept:nth-of-type(3n){margin-right:0}
-#appView>.dept strong{font-size:16px}
-#appView>.dept .small{color:#71849b!important}
-#appView>.dept b{color:#2878cf;font-size:25px}
+#departmentWorkspace>.dept{width:calc((100% - 24px)/3);min-height:132px;display:inline-flex;vertical-align:top;margin:10px 8px 0 0;padding:18px;background:#fff!important;border:1px solid #dfe8f3!important;border-left:4px solid #2b75c9!important;border-radius:16px!important;box-shadow:0 5px 16px #1e4e8010!important;color:#173f70!important;backdrop-filter:none!important}
+#departmentWorkspace>.dept:nth-of-type(3n){margin-right:0}
+#departmentWorkspace>.dept strong{font-size:16px}
+#departmentWorkspace>.dept .small{color:#71849b!important}
+#departmentWorkspace>.dept b{color:#2878cf;font-size:25px}
 #deptRepair{border-left-color:#2776d2!important}#deptClean{border-left-color:#18a6b5!important}#deptWeave{border-left-color:#8265c7!important}
 #deptView{max-width:900px;margin:0 auto}
 #deptView h2{color:#174b83}
@@ -104,9 +104,9 @@ footer{color:#8394a9;padding:22px}
  h1{font-size:18px}
  main{width:calc(100% - 24px);margin-top:16px}
  .card{padding:17px!important;border-radius:15px!important}
- #appView>.dept{width:100%;min-height:78px;display:flex;margin:9px 0 0;padding:15px}
- #appView>.dept:nth-of-type(3n){margin-right:0}
- #appView>.dept b{font-size:22px}
+ #departmentWorkspace>.dept{width:100%;min-height:78px;display:flex;margin:9px 0 0;padding:15px}
+ #departmentWorkspace>.dept:nth-of-type(3n){margin-right:0}
+ #departmentWorkspace>.dept b{font-size:22px}
  #appView>.card:first-child{align-items:flex-start!important}
  #logoutBtn{white-space:nowrap;padding:10px 12px}
 }
@@ -138,9 +138,9 @@ body.theme-dark input:focus{background:#142642!important;border-color:#58a9ed!im
 body.theme-dark .google-login{background:#1d3454!important;border-color:#496486!important;color:#edf5ff!important}
 body.theme-dark #logoutBtn,body.theme-dark .dark{background:#263e60!important;border-color:#456184!important;color:#e5efff!important}
 body.theme-dark .google-link{background:#1b3659!important;border-color:#45668b!important;color:#a9d4ff!important}
-body.theme-dark #appView>.dept{background:linear-gradient(120deg,#203c60,#1a2e4d)!important;border-color:#385879!important;color:#edf5ff!important;box-shadow:0 8px 22px #020b1e44!important}
-body.theme-dark #appView>.dept .small{color:#b4c8e0!important}
-body.theme-dark #appView>.dept b{color:#8bd7f3}
+body.theme-dark #departmentWorkspace>.dept{background:linear-gradient(120deg,#203c60,#1a2e4d)!important;border-color:#385879!important;color:#edf5ff!important;box-shadow:0 8px 22px #020b1e44!important}
+body.theme-dark #departmentWorkspace>.dept .small{color:#b4c8e0!important}
+body.theme-dark #departmentWorkspace>.dept b{color:#8bd7f3}
 body.theme-dark .work-panel{background:linear-gradient(145deg,#1a2e4c,#172741)!important;border-color:#385273!important;color:#e5efff}
 body.theme-dark .work-panel h3{color:#b9dcff!important}
 body.theme-dark .work-panel .small,body.theme-dark .employee-card .small{color:#b2c5dc}
@@ -219,6 +219,14 @@ body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
 body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
 @media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
 
+/* Admin workspace navigation */
+#adminWorkspaceNav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0 4px;padding:8px;background:#e8f0fa;border:1px solid #d8e4f2;border-radius:16px;position:sticky;top:8px;z-index:20;box-shadow:0 5px 18px #1e4e8010}
+#adminWorkspaceNav button{min-width:0;padding:11px 5px;border:1px solid transparent;border-radius:11px;background:transparent;color:#526b87;font-size:12px;font-weight:750;line-height:1.35}
+#adminWorkspaceNav button[aria-current='page']{background:#fff;border-color:#d5e3f3;color:#155da7;box-shadow:0 3px 10px #174b8318}
+.admin-workspace-page.hidden{display:none!important}
+#dashboardPanel .admin-subpage{display:flex;flex-direction:column;gap:0}
+#dashboardPanel .admin-subpage.hidden{display:none!important}
+@media(max-width:560px){#adminWorkspaceNav{gap:4px;padding:5px;top:4px}#adminWorkspaceNav button{font-size:10px;padding:10px 2px;border-radius:9px}}
 </style>
 </head>
 <body>
@@ -471,7 +479,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -742,10 +750,12 @@ let currentDept = "";
 let currentRole = null;
 let currentProfile = null;
 let handlingAuthState = false;
+let activeAppIdentityKey = "";
 let inviteCompletionPromise = null;
 let latestInviteUrl = "";
 let inviteCompletedUid = null;
 let employeeCache = [];
+let employeeProfileUnsubscribe = null;
 
 function tr(key){ return translations[lang][key] || key; }
 function setMessage(message, isError=false){
@@ -800,30 +810,122 @@ try{
 updateThemeButton();
 
 function showLogin(){
+  stopEmployeeProfileWatch();
+  activeAppIdentityKey = "";
+  currentRole = null;
+  currentProfile = null;
   document.getElementById("loginView").classList.remove("hidden");
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
 }
+let adminWorkspaceReady = false;
+function setupAdminWorkspace(){
+ if(adminWorkspaceReady)return;
+ const appView=document.getElementById('appView'),dashboard=document.getElementById('dashboardPanel');if(!appView||!dashboard)return;
+ const nav=document.createElement('nav');nav.id='adminWorkspaceNav';nav.className='hidden';nav.setAttribute('aria-label','管理功能导航');
+ [['overview','dashboardTitle'],['finance','businessFinance'],['accounting','dailyAccountingTitle'],['people','employeeManageTitle'],['departments','deptOverview']].forEach(([key,labelKey])=>{const b=document.createElement('button');b.type='button';b.dataset.page=key;b.dataset.i18n=labelKey;b.textContent=tr(labelKey);b.addEventListener('click',()=>window.switchAdminPage(key));nav.appendChild(b);});
+ appView.insertBefore(nav,dashboard);
+ const nodes=Array.from(dashboard.children),findIndex=selector=>nodes.findIndex(n=>n.matches?.(selector)||n.querySelector?.(selector));
+ const fs=findIndex('#financePeriodType'),as=findIndex('#dailyAccountingForm'),es=findIndex('#expenseForm'),ds=findIndex('.dept-overview-grid');
+ if([fs,as,es,ds].some(n=>n<0))throw new Error('无法识别经营看板分区，停止调整页面结构');
+ const pages={overview:document.createElement('section'),finance:document.createElement('section'),accounting:document.createElement('section')};
+ Object.entries(pages).forEach(([key,el])=>{el.className='admin-subpage'+(key==='overview'?'':' hidden');el.dataset.adminSection=key;});
+ dashboard.insertBefore(pages.overview,dashboard.children[1]);dashboard.insertBefore(pages.finance,pages.overview.nextSibling);dashboard.insertBefore(pages.accounting,pages.finance.nextSibling);
+ nodes.slice(1).forEach((node,offset)=>{const index=offset+1;let key='finance';if(index<fs-1||index>=ds-1)key='overview';else if(index>=as-1&&index<es-1)key='accounting';pages[key].appendChild(node);});
+ const people=document.createElement('section');people.id='peopleWorkspace';people.className='admin-workspace-page hidden';['scrapReviewPanel','invitePanel','employeeManagePanel'].forEach(id=>{const el=document.getElementById(id);if(el)people.appendChild(el);});
+ const departments=document.createElement('section');departments.id='departmentWorkspace';departments.className='admin-workspace-page';const deptButton=document.getElementById('deptRepair');const heading=deptButton?.previousElementSibling?.matches('h3')?deptButton.previousElementSibling:null;if(heading)departments.appendChild(heading);['deptRepair','deptClean','deptWeave'].forEach(id=>{const el=document.getElementById(id);if(el)departments.appendChild(el);});
+ appView.appendChild(people);appView.appendChild(departments);adminWorkspaceReady=true;
+}
+window.switchAdminPage=function(key){
+ setupAdminWorkspace();const valid=['overview','finance','accounting','people','departments'];if(!valid.includes(key))key='overview';
+ const nav=document.getElementById('adminWorkspaceNav');nav?.querySelectorAll('button').forEach(b=>{const active=b.dataset.page===key;b.setAttribute('aria-current',active?'page':'false');});
+ const dashboard=document.getElementById('dashboardPanel');dashboard?.classList.toggle('hidden',currentRole!=='admin'||!['overview','finance','accounting'].includes(key));dashboard?.querySelectorAll('[data-admin-section]').forEach(el=>el.classList.toggle('hidden',el.dataset.adminSection!==key));
+ const headingKeys={overview:'dashboardTitle',finance:'businessFinance',accounting:'dailyAccountingTitle'};
+ const heading=document.querySelector('#dashboardPanel .dashboard-heading h2');
+ if(heading&&headingKeys[key]){heading.dataset.i18n=headingKeys[key];heading.textContent=tr(headingKeys[key]);}
+ const kicker=document.querySelector('#dashboardPanel .dashboard-kicker');if(kicker)kicker.classList.toggle('hidden',key!=='overview');
+ const dashboardDate=document.getElementById('dashboardDate');if(dashboardDate)dashboardDate.classList.toggle('hidden',key!=='overview');
+ document.getElementById('peopleWorkspace')?.classList.toggle('hidden',key!=='people'||currentRole!=='admin');document.getElementById('departmentWorkspace')?.classList.toggle('hidden',key!=='departments');
+ if(key==='people'&&currentRole==='admin'){loadEmployees();loadScrapReviewQueue();}window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function showApp(user, identity){
+  const identityKey = [user.uid,identity.role,(identity.departmentIds||[]).slice().sort((a,b)=>a-b).join(",")].join("|");
+  const shouldLoadAdminData = identity.role === "admin" && activeAppIdentityKey !== identityKey;
+  activeAppIdentityKey = identityKey;
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
   document.getElementById("userEmail").textContent = user.email || user.uid;
   currentRole = identity.role;
   currentProfile = identity.profile || null;
+  watchEmployeeProfile(user);
   const departmentIds = identity.role === "admin" ? [1,2,3] : identity.departmentIds;
   document.getElementById("deptRepair").classList.toggle("hidden", !departmentIds.includes(1));
   document.getElementById("deptClean").classList.toggle("hidden", !departmentIds.includes(2));
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
-  document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
+  setupAdminWorkspace();
+  document.getElementById("adminWorkspaceNav").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   updateGoogleLinkButton(user);
-  if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
+  if(shouldLoadAdminData){ loadDashboard(); loadWageRates(); refreshExpenseList(); }
   currentDept = "";
+  window.switchAdminPage(identity.role === "admin" ? "overview" : "departments");
 }
+function stopEmployeeProfileWatch(){
+  if(employeeProfileUnsubscribe){
+    employeeProfileUnsubscribe();
+    employeeProfileUnsubscribe = null;
+  }
+}
+
+function watchEmployeeProfile(user){
+  stopEmployeeProfileWatch();
+  if(currentRole !== "employee" || !user?.uid) return;
+  employeeProfileUnsubscribe = onSnapshot(doc(db,"employees",user.uid),async snapshot=>{
+    if(auth.currentUser?.uid !== user.uid || currentRole !== "employee") return;
+    const employee = snapshot.exists() ? snapshot.data() : null;
+    if(!employee || employee.status !== "active"){
+      stopEmployeeProfileWatch();
+      try{ await signOut(auth); }catch(error){ console.error("[SIGMA permission diagnostic] sign-out after employee deactivation failed",error); }
+      showLogin();
+      setMessage(tr("employeeInactive"),true);
+      return;
+    }
+    const departments = Array.isArray(employee.departmentIds) ? [...new Set(employee.departmentIds)] : [];
+    if(employee.roleType !== 1 || !departments.length || departments.some(id=>![1,2,3].includes(id))){
+      stopEmployeeProfileWatch();
+      try{ await signOut(auth); }catch(error){ console.error("[SIGMA permission diagnostic] sign-out after invalid employee profile failed",error); }
+      showLogin();
+      setMessage(tr("employeeInvalid"),true);
+      return;
+    }
+    const previous = (currentProfile?.departmentIds || []).slice().sort((a,b)=>a-b).join(",");
+    const next = departments.slice().sort((a,b)=>a-b).join(",");
+    currentProfile = employee;
+    document.getElementById("deptRepair").classList.toggle("hidden",!departments.includes(1));
+    document.getElementById("deptClean").classList.toggle("hidden",!departments.includes(2));
+    document.getElementById("deptWeave").classList.toggle("hidden",!departments.includes(3));
+    if(currentDept){
+      const currentId = ({repair:1,clean:2,weave:3})[currentDept];
+      if(!departments.includes(currentId)){
+        currentDept = "";
+        window.backHome();
+      }
+    }
+    if(previous !== next) console.info("[SIGMA permission diagnostic] employee department access refreshed",{uid:user.uid,departmentIds:departments});
+  },error=>{
+    console.error("[SIGMA permission diagnostic] employee profile listener failed",{
+      code:error?.code||"unknown",
+      projectId:db.app?.options?.projectId||"unknown",
+      uid:user.uid
+    },error);
+  });
+}
+
 function updateGoogleLinkButton(user){
   const button = document.getElementById("googleLinkBtn");
   if(!button) return;
@@ -1112,8 +1214,8 @@ async function loadWageRates(){
   wageRatesCache=snap.exists()&&Array.isArray(snap.data().rates)?snap.data().rates:[];
   renderWageHistory();applyEffectiveWage();
  }catch(error){
-  console.error("Wage history load error",error);
-  target.textContent=tr("wageHistoryError")+(error.code||error.message||"unknown");
+  console.error("[SIGMA permission diagnostic] appSettings/departmentWages read failed",error);
+  target.textContent="appSettings/departmentWages 读取失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();
  }
 }
 function applyEffectiveWage(){
@@ -1147,7 +1249,7 @@ document.getElementById("wageRateForm").addEventListener("submit",async event=>{
   });
   const snap=await getDoc(ref);wageRatesCache=snap.exists()?snap.data().rates||[]:[];
   renderWageHistory();message.textContent=tr("wageSaved");applyEffectiveWage();
- }catch(error){console.error("Wage rate save error",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):tr("wageSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] appSettings/departmentWages write failed",error);message.textContent=error.message==="WAGE_RATE_EXISTS"?tr("wageDuplicate"):"appSettings/departmentWages 保存失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
  finally{button.disabled=false;}
 });
 
@@ -1168,7 +1270,7 @@ async function refreshExpenseList(){
    const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
    line.append(detail,edit);target.append(line);
   });
- }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses list failed",error);target.textContent="operatingExpenses 读取失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
@@ -1233,7 +1335,7 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
    message.textContent=tr("expenseSaved");
   }
   await refreshExpenseList();
- }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] operatingExpenses write failed",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):"operatingExpenses 保存失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
  finally{button.disabled=false;}
 });
 
@@ -1283,7 +1385,7 @@ document.getElementById("dailyAccountingForm").addEventListener("submit",async e
    });
   });
   message.textContent=tr("accountingSaved");await loadDashboard();
- }catch(error){console.error("Daily accounting save error",error);message.textContent=error.message==="ACCOUNTING_RECORD_EXISTS"?tr("accountingDuplicate"):tr("accountingSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] dailyRecords write failed",error);message.textContent=error.message==="ACCOUNTING_RECORD_EXISTS"?tr("accountingDuplicate"):"dailyRecords 保存失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
  finally{button.disabled=false;}
 });
 
@@ -1323,7 +1425,25 @@ document.getElementById("financePeriodType").addEventListener("change",event=>se
 document.getElementById("financeStartDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 setFinanceDates("month");
-async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
+async function loadFinanceOverview(){
+ const root=document.getElementById("financeDepartmentSummary");
+ root.textContent=tr("financeLoading");
+ const results=await Promise.allSettled([
+  getDocs(collection(db,"dailyRecords")),
+  getDocs(collection(db,"operatingExpenses"))
+ ]);
+ const failures=[];
+ if(results[0].status==="fulfilled")financeRecordsCache=results[0].value.docs.map(x=>x.data());
+ else{financeRecordsCache=[];failures.push({name:"dailyRecords",error:results[0].reason});console.error("[SIGMA permission diagnostic] dailyRecords read failed",results[0].reason);}
+ if(results[1].status==="fulfilled")financeExpensesCache=results[1].value.docs.map(x=>x.data());
+ else{financeExpensesCache=[];failures.push({name:"operatingExpenses",error:results[1].reason});console.error("[SIGMA permission diagnostic] operatingExpenses read failed",results[1].reason);}
+ renderFinanceOverview();
+ if(failures.length){
+  const detail=document.createElement("p");detail.className="small";detail.style.color="#b91c1c";
+  detail.textContent="读取失败："+failures.map(item=>item.name+"（"+(item.error?.code||item.error?.message||"unknown")+"）").join("；")+"；"+permissionDiagnosticContext();
+  root.append(detail);
+ }
+}
 async function loadDashboard(){
   if(currentRole!=="admin") return;
   const button=document.getElementById("refreshDashboardBtn");
@@ -1335,32 +1455,40 @@ async function loadDashboard(){
   try{
     const startDate=new Date();startDate.setDate(startDate.getDate()-6);
     const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
-    const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
-    const [snapshot,cleanSnapshot,weaveSnapshot]=await Promise.all([
-      getDocs(q),
+    const results=await Promise.allSettled([
+      getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500))),
       getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==",today),limit(500))),
       getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==",today),limit(500)))
     ]);
-    dashboardRowsCache=snapshot.docs.map(item=>item.data());
-    const cleanQty=cleanSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    const weaveQty=weaveSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    document.getElementById("metricCleanQty").textContent=cleanQty.toLocaleString();
-    document.getElementById("metricWeaveQty").textContent=weaveQty.toLocaleString();
-    const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
-    const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
-    document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
-    document.getElementById("metricHandQty").textContent=hand.toLocaleString();
-    document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
-    message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
-    renderRepairTrend(dashboardRowsCache,startKey,today);
+    const names=["repairWorkOrders（修色）","cleanWorkOrders（清洗）","weaveWorkOrders（修织）"];
+    const failures=[];
+    results.forEach((result,index)=>{if(result.status==="rejected"){failures.push(names[index]+"（"+(result.reason?.code||result.reason?.message||"unknown")+"）");console.error("[SIGMA permission diagnostic] "+names[index]+" read failed",result.reason);}});
+    if(results[0].status==="fulfilled"){
+      dashboardRowsCache=results[0].value.docs.map(item=>item.data());
+      const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
+      const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+      const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
+      document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
+      document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
+      document.getElementById("metricHandQty").textContent=hand.toLocaleString();
+      document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
+      renderRepairTrend(dashboardRowsCache,startKey,today);
+    }else{
+      dashboardRowsCache=[];
+      ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount"].forEach(id=>document.getElementById(id).textContent="—");
+      document.getElementById("repairTrend").textContent="修色工单读取失败（repairWorkOrders）。";
+    }
+    if(results[1].status==="fulfilled")document.getElementById("metricCleanQty").textContent=results[1].value.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0).toLocaleString();
+    else document.getElementById("metricCleanQty").textContent="—";
+    if(results[2].status==="fulfilled")document.getElementById("metricWeaveQty").textContent=results[2].value.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0).toLocaleString();
+    else document.getElementById("metricWeaveQty").textContent="—";
+    message.textContent=failures.length
+      ?"部分数据读取失败："+failures.join("；")+"；"+permissionDiagnosticContext()
+      :tr("dashboardLoaded")+(results[0].value.size===500?" "+tr("dashboardLimit"):"");
     await loadFinanceOverview();
   }catch(error){
-    console.error("SIGMA dashboard load error:",error);
-    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
-    document.getElementById("repairTrend").innerHTML='<p class="small">'+tr("trendError")+(error.code||error.message||"unknown")+"</p>";
-    message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
+    console.error("[SIGMA permission diagnostic] admin dashboard unexpected failure",error);
+    message.textContent="管理员看板加载失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();
   }finally{if(button) button.disabled=false;}
 }
 document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);
@@ -1379,7 +1507,7 @@ async function loadDeptRequests(){
    const line=document.createElement("div");line.className="work-summary-row";
    line.textContent=[row.requestDate,row.orderNo,row.styleNo,row.quantity,row.reason,requestStatusLabel(row.status),row.reviewNote||""].filter(Boolean).join(" · ");root.append(line);
   });
- }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests own-list read failed",error);root.textContent="scrapRequests 本人记录读取失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
 }
 function bindScrapRequestForm(){
  const prefix="scrapRequest";
@@ -1392,12 +1520,22 @@ function bindScrapRequestForm(){
    const payload={requestDate:date,departmentId:requestDepartments[currentDept],employeeUid:auth.currentUser.uid,createdBy:auth.currentUser.uid,orderNo:document.getElementById(prefix+"OrderNo").value.trim(),styleNo:document.getElementById(prefix+"StyleNo").value.trim(),quantity,note:document.getElementById(prefix+"Note").value.trim(),reason:document.getElementById(prefix+"Reason").value.trim(),status:"submitted",createdAt:serverTimestamp()};
    await addDoc(collection(db,"scrapRequests"),payload);
    document.getElementById(prefix+"Form").reset();document.getElementById(prefix+"Date").value=localWorkDate();message.textContent=tr("requestSaved");await loadDeptRequests();
-  }catch(error){message.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+  }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests create failed",error);message.textContent="scrapRequests 提交失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
   finally{button.disabled=false;}
  });
 }
 bindScrapRequestForm();
 
+function permissionDiagnosticContext(extra=""){
+ const user=auth.currentUser;
+ const providers=user?.providerData?.map(item=>item.providerId).join(",")||"unknown";
+ return "Firebase项目："+(db.app?.options?.projectId||"unknown")
+  +"；当前角色："+(currentRole||"unknown")
+  +"；登录UID："+(user?.uid||"unknown")
+  +"；登录方式："+providers
+  +"；管理员资料："+(currentProfile?.role||"missing")+"/"+(currentProfile?.status||"missing")
+  +(extra?"；"+extra:"");
+}
 async function loadScrapReviewQueue(){
  if(currentRole!=="admin")return;
  const root=document.getElementById("scrapReviewQueue");root.textContent=tr("accountingLoading");
@@ -1415,13 +1553,13 @@ async function loadScrapReviewQueue(){
     button.addEventListener("click",async()=>{
      button.disabled=true;
      try{await updateDoc(doc(db,"scrapRequests",item.id),{status,reviewedBy:auth.currentUser.uid,reviewedAt:serverTimestamp(),reviewNote:""});await loadScrapReviewQueue();}
-     catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+     catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review failed",{requestId:item.id,uid:auth.currentUser?.uid,providers:auth.currentUser?.providerData?.map(p=>p.providerId),adminRole:currentProfile?.role,adminStatus:currentProfile?.status,error});root.textContent="scrapRequests 审批失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext(item.id);}
      finally{button.disabled=false;}
     });actions.append(button);
    });
    line.append(head,note,actions);root.append(line);
   });
- }catch(error){root.textContent=tr("requestError")+(error.code||error.message||"unknown");}
+ }catch(error){console.error("[SIGMA permission diagnostic] scrapRequests review queue read failed",{uid:auth.currentUser?.uid,providers:auth.currentUser?.providerData?.map(p=>p.providerId),adminRole:currentProfile?.role,adminStatus:currentProfile?.status,error});root.textContent="scrapRequests 待审批列表读取失败："+(error.code||error.message||"unknown")+"；"+permissionDiagnosticContext();}
 }
 
 function setRepairWorkMessage(message,isError=false){

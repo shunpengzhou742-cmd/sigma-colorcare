@@ -182,6 +182,62 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertSucceeds(getDocs(ownQuery));
   });
 
+  it("allows an active admin to query cleaning and weaving work orders for the dashboard", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db=context.firestore();
+      const row=(departmentId)=>({
+        employeeUid:"employee-1",createdBy:"employee-1",departmentId,
+        workDate:"2026-11-19",orderNo:"DASH-001",styleNo:"STYLE-01",
+        color:"Black",quantity:25,note:"",status:"submitted",createdAt:Timestamp.now()
+      });
+      await setDoc(doc(db,"cleanWorkOrders/clean-1"),row(2));
+      await setDoc(doc(db,"weaveWorkOrders/weave-1"),row(3));
+    });
+    const {collection,getDocs,query,where}=await import("firebase/firestore");
+    const db=adminDb();
+    const clean=await assertSucceeds(getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==","2026-11-19"))));
+    const weave=await assertSucceeds(getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==","2026-11-19"))));
+    assert.equal(clean.size,1);
+    assert.equal(weave.size,1);
+  });
+
+  it("allows active admins to run the exact collection queries used by the dashboard and finance pages", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db=context.firestore();
+      const repair={
+        employeeUid:"employee-1",createdBy:"employee-1",departmentId:1,repairTypeId:101,
+        workDate:"2026-11-19",orderNo:"Q-001",styleNo:"STYLE-01",color:"Black",
+        quantity:20,note:"",status:"submitted",createdAt:Timestamp.now()
+      };
+      const generic=(departmentId)=>({
+        employeeUid:"employee-1",createdBy:"employee-1",departmentId,
+        workDate:"2026-11-19",orderNo:"Q-002",styleNo:"STYLE-02",color:"Navy",
+        quantity:15,note:"",status:"submitted",createdAt:Timestamp.now()
+      });
+      await setDoc(doc(db,"repairWorkOrders/dashboard-repair"),repair);
+      await setDoc(doc(db,"cleanWorkOrders/dashboard-clean"),generic(2));
+      await setDoc(doc(db,"weaveWorkOrders/dashboard-weave"),generic(3));
+      await setDoc(doc(db,"dailyRecords/finance-day"),{workDate:"2026-11-19",departmentId:1,quantity:20});
+      await setDoc(doc(db,"operatingExpenses/finance-expense"),{
+        expenseDate:"2026-11-19",category:"other",departmentId:0,entryMode:"item",
+        amount:1000,note:"test",currency:"VND",createdBy:"admin-1",
+        createdAt:Timestamp.now(),updatedAt:Timestamp.now()
+      });
+    });
+    const {collection,getDocs,query,where}=await import("firebase/firestore");
+    const db=adminDb();
+    const repair=await assertSucceeds(getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=","2026-11-13"),where("workDate","<=","2026-11-19"))));
+    const clean=await assertSucceeds(getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==","2026-11-19"))));
+    const weave=await assertSucceeds(getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==","2026-11-19"))));
+    const records=await assertSucceeds(getDocs(collection(db,"dailyRecords")));
+    const expenses=await assertSucceeds(getDocs(collection(db,"operatingExpenses")));
+    assert.equal(repair.size,1);
+    assert.equal(clean.size,1);
+    assert.equal(weave.size,1);
+    assert.equal(records.size,1);
+    assert.equal(expenses.size,1);
+  });
+
   it("allows an active admin to create a valid one-day invitation", async () => {
     const db = adminDb();
     await assertSucceeds(setDoc(doc(db, "employeeInvites/new-invite"), {
@@ -309,6 +365,36 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(getDoc(doc(googleDb(), "employeeInvites/invite-expired")));
   });
 
+  it("rejects consuming an expired invitation or creating its employee profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employeeInvites/invite-expired"), {
+        departmentIds: [2],
+        repairTypeIds: [],
+        status: "active",
+        expiresAt: Timestamp.fromDate(new Date(Date.now() - 60 * 1000)),
+        createdAt: Timestamp.now(),
+        createdBy: "admin-1",
+        usedBy: null,
+        usedAt: null
+      });
+    });
+    const db = googleDb();
+    await assertFails(runTransaction(db, async transaction => {
+      const inviteRef = doc(db, "employeeInvites/invite-expired");
+      const employeeRef = doc(db, "employees/employee-1");
+      const inviteSnap = await transaction.get(inviteRef);
+      assert.equal(inviteSnap.exists(), false);
+      transaction.update(inviteRef, {
+        status: "used",
+        usedBy: "employee-1",
+        usedAt: serverTimestamp()
+      });
+      transaction.set(employeeRef, employeeData("employee-1", "employee@example.com", [2], []));
+    }));
+    const employeeAfterExpiredInvite = await assertSucceeds(getDoc(doc(db, "employees/employee-1")));
+    assert.equal(employeeAfterExpiredInvite.exists(), false);
+  });
+
   it("rejects an employee profile whose department differs from the invitation", async () => {
     const db = googleDb();
     const inviteRef = doc(db, "employeeInvites/invite-valid");
@@ -382,6 +468,88 @@ describe("SIGMA employee invitation Firestore rules", () => {
     }));
   });
 
+  it("immediately revokes and restores work-order access when an admin changes department assignments", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), employeeData("employee-1", "employee@example.com", [1, 2], [101, 102]));
+      await setDoc(doc(db, "repairWorkOrders/department-access-repair"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-20", orderNo: "ACCESS-1",
+        styleNo: "STYLE-1", color: "Black", quantity: 10, note: "",
+        status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(db, "cleanWorkOrders/department-access-clean"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-20", orderNo: "ACCESS-2", styleNo: "STYLE-2",
+        color: "Black", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const employee = googleDb();
+    const { getDoc, updateDoc } = await import("firebase/firestore");
+    const repairRef = doc(employee, "repairWorkOrders/department-access-repair");
+    const cleanRef = doc(employee, "cleanWorkOrders/department-access-clean");
+    await assertSucceeds(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      departmentIds: [2],
+      repairTypeIds: [],
+      updatedAt: serverTimestamp()
+    }));
+    await assertFails(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      departmentIds: [1, 2],
+      repairTypeIds: [101, 102],
+      updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(getDoc(repairRef));
+    await assertSucceeds(getDoc(cleanRef));
+  });
+
+  it("restores employee access after an admin re-enables a disabled profile", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com", [2], []),
+        status: "disabled"
+      });
+      await setDoc(doc(db, "cleanWorkOrders/reactivated-clean"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-20", orderNo: "ACTIVE-1", styleNo: "STYLE-1",
+        color: "Black", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const employee = googleDb();
+    const { addDoc, collection, getDoc, updateDoc } = await import("firebase/firestore");
+    const cleanRef = doc(employee, "cleanWorkOrders/reactivated-clean");
+    await assertFails(getDoc(cleanRef));
+
+    await assertSucceeds(updateDoc(doc(adminDb(), "employees/employee-1"), {
+      status: "active",
+      updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(getDoc(cleanRef));
+    await assertSucceeds(addDoc(collection(employee, "cleanWorkOrders"), {
+      employeeUid: "employee-1",
+      createdBy: "employee-1",
+      departmentId: 2,
+      workDate: "2026-11-20",
+      orderNo: "ACTIVE-2",
+      styleNo: "STYLE-2",
+      color: "Black",
+      quantity: 12,
+      note: "",
+      status: "submitted",
+      createdAt: serverTimestamp()
+    }));
+  });
+
   it("rejects an admin changing immutable employee role fields", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
@@ -449,6 +617,59 @@ describe("SIGMA employee invitation Firestore rules", () => {
     const db = googleDb();
     const { deleteDoc } = await import("firebase/firestore");
     await assertFails(deleteDoc(doc(db, "employees/employee-1")));
+  });
+
+  it("blocks disabled employees from reading or submitting work orders in every department", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com", [1, 2, 3]),
+        status: "disabled"
+      });
+      const row = {
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        departmentId: 1,
+        repairTypeId: 101,
+        workDate: "2026-11-19",
+        orderNo: "DISABLED-001",
+        styleNo: "STYLE-01",
+        color: "Black",
+        quantity: 10,
+        note: "",
+        status: "submitted",
+        createdAt: Timestamp.now()
+      };
+      await setDoc(doc(db, "repairWorkOrders/disabled-repair"), row);
+      const { repairTypeId, ...genericRow } = row;
+      await setDoc(doc(db, "cleanWorkOrders/disabled-clean"), { ...genericRow, departmentId: 2 });
+      await setDoc(doc(db, "weaveWorkOrders/disabled-weave"), { ...genericRow, departmentId: 3 });
+    });
+    const db = googleDb();
+    const { addDoc, collection, getDoc } = await import("firebase/firestore");
+    await assertSucceeds(getDoc(doc(db, "employees/employee-1")));
+    for (const [collectionName, departmentId] of [
+      ["repairWorkOrders", 1],
+      ["cleanWorkOrders", 2],
+      ["weaveWorkOrders", 3]
+    ]) {
+      await assertFails(getDoc(doc(db, collectionName, collectionName === "repairWorkOrders" ? "disabled-repair" : collectionName === "cleanWorkOrders" ? "disabled-clean" : "disabled-weave")));
+      const payload = {
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        departmentId,
+        ...(departmentId === 1 ? { repairTypeId: 101 } : {}),
+        workDate: "2026-11-19",
+        orderNo: "DISABLED-002",
+        styleNo: "STYLE-01",
+        color: "Black",
+        quantity: 10,
+        note: "",
+        status: "submitted",
+        createdAt: serverTimestamp()
+      };
+      await assertFails(addDoc(collection(db, collectionName), payload));
+    }
   });
 
   it("rejects employees updating their own profile", async () => {
@@ -660,6 +881,30 @@ describe("SIGMA scrap request Firestore rules", () => {
     );
     const own = await assertSucceeds(getDocs(ownQuery));
     assert.equal(own.size, 0);
+  });
+
+  it("allows an active admin to query the exact pending scrap review queue", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "scrapRequests/pending-review"), {
+        requestDate: "2026-11-19",
+        departmentId: 3,
+        employeeUid: "employee-1",
+        createdBy: "employee-1",
+        orderNo: "ORD-SCRAP-01",
+        styleNo: "STYLE-01",
+        quantity: 12,
+        note: "Batch damaged",
+        reason: "Fabric damage",
+        status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+    const { collection, getDocs, limit, query, where } = await import("firebase/firestore");
+    const pending = await assertSucceeds(getDocs(
+      query(collection(adminDb(), "scrapRequests"), where("status", "==", "submitted"), limit(100))
+    ));
+    assert.equal(pending.size, 1);
+    assert.equal(pending.docs[0].id, "pending-review");
   });
 
   it("allows only an admin to approve or reject a submitted scrap request", async () => {
