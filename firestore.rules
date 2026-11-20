@@ -16,6 +16,34 @@ service cloud.firestore {
         && request.auth.token.email_verified == true;
     }
 
+    function isFinancePeriodOpen(dateValue) {
+      return dateValue is string
+        && dateValue.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && !exists(/databases/$(database)/documents/financeClosures/$(dateValue.split('-')[0] + '-' + dateValue.split('-')[1]));
+    }
+
+    match /financeClosures/{periodId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+        && periodId.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+        && request.resource.data.keys().hasAll(['periodId', 'startDate', 'endDate', 'status', 'closedAt', 'closedBy', 'snapshot', 'sourceCounts', 'sourceDigest', 'schemaVersion'])
+        && request.resource.data.keys().hasOnly(['periodId', 'startDate', 'endDate', 'status', 'closedAt', 'closedBy', 'snapshot', 'sourceCounts', 'sourceDigest', 'schemaVersion'])
+        && request.resource.data.periodId == periodId
+        && request.resource.data.startDate == periodId + '-01'
+        && request.resource.data.endDate is string
+        && request.resource.data.endDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.status == 'closed'
+        && request.resource.data.closedAt == request.time
+        && request.resource.data.closedBy == request.auth.uid
+        && request.resource.data.snapshot is map
+        && request.resource.data.sourceCounts is map
+        && request.resource.data.sourceDigest is string
+        && request.resource.data.sourceDigest.matches('^[a-f0-9]{64}$')
+        && request.resource.data.schemaVersion == 1
+        && !exists(/databases/$(database)/documents/financeClosures/$(periodId));
+      allow update, delete: if false;
+    }
+
     match /admins/{userId} {
       allow get: if request.auth != null && request.auth.uid == userId;
       allow list, create, update, delete: if false;
@@ -312,9 +340,12 @@ service cloud.firestore {
 
     match /scrapRequests/{requestId} {
       allow create: if isActiveDepartmentEmployee(request.resource.data.departmentId)
+        && isFinancePeriodOpen(request.resource.data.requestDate)
         && validDepartmentRequest(request.resource.data, request.resource.data.departmentId, true, requestId);
       allow get, list: if isAdmin() || (isActiveDepartmentEmployee(resource.data.departmentId) && resource.data.employeeUid == request.auth.uid);
-      allow update: if validScrapReview() || validScrapResubmission(requestId);
+      allow update: if (validScrapReview() || validScrapResubmission(requestId))
+        && isFinancePeriodOpen(resource.data.requestDate)
+        && isFinancePeriodOpen(request.resource.data.requestDate);
       allow delete: if false;
     }
 
@@ -364,6 +395,7 @@ service cloud.firestore {
         && resource.data.employeeUid == request.auth.uid);
 
       allow create: if isAdmin()
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && validAttendance(request.resource.data)
         && exists(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid))
         && get(/databases/$(database)/documents/employees/$(request.resource.data.employeeUid)).data.status == 'active'
@@ -373,6 +405,8 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow update: if isAdmin()
+        && isFinancePeriodOpen(resource.data.workDate)
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && validAttendance(request.resource.data)
         && request.resource.data.employeeUid == resource.data.employeeUid
         && request.resource.data.workDate == resource.data.workDate
@@ -395,6 +429,7 @@ service cloud.firestore {
     match /employeeAttendanceAuditLogs/{logId} {
       allow get, list: if isAdmin();
       allow create: if isAdmin()
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && request.resource.data.keys().hasAll([
           'attendanceId', 'employeeUid', 'workDate', 'departmentId',
           'before', 'after', 'changedBy', 'changedAt'
@@ -456,11 +491,14 @@ service cloud.firestore {
 
       allow get, list: if isAdmin();
       allow create: if isAdmin()
+        && isFinancePeriodOpen(request.resource.data.expenseDate)
         && validExpense(request.resource.data)
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if isAdmin()
+        && isFinancePeriodOpen(resource.data.expenseDate)
+        && isFinancePeriodOpen(request.resource.data.expenseDate)
         && validExpense(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
@@ -515,12 +553,15 @@ service cloud.firestore {
     match /dailyRecords/{recordId} {
       allow get, list: if isAdmin();
       allow create: if isAdmin()
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && validDailyRecord(request.resource.data)
         && request.resource.data.lastAuditLogId == null
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow update: if isAdmin()
+        && isFinancePeriodOpen(resource.data.workDate)
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && validDailyRecord(request.resource.data)
         && request.resource.data.workDate == resource.data.workDate
         && request.resource.data.departmentId == resource.data.departmentId
@@ -538,6 +579,7 @@ service cloud.firestore {
     match /dailyRecordAuditLogs/{logId} {
       allow get, list: if isAdmin();
       allow create: if isAdmin()
+        && isFinancePeriodOpen(request.resource.data.workDate)
         && request.resource.data.keys().hasAll([
           'recordId', 'workDate', 'departmentId', 'before', 'after',
           'changedBy', 'changedAt'
