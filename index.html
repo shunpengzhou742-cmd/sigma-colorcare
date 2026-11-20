@@ -479,7 +479,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -755,6 +755,7 @@ let inviteCompletionPromise = null;
 let latestInviteUrl = "";
 let inviteCompletedUid = null;
 let employeeCache = [];
+let employeeProfileUnsubscribe = null;
 
 function tr(key){ return translations[lang][key] || key; }
 function setMessage(message, isError=false){
@@ -809,6 +810,7 @@ try{
 updateThemeButton();
 
 function showLogin(){
+  stopEmployeeProfileWatch();
   activeAppIdentityKey = "";
   currentRole = null;
   currentProfile = null;
@@ -857,6 +859,7 @@ function showApp(user, identity){
   document.getElementById("userEmail").textContent = user.email || user.uid;
   currentRole = identity.role;
   currentProfile = identity.profile || null;
+  watchEmployeeProfile(user);
   const departmentIds = identity.role === "admin" ? [1,2,3] : identity.departmentIds;
   document.getElementById("deptRepair").classList.toggle("hidden", !departmentIds.includes(1));
   document.getElementById("deptClean").classList.toggle("hidden", !departmentIds.includes(2));
@@ -872,6 +875,57 @@ function showApp(user, identity){
   currentDept = "";
   window.switchAdminPage(identity.role === "admin" ? "overview" : "departments");
 }
+function stopEmployeeProfileWatch(){
+  if(employeeProfileUnsubscribe){
+    employeeProfileUnsubscribe();
+    employeeProfileUnsubscribe = null;
+  }
+}
+
+function watchEmployeeProfile(user){
+  stopEmployeeProfileWatch();
+  if(currentRole !== "employee" || !user?.uid) return;
+  employeeProfileUnsubscribe = onSnapshot(doc(db,"employees",user.uid),async snapshot=>{
+    if(auth.currentUser?.uid !== user.uid || currentRole !== "employee") return;
+    const employee = snapshot.exists() ? snapshot.data() : null;
+    if(!employee || employee.status !== "active"){
+      stopEmployeeProfileWatch();
+      try{ await signOut(auth); }catch(error){ console.error("[SIGMA permission diagnostic] sign-out after employee deactivation failed",error); }
+      showLogin();
+      setMessage(tr("employeeInactive"),true);
+      return;
+    }
+    const departments = Array.isArray(employee.departmentIds) ? [...new Set(employee.departmentIds)] : [];
+    if(employee.roleType !== 1 || !departments.length || departments.some(id=>![1,2,3].includes(id))){
+      stopEmployeeProfileWatch();
+      try{ await signOut(auth); }catch(error){ console.error("[SIGMA permission diagnostic] sign-out after invalid employee profile failed",error); }
+      showLogin();
+      setMessage(tr("employeeInvalid"),true);
+      return;
+    }
+    const previous = (currentProfile?.departmentIds || []).slice().sort((a,b)=>a-b).join(",");
+    const next = departments.slice().sort((a,b)=>a-b).join(",");
+    currentProfile = employee;
+    document.getElementById("deptRepair").classList.toggle("hidden",!departments.includes(1));
+    document.getElementById("deptClean").classList.toggle("hidden",!departments.includes(2));
+    document.getElementById("deptWeave").classList.toggle("hidden",!departments.includes(3));
+    if(currentDept){
+      const currentId = ({repair:1,clean:2,weave:3})[currentDept];
+      if(!departments.includes(currentId)){
+        currentDept = "";
+        window.backHome();
+      }
+    }
+    if(previous !== next) console.info("[SIGMA permission diagnostic] employee department access refreshed",{uid:user.uid,departmentIds:departments});
+  },error=>{
+    console.error("[SIGMA permission diagnostic] employee profile listener failed",{
+      code:error?.code||"unknown",
+      projectId:db.app?.options?.projectId||"unknown",
+      uid:user.uid
+    },error);
+  });
+}
+
 function updateGoogleLinkButton(user){
   const button = document.getElementById("googleLinkBtn");
   if(!button) return;
