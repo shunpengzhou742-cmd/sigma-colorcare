@@ -208,6 +208,7 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     }
   }
   const getStatus = (payrollAmount, accountingLabor) => {
+    if (payrollAmount === 0 && accountingLabor === 0) return "no_data";
     if (payrollAmount > 0 && accountingLabor === 0) return "payroll_only";
     if (accountingLabor > 0 && payrollAmount === 0) return "accounting_only";
     if (Math.abs(payrollAmount - accountingLabor) <= 1) return "matched";
