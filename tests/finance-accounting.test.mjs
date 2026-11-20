@@ -197,6 +197,19 @@ test("breaks payroll reconciliation differences down by work date and group", ()
   ]);
 });
 
+test("rejects impossible attendance dates instead of silently hiding them from daily reconciliation", () => {
+  const result = calculatePayrollReconciliation([], [
+    { workDate: "2026-02-28", departmentId: 1, wageAmount: 100000 },
+    { workDate: "2026-02-30", departmentId: 1, wageAmount: 90000 },
+    { workDate: "2024-02-29", departmentId: 2, wageAmount: 80000 },
+    { workDate: "2025-02-29", departmentId: 2, wageAmount: 70000 }
+  ]);
+
+  assert.equal(result.payrollAmount, 180000);
+  assert.equal(result.invalidAttendanceCount, 2);
+  assert.deepEqual(result.dailyComparisons.map(row => row.workDate), ["2024-02-29", "2026-02-28"]);
+});
+
 test("classifies payroll-only, accounting-only and matched daily rows", () => {
   const result = calculatePayrollReconciliation(
     [
