@@ -149,7 +149,11 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
   }));
   const daily = new Map();
   let invalidAttendanceCount = 0;
-  const validWorkDate = value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const validWorkDate = value => {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const parsed = new Date(value + "T00:00:00.000Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  };
   const getDaily = (workDate, departmentId) => {
     const key = workDate + "|" + departmentId;
     if (!daily.has(key)) daily.set(key, {
@@ -187,6 +191,11 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     if (rowIsCanonical && !existingIsCanonical) deduplicatedAttendance[existingIndex] = row;
   }
   for (const row of deduplicatedAttendance) {
+    // Keep legacy rows with no date in department totals, but reject malformed supplied dates.
+    if (row && row.workDate !== undefined && row.workDate !== null && !validWorkDate(row.workDate)) {
+      invalidAttendanceCount += 1;
+      continue;
+    }
     const group = row && groups.find(item => item.id === row.departmentId);
     const amount = row && typeof row.wageAmount === "number" ? row.wageAmount : NaN;
     if (!group || !Number.isFinite(amount) || amount < 0) {
