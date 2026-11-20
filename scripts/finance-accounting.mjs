@@ -153,6 +153,8 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
   }));
   const daily = new Map();
   let invalidAttendanceCount = 0;
+  let undatedAttendanceCount = 0;
+  let unmatchedAccountingCount = 0;
   const validWorkDate = value => {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const parsed = new Date(value + "T00:00:00.000Z");
@@ -171,7 +173,13 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     const amount = Number(row.laborCost);
     if (!group || !Number.isFinite(amount) || amount < 0) continue;
     group.accountingLabor += amount;
-    if (validWorkDate(row.workDate)) getDaily(row.workDate, row.departmentId).accountingLabor += amount;
+    if (validWorkDate(row.workDate)) {
+      getDaily(row.workDate, row.departmentId).accountingLabor += amount;
+    } else {
+      // Keep valid department totals intact, but disclose records that cannot
+      // be matched to attendance by date.
+      unmatchedAccountingCount += 1;
+    }
   }
   const uniqueAttendance = new Map();
   const deduplicatedAttendance = [];
@@ -207,6 +215,7 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
       continue;
     }
     group.payrollAmount += amount;
+    if (!validWorkDate(row.workDate)) undatedAttendanceCount += 1;
     if (validWorkDate(row.workDate)) {
       const dailyRow = getDaily(row.workDate, row.departmentId);
       dailyRow.payrollAmount += amount;
@@ -250,6 +259,8 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     payrollAmount,
     difference: payrollAmount - accountingLabor,
     invalidAttendanceCount,
+    undatedAttendanceCount,
+    unmatchedAccountingCount,
     hasAttendance: attendance.length > 0
   };
 }
