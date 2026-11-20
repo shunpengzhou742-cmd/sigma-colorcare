@@ -1501,7 +1501,18 @@ async function openDailyAccountingEdit(recordId){
   entries.forEach(entry=>{
    const line=document.createElement("div");line.className="work-summary-row";
    const time=entry.changedAt?.toDate?entry.changedAt.toDate().toLocaleString():"";
-   line.textContent=time+" · "+tr("accountingOutput")+": "+Number(entry.before.outputQuantity||0).toLocaleString()+" → "+Number(entry.after.outputQuantity||0).toLocaleString()+" · "+tr("netProfit")+": "+accountingMoney(entry.before.netProfit)+" → "+accountingMoney(entry.after.netProfit)+" · "+entry.changedBy;
+   const fields=[
+    [tr("accountingHeadcount"),"headcount",false],
+    [tr("accountingOutput"),"outputQuantity",false],
+    [tr("accountingUnitPrice"),"unitPrice",true],
+    [tr("accountingDailyWage"),"dailyWagePerPerson",true],
+    [tr("accountingMaterialCost"),"materialCost",true],
+    [tr("accountingOtherCost"),"otherCost",true],
+    [tr("totalRevenue"),"revenue",true],
+    [tr("netProfit"),"netProfit",true]
+   ];
+   const changes=fields.filter(([,key])=>entry.before[key]!==entry.after[key]).map(([label,key,isMoney])=>label+": "+(isMoney?accountingMoney(entry.before[key]):Number(entry.before[key]||0).toLocaleString())+" → "+(isMoney?accountingMoney(entry.after[key]):Number(entry.after[key]||0).toLocaleString()));
+   line.textContent=time+" · "+changes.join("；")+" · "+entry.changedBy;
    auditRoot.append(line);
   });
  }catch(error){message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
@@ -1537,9 +1548,10 @@ document.getElementById("dailyAccountingEditForm").addEventListener("submit",asy
     before,after,changedBy:auth.currentUser.uid,changedAt:serverTimestamp()
    });
   });
-  message.textContent=tr("accountingEditSaved");
+  const savedRecordId=editingDailyRecordId;
   await loadFinanceOverview();
-  await openDailyAccountingEdit(editingDailyRecordId);
+  await openDailyAccountingEdit(savedRecordId);
+  message.textContent=tr("accountingEditSaved");
  }catch(error){console.error("Daily accounting edit error",error);message.textContent=tr("accountingEditError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
