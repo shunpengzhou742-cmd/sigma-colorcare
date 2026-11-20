@@ -517,7 +517,11 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId))
         && existsAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId))
         && request.resource.data.before == get(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data
+        && request.resource.data.workDate == request.resource.data.before.workDate
+        && request.resource.data.departmentId == request.resource.data.before.departmentId
         && request.resource.data.after == getAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data
+        && request.resource.data.workDate == request.resource.data.after.workDate
+        && request.resource.data.departmentId == request.resource.data.after.departmentId
         && getAfter(/databases/$(database)/documents/dailyRecords/$(request.resource.data.recordId)).data.lastAuditLogId == logId;
       allow update, delete: if false;
     }
