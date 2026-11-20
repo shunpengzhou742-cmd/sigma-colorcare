@@ -350,7 +350,7 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
 <label data-i18n="attendanceDepartment">所属业务组</label><select id="attendanceDepartment"><option value="1">修色组</option><option value="2">清洗组</option><option value="3">修织组</option></select>
 <label data-i18n="attendanceDays">计薪天数（全天1，半天0.5，可手动输入）</label><input id="attendanceDays" type="number" min="0.01" max="1" step="0.01" value="1" required>
 <label data-i18n="attendanceDailyWage">当日日薪</label><input id="attendanceDailyWage" type="number" min="0" step="any" required>
-<p id="attendancePreview" class="small"></p><button class="primary" id="saveAttendanceBtn" type="submit" data-i18n="attendanceSave">保存考勤与工资</button><p id="attendanceMessage" class="small"></p></form><div id="attendanceAdminList" class="work-panel"></div><button id="loadMoreAttendanceAdminBtn" class="dark hidden" type="button" data-i18n="attendanceLoadMore">加载更多考勤</button>
+<p id="attendancePreview" class="small"></p><button class="primary" id="saveAttendanceBtn" type="submit" data-i18n="attendanceSave">保存考勤与工资</button><p id="attendanceMessage" class="small"></p></form><div id="attendanceAdminList" class="work-panel"></div><div id="attendanceAuditHistory" class="work-panel"></div><button id="loadMoreAttendanceAdminBtn" class="dark hidden" type="button" data-i18n="attendanceLoadMore">加载更多考勤</button>
 
 
       <div class="dashboard-section-title"><h3 data-i18n="expenseTitle">其他经营费用登记</h3><span data-i18n="expenseAdminOnly">仅负责人录入</span></div>
@@ -1254,7 +1254,35 @@ async function loadMyPayroll(reset=true){
 document.getElementById("loadMorePayrollBtn").addEventListener("click",()=>loadMyPayroll(false));
 function updateAttendanceRate(){const d=Number(document.getElementById("attendanceDepartment").value),date=document.getElementById("attendanceDate").value,r=getAttendanceRate(d,date);document.getElementById("attendanceDailyWage").value=r?String(r.dailyWage):"";document.getElementById("attendanceMessage").textContent=r?tr("attendanceRateApplied"):tr("attendanceNoRate");}
 document.getElementById("attendanceDate").value=localWorkDate();document.getElementById("attendanceDate").addEventListener("change",updateAttendanceRate);document.getElementById("attendanceDepartment").addEventListener("change",updateAttendanceRate);
-document.getElementById("attendanceForm").addEventListener("submit",async e=>{e.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;const uid=document.getElementById("attendanceEmployee").value,emp=employeeCache.find(x=>x.uid===uid),date=document.getElementById("attendanceDate").value,dept=Number(document.getElementById("attendanceDepartment").value),days=Number(document.getElementById("attendanceDays").value),wage=Number(document.getElementById("attendanceDailyWage").value),msg=document.getElementById("attendanceMessage"),btn=document.getElementById("saveAttendanceBtn");if(!emp||!date||days<=0||days>1||!Number.isFinite(days)||!Number.isFinite(wage)||wage<0||!emp.departmentIds?.includes(dept)){msg.textContent=tr("attendanceInvalid");return;}btn.disabled=true;try{const legacyRef=doc(db,"employeeAttendance",uid+"_"+date),groupRef=doc(db,"employeeAttendance",uid+"_"+date+"_"+dept),groupOld=await getDoc(groupRef),legacyOld=groupOld.exists()?null:await getDoc(legacyRef),useLegacy=!!legacyOld?.exists()&&Number(legacyOld.data().departmentId)===dept,ref=useLegacy?legacyRef:groupRef,old=useLegacy?legacyOld:groupOld,row={employeeUid:uid,employeeName:emp.name||emp.email||emp.uid,workDate:date,departmentId:dept,payableDays:days,dailyWage:wage,wageAmount:days*wage,wageEffectiveDate:getAttendanceRate(dept,date)?.effectiveDate||"manual",updatedAt:serverTimestamp()};if(old.exists())await updateDoc(ref,row);else await setDoc(ref,{...row,createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});msg.textContent=tr("attendanceSaved");await loadAttendanceAdmin();await loadFinanceOverview();}catch(x){msg.textContent=tr("attendanceError")+(x.code||x.message);}finally{btn.disabled=false;}});
+document.getElementById("attendanceForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(currentRole!=="admin"||!auth.currentUser)return;
+ const uid=document.getElementById("attendanceEmployee").value,emp=employeeCache.find(x=>x.uid===uid),date=document.getElementById("attendanceDate").value,dept=Number(document.getElementById("attendanceDepartment").value),days=Number(document.getElementById("attendanceDays").value),wage=Number(document.getElementById("attendanceDailyWage").value),msg=document.getElementById("attendanceMessage"),btn=document.getElementById("saveAttendanceBtn");
+ if(!emp||!date||days<=0||days>1||!Number.isFinite(days)||!Number.isFinite(wage)||wage<0||!emp.departmentIds?.includes(dept)){msg.textContent=tr("attendanceInvalid");return;}
+ btn.disabled=true;
+ try{
+  const legacyRef=doc(db,"employeeAttendance",uid+"_"+date),groupRef=doc(db,"employeeAttendance",uid+"_"+date+"_"+dept),auditRef=doc(collection(db,"employeeAttendanceAuditLogs"));
+  const attendanceId=await runTransaction(db,async transaction=>{
+   const groupOld=await transaction.get(groupRef);
+   const legacyOld=groupOld.exists()?null:await transaction.get(legacyRef);
+   const useLegacy=!!legacyOld?.exists()&&Number(legacyOld.data().departmentId)===dept;
+   const ref=useLegacy?legacyRef:groupRef,old=useLegacy?legacyOld:groupOld;
+   const row={employeeUid:uid,employeeName:emp.name||emp.email||emp.uid,workDate:date,departmentId:dept,payableDays:days,dailyWage:wage,wageAmount:days*wage,wageEffectiveDate:getAttendanceRate(dept,date)?.effectiveDate||"manual",updatedAt:serverTimestamp()};
+   if(old.exists()){
+    const before=old.data(),after={...before,...row,lastAuditLogId:auditRef.id};
+    transaction.update(ref,{...row,lastAuditLogId:auditRef.id});
+    transaction.set(auditRef,{attendanceId:ref.id,employeeUid:uid,workDate:date,departmentId:dept,before,after,changedBy:auth.currentUser.uid,changedAt:serverTimestamp()});
+   }else{
+    transaction.set(ref,{...row,lastAuditLogId:null,createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});
+   }
+   return ref.id;
+  });
+  msg.textContent=tr("attendanceSaved");
+  await loadAttendanceAdmin();
+  await loadFinanceOverview();
+  await loadAttendanceAuditHistory(attendanceId);
+ }catch(x){msg.textContent=tr("attendanceError")+(x.code||x.message);}
+ finally{btn.disabled=false;}
+});
 
 const departmentNames={1:"修色组",2:"清洗组",3:"修织组"};
 function departmentLabel(id){return lang==="zh"?departmentNames[id]:({1:"Tổ Sửa màu",2:"Tổ Giặt",3:"Tổ Sửa dệt"}[id]||String(id));}
