@@ -761,6 +761,23 @@ describe("SIGMA operating expense edit permissions", () => {
       createdBy: "admin-1", createdAt, updatedAt: serverTimestamp()
     }));
   });
+  
+  it("rejects an expense edit unless updatedAt is the server request time", async () => {
+    const createdAt = Timestamp.now();
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "operatingExpenses/expense-stale-update"), {
+        expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
+        entryMode: "item", amount: 100000, note: "Before", currency: "VND",
+        createdBy: "admin-1", createdAt, updatedAt: createdAt
+      });
+    });
+    const { updateDoc } = await import("firebase/firestore");
+    await assertFails(updateDoc(doc(adminDb(), "operatingExpenses/expense-stale-update"), {
+      expenseDate: "2026-11-19", category: "utilities", departmentId: 0,
+      entryMode: "item", amount: 200000, note: "After", currency: "VND",
+      createdBy: "admin-1", createdAt, updatedAt: createdAt
+    }));
+  });
 });
 
 describe("SIGMA scrap request Firestore rules", () => {
