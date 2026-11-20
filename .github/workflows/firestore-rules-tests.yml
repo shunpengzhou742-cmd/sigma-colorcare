@@ -39,6 +39,10 @@ jobs:
           java-version: 21
       - name: Install dependencies
         run: npm install
+      - name: Report dependency audit details
+        run: |
+          npm audit --json > npm-audit.json || true
+          node --input-type=module -e 'import fs from "node:fs"; const report=JSON.parse(fs.readFileSync("npm-audit.json","utf8")); console.log("NPM AUDIT SUMMARY", JSON.stringify(report.metadata?.vulnerabilities || {})); for (const [name,item] of Object.entries(report.vulnerabilities || {})) console.log(JSON.stringify({name,severity:item.severity,isDirect:item.isDirect,range:item.range,fixAvailable:item.fixAvailable,via:(item.via || []).map(v=>typeof v==="string"?v:{name:v.name,title:v.title,url:v.url,range:v.range})}));'
       - name: Check client JavaScript syntax
         run: npm run check:client
       - name: Run finance calculation unit tests
