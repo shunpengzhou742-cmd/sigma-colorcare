@@ -193,7 +193,7 @@ test("breaks payroll reconciliation differences down by work date and group", ()
   assert.equal(result.difference, 35000);
   assert.deepEqual(result.groups.map(row => row.status), ["amount_mismatch", "amount_mismatch", "no_data"]);
   assert.deepEqual(result.dailyComparisons[3].employees, [
-    { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }
+    { attendanceId: null, employeeUid: null, employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }
   ]);
 });
 
@@ -259,12 +259,12 @@ test("prefers group-specific attendance over duplicate legacy rows but preserves
     {
       departmentId: 1,
       payrollAmount: 50000,
-      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }]
+      employees: [{ attendanceId: "employee-1_2026-11-20_1", employeeUid: "employee-1", employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageEffectiveDate: "manual", wageAmount: 50000 }]
     },
     {
       departmentId: 2,
       payrollAmount: 40000,
-      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 80000, wageEffectiveDate: "manual", wageAmount: 40000 }]
+      employees: [{ attendanceId: "employee-1_2026-11-20_2", employeeUid: "employee-1", employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 80000, wageEffectiveDate: "manual", wageAmount: 40000 }]
     }
   ]);
 });
