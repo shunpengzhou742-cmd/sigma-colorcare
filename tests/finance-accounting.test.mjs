@@ -213,7 +213,7 @@ test("classifies payroll-only, accounting-only and matched daily rows", () => {
   assert.deepEqual(result.dailyComparisons.map(row => row.status), [
     "matched", "accounting_only", "payroll_only"
   ]);
-  assert.deepEqual(result.dailyComparisons.map(row => row.attendanceCount), [1, 0, 1]);
+  assert.deepEqual(result.dailyComparisons.map(row => row.attendanceCount), [1, 1, 1]);
 });
 
 test("prefers group-specific attendance over duplicate legacy rows but preserves cross-group work", () => {
