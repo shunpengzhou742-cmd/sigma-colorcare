@@ -537,7 +537,11 @@ describe("SIGMA financial privacy Firestore rules", () => {
         rates: [{ departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 350000 }]
       });
       await setDoc(doc(context.firestore(), "dailyRecords/2026-11-19_1"), {
-        departmentId: 1, headcount: 3, outputQuantity: 300, netProfit: 1000000
+        workDate: "2026-11-19", departmentId: 1, headcount: 3, outputQuantity: 300,
+        unitPrice: 10000, dailyWagePerPerson: 200000, materialCost: 100000,
+        otherCost: 50000, revenue: 3000000, laborCost: 600000,
+        netProfit: 2250000, currency: "VND", createdBy: "admin-1",
+        createdAt: Timestamp.now(), updatedAt: Timestamp.now()
       });
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
         uid: "employee-1", roleType: 1, status: "active", departmentIds: [1]
@@ -548,6 +552,45 @@ describe("SIGMA financial privacy Firestore rules", () => {
     await assertSucceeds(getDoc(doc(adminDb(), "dailyRecords/2026-11-19_1")));
     await assertFails(getDoc(doc(googleDb(), "appSettings/departmentWages")));
     await assertFails(getDoc(doc(googleDb(), "dailyRecords/2026-11-19_1")));
+  });
+
+  it("validates daily accounting writes and preserves record identity metadata", async () => {
+    const ref = doc(adminDb(), "dailyRecords/2026-11-20_1");
+    const valid = {
+      workDate: "2026-11-20", departmentId: 1, headcount: 2, outputQuantity: 300,
+      unitPrice: 10000, dailyWagePerPerson: 200000, materialCost: 100000,
+      otherCost: 50000, revenue: 3000000, laborCost: 400000,
+      netProfit: 2450000, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    };
+    await assertSucceeds(setDoc(ref, valid));
+    await assertFails(updateDoc(ref, { outputQuantity: 400, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      workDate: "2026-11-21", updatedAt: serverTimestamp()
+    }));
+    await assertFails(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      createdBy: "attacker", updatedAt: serverTimestamp()
+    }));
+    await assertFails(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      departmentId: 2, updatedAt: serverTimestamp()
+    }));
+    await assertFails(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(ref, {
+      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+      updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(doc(googleDb(), "dailyRecords/2026-11-20_2"), {
+      ...valid, departmentId: 2, createdBy: "employee-1"
+    }));
+    await assertFails(setDoc(doc(adminDb(), "dailyRecords/invalid"), {
+      ...valid, departmentId: 9
+    }));
   });
 
   it("allows only the admin to assign or revoke the special-role marker", async () => {
