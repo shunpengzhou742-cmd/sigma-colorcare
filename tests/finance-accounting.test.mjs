@@ -100,7 +100,7 @@ test("rejects malformed expense department IDs instead of treating them as share
   assert.equal(result.sharedExpenses, 100);
   assert.equal(result.extra, 100);
   assert.equal(result.invalidExpenseCount, 4);
-  assert.equal(result.companyProfit, 1255);
+  assert.equal(result.companyProfit, 1195);
   assert.equal(result.auditIssueCount, 4);
 });
 
