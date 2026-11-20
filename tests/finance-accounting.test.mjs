@@ -52,8 +52,11 @@ test("flags invalid group IDs and inconsistent daily calculations", () => {
   assert.equal(result.invalidDeptCount, 1);
   assert.equal(result.invalidExpenseCount, 1);
   assert.equal(result.mathMismatchCount, 0);
-  assert.equal(result.profitGap, 50);
-  assert.equal(result.auditIssueCount, 3);
+  assert.equal(result.revenue, 1800, "invalid department records must not affect revenue");
+  assert.equal(result.extra, 0, "invalid expense groups must not affect costs");
+  assert.equal(result.companyProfit, 1355, "invalid department and expense records must be excluded");
+  assert.equal(result.profitGap, 0);
+  assert.equal(result.auditIssueCount, 2);
 });
 
 test("flags malformed numeric fields without allowing NaN to corrupt totals", () => {
