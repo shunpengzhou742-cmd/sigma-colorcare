@@ -560,7 +560,7 @@ describe("SIGMA financial privacy Firestore rules", () => {
       workDate: "2026-11-20", departmentId: 1, headcount: 2, outputQuantity: 300,
       unitPrice: 10000, dailyWagePerPerson: 200000, materialCost: 100000,
       otherCost: 50000, revenue: 3000000, laborCost: 400000,
-      netProfit: 2450000, currency: "VND", createdBy: "admin-1",
+      netProfit: 2450000, currency: "VND", createdBy: "admin-1", lastAuditLogId: null,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     };
     await assertSucceeds(setDoc(ref, valid));
@@ -581,9 +581,24 @@ describe("SIGMA financial privacy Firestore rules", () => {
       outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     }));
-    await assertSucceeds(updateDoc(ref, {
-      outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
-      updatedAt: serverTimestamp()
+    await assertSucceeds(runTransaction(adminDb(), async transaction => {
+      const current = await transaction.get(ref);
+      const before = current.data();
+      const after = {
+        ...before, outputQuantity: 400, revenue: 4000000, netProfit: 3450000,
+        lastAuditLogId: "audit-2026-11-20-1", updatedAt: serverTimestamp()
+      };
+      transaction.update(ref, after);
+      transaction.set(doc(adminDb(), "dailyRecordAuditLogs/audit-2026-11-20-1"), {
+        recordId: ref.id, workDate: before.workDate, departmentId: before.departmentId,
+        before, after, changedBy: "admin-1", changedAt: serverTimestamp()
+      });
+    }));
+    await assertSucceeds(getDoc(doc(adminDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
+    await assertFails(getDoc(doc(googleDb(), "dailyRecordAuditLogs/audit-2026-11-20-1")));
+    await assertFails(setDoc(doc(adminDb(), "dailyRecordAuditLogs/forged"), {
+      recordId: ref.id, workDate: "2026-11-20", departmentId: 1,
+      before: valid, after: valid, changedBy: "admin-1", changedAt: serverTimestamp()
     }));
     await assertFails(setDoc(doc(googleDb(), "dailyRecords/2026-11-20_2"), {
       ...valid, departmentId: 2, createdBy: "employee-1"
