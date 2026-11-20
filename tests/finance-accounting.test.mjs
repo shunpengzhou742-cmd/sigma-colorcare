@@ -44,7 +44,9 @@ test("keeps group expenses in their own group and includes all expenses in compa
 test("flags invalid group IDs and inconsistent daily calculations", () => {
   const malformed = [
     ...records,
-    { departmentId: 9, revenue: 50, outputQuantity: 5, unitPrice: 10, laborCost: 0, headcount: 0, dailyWagePerPerson: 0, materialCost: 0, otherCost: 0, netProfit: 50 }
+    // Formula mismatch on an unsupported department is covered by invalidDeptCount,
+    // not double-counted as a valid group's calculation mismatch.
+    { departmentId: 9, revenue: 50, outputQuantity: 5, unitPrice: 12, laborCost: 0, headcount: 0, dailyWagePerPerson: 0, materialCost: 0, otherCost: 0, netProfit: 50 }
   ];
   const expenses = [{ departmentId: 8, amount: 25 }];
   const result = calculateFinanceSummary(malformed, expenses);
