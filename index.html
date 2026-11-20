@@ -524,7 +524,7 @@ import {
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
-import { calculateFinanceSummary } from "./scripts/finance-accounting.mjs";
+import { calculateFinanceSummary, calculatePayrollReconciliation } from "./scripts/finance-accounting.mjs";
 import { getFinanceDateRange } from "./scripts/finance-period.mjs";
 
 const firebaseConfig = {
@@ -587,7 +587,7 @@ const translations = {
     netProfit:"公司净利润",
     financePeriodTitle:"统计周期",financeMonth:"本月",financeHalf:"本半年",financeYear:"本年度",financeCustom:"自定义日期范围",financeStart:"开始日期",financeEnd:"结束日期",financeMonthlyTitle:"按月经营汇总",financeMonthlyEmpty:"所选日期范围内暂无月度数据",financeLoading:"正在读取财务数据……",financeEmpty:"该周期暂无完整核算记录。",financeDeptTitle:"各组利润",financeDataError:"财务数据读取失败：",
     notConnected:"暂未接入",
-    financeNote:"统计基于修色部各组每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用。",financeScrapBreakdown:"各组已批准报废数量",financeScrapUnassigned:"未识别组别报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：组别归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"组别编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditInvalidNumeric:"数字字段异常的核算或费用记录",financeAuditProfitGap:"公司总利润与各组汇总差额",
+    financeNote:"统计基于修色部各组每日核算和经营费用；已批准报废数量单独展示，不重复扣减产量或利润；每日核算中的其他支出不要重复登记到经营费用；考勤工资仅用于人工成本核对，不会再次扣减利润。",financeScrapBreakdown:"各组已批准报废数量",financeScrapUnassigned:"未识别组别报废数量",financeScrapNoRecords:"当前周期没有已批准报废记录",financeAuditTitle:"数据核对",financeAuditClean:"数据核对通过：组别归属和金额计算一致。",financeAuditIssues:"发现需要核对的数据",financeAuditInvalidDept:"组别编码异常的每日核算记录",financeAuditInvalidExpense:"归属范围异常的经营费用记录",financeAuditMath:"金额计算不一致的每日核算记录",financeAuditInvalidNumeric:"数字字段异常的核算或费用记录",financeAuditProfitGap:"公司总利润与各组汇总差额",financePayrollTitle:"考勤工资与每日核算人工成本对照（仅核对，不重复计入利润）",financePayrollEmpty:"所选周期暂无考勤工资记录",financePayrollAccounting:"每日核算人工成本",financePayrollAttendance:"考勤工资合计",financePayrollDifference:"差额（考勤工资－每日人工）",financePayrollInvalid:"异常考勤工资记录",
     deptOverview:"修色部各组运营进度",
     threeDeptIndependent:"修色部下属三个组分别独立核算",
     repairModuleLive:"工单录入模块已上线",cleanModuleLive:"清洗工单模块已上线",weaveModuleLive:"修织工单模块已上线",cleanEntryTitle:"清洗工单录入（按批次）",weaveEntryTitle:"修织工单录入（按批次）",genericWorkDesc:"每批单独提交，负责人可查看部门汇总。",dailyWorkSummary:"每日清洗汇总",dailyWeaveSummary:"每日修织汇总",workOrderRecords:"工单记录",
@@ -724,7 +724,7 @@ const translations = {
     netProfit:"Lợi nhuận ròng",
     financePeriodTitle:"Kỳ thống kê",financeMonth:"Tháng này",financeHalf:"Nửa năm hiện tại",financeYear:"Năm nay",financeCustom:"Khoảng ngày tùy chỉnh",financeStart:"Từ ngày",financeEnd:"Đến ngày",financeMonthlyTitle:"Tổng hợp kinh doanh theo tháng",financeMonthlyEmpty:"Không có dữ liệu theo tháng trong khoảng đã chọn",financeLoading:"Đang tải dữ liệu tài chính…",financeEmpty:"Chưa có dữ liệu kế toán đầy đủ trong kỳ này.",financeDeptTitle:"Lợi nhuận theo tổ",financeDataError:"Không thể tải dữ liệu tài chính: ",
     notConnected:"Chưa kết nối",
-    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditInvalidNumeric:"Bản ghi kế toán hoặc chi phí có trường số liệu không hợp lệ",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",
+    financeNote:"Thống kê dựa trên dữ liệu kế toán hằng ngày của các tổ thuộc Bộ phận Sửa màu và chi phí kinh doanh; số lượng báo phế đã duyệt được hiển thị riêng, không trừ lặp vào sản lượng hoặc lợi nhuận; không ghi trùng chi phí khác ở cả hai nơi; tiền công từ chấm công chỉ dùng để đối chiếu chi phí nhân công, không trừ lợi nhuận lần nữa.",financeScrapBreakdown:"Số lượng báo phế đã duyệt theo tổ",financeScrapUnassigned:"Số lượng báo phế chưa xác định tổ",financeScrapNoRecords:"Không có báo phế đã duyệt trong kỳ này",financeAuditTitle:"Đối soát dữ liệu",financeAuditClean:"Đối soát thành công: tổ và phép tính số tiền nhất quán.",financeAuditIssues:"Phát hiện dữ liệu cần kiểm tra",financeAuditInvalidDept:"Bản ghi kế toán hằng ngày có mã tổ bất thường",financeAuditInvalidExpense:"Bản ghi chi phí có phạm vi phân bổ bất thường",financeAuditMath:"Bản ghi kế toán hằng ngày có phép tính không khớp",financeAuditInvalidNumeric:"Bản ghi kế toán hoặc chi phí có trường số liệu không hợp lệ",financeAuditProfitGap:"Chênh lệch giữa lợi nhuận công ty và tổng hợp các tổ",financePayrollTitle:"Đối chiếu lương chấm công và chi phí nhân công kế toán (chỉ đối chiếu, không trừ lợi nhuận lần nữa)",financePayrollEmpty:"Không có dữ liệu lương chấm công trong kỳ đã chọn",financePayrollAccounting:"Chi phí nhân công theo kế toán ngày",financePayrollAttendance:"Tổng lương chấm công",financePayrollDifference:"Chênh lệch (lương chấm công − nhân công kế toán)",financePayrollInvalid:"Bản ghi lương chấm công bất thường",
     deptOverview:"Tiến độ hoạt động các tổ thuộc Bộ phận Sửa màu",
     threeDeptIndependent:"Ba tổ thuộc Bộ phận Sửa màu được hạch toán độc lập",
     repairModuleLive:"Đã có chức năng nhập phiếu",cleanModuleLive:"Đã triển khai phiếu giặt",weaveModuleLive:"Đã triển khai phiếu sửa dệt",cleanEntryTitle:"Nhập phiếu giặt (theo lô)",weaveEntryTitle:"Nhập phiếu sửa dệt (theo lô)",genericWorkDesc:"Mỗi lô gửi một phiếu riêng; người phụ trách có thể xem tổng hợp theo tổ.",dailyWorkSummary:"Tổng hợp giặt hằng ngày",dailyWeaveSummary:"Tổng hợp sửa dệt hằng ngày",workOrderRecords:"Danh sách phiếu công việc",
@@ -1564,7 +1564,7 @@ document.getElementById("dailyAccountingEditForm").addEventListener("submit",asy
  finally{button.disabled=false;}
 });
 
-let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[];
+let financeRecordsCache=[],financeExpensesCache=[],financeScrapCache=[],financeAttendanceCache=[];
 function financeRange(mode){
  const range=getFinanceDateRange(mode,localWorkDate());
  return range||[];
@@ -1578,9 +1578,9 @@ function renderFinanceOverview(){
  const root=document.getElementById("financeDepartmentSummary"),monthly=document.getElementById("financeMonthlyReport"),chart=document.getElementById("financeDepartmentChart"),scrapBreakdown=document.getElementById("financeScrapBreakdown"),audit=document.getElementById("financeReconciliation");
  renderDailyAccountingHistory();
  if(!start||!end||start>end){root.textContent=tr("accountingInvalid");monthly.replaceChildren();chart.replaceChildren();scrapBreakdown.replaceChildren();audit.replaceChildren();return;}
- const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved");
+ const rs=financeRecordsCache.filter(x=>x.workDate>=start&&x.workDate<=end),es=financeExpensesCache.filter(x=>x.expenseDate>=start&&x.expenseDate<=end),ss=financeScrapCache.filter(x=>x.requestDate>=start&&x.requestDate<=end&&x.status==="approved"),attendance=financeAttendanceCache.filter(x=>x.workDate>=start&&x.workDate<=end);
  const sum=(arr,key)=>arr.reduce((s,x)=>s+Number(x[key]||0),0),money=n=>Math.round(n).toLocaleString()+" VND";
- const totals=calculateFinanceSummary(rs,es);
+ const totals=calculateFinanceSummary(rs,es);\n const payroll=calculatePayrollReconciliation(rs,attendance);
  const {revenue,labor,materials,other,extra,invalidDeptCount:invalidDept,invalidExpenseCount:invalidExpense,invalidNumericCount:invalidNumeric,mathMismatchCount:mathMismatch,departments:deptResults,sharedExpenses:shared,companyProfit,overallProfit,profitGap,auditIssueCount}=totals;
  const approvedScrap=sum(ss,"quantity");
   document.getElementById("financeScrapQuantity").textContent=approvedScrap.toLocaleString()+" "+tr("unitPieces");
@@ -1591,7 +1591,7 @@ function renderFinanceOverview(){
   if(!ss.length){const empty=document.createElement("div");empty.className="small";empty.textContent=tr("financeScrapNoRecords");scrapBreakdown.append(empty);}
  document.getElementById("financeRevenue").textContent=money(revenue);document.getElementById("financeCost").textContent=money(labor+materials+other+extra);document.getElementById("financeProfit").textContent=money(companyProfit);
  root.replaceChildren();chart.replaceChildren();
- if(!rs.length&&!es.length&&!ss.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
+ if(!rs.length&&!es.length&&!ss.length&&!attendance.length){root.textContent=tr("financeEmpty");monthly.textContent=tr("financeMonthlyEmpty");chart.textContent=tr("financeEmpty");audit.replaceChildren();return;}
 
   audit.replaceChildren();const auditTitle=document.createElement("strong");auditTitle.textContent=tr("financeAuditTitle");audit.append(auditTitle);
   const auditIssues=auditIssueCount;
@@ -1601,6 +1601,14 @@ function renderFinanceOverview(){
   if(mathMismatch){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditMath")+": "+mathMismatch;audit.append(line);}
   if(invalidNumeric){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditInvalidNumeric")+": "+invalidNumeric;audit.append(line);}
   if(profitGap>1){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financeAuditProfitGap")+": "+money(profitGap);audit.append(line);}
+  const payrollTitle=document.createElement("strong");payrollTitle.textContent=tr("financePayrollTitle");payrollTitle.style.display="block";payrollTitle.style.marginTop="12px";audit.append(payrollTitle);
+  if(!payroll.hasAttendance){const emptyPayroll=document.createElement("div");emptyPayroll.className="work-summary-row";emptyPayroll.textContent=tr("financePayrollEmpty");audit.append(emptyPayroll);}
+  else{
+   const payrollLines=[[tr("financePayrollAccounting"),payroll.accountingLabor],[tr("financePayrollAttendance"),payroll.payrollAmount],[tr("financePayrollDifference"),payroll.difference]];
+   payrollLines.forEach(([label,value])=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=label+": "+money(value);audit.append(line);});
+   payroll.groups.forEach(group=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=deptNames[group.id]+" · "+money(group.payrollAmount)+" / "+money(group.accountingLabor)+" · "+money(group.difference);audit.append(line);});
+   if(payroll.invalidAttendanceCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollInvalid")+": "+payroll.invalidAttendanceCount;audit.append(line);}
+  }
  const h=document.createElement("strong");h.textContent=tr("financeDeptTitle");root.append(h);
  const deptNames={1:tr("repair"),2:tr("clean"),3:tr("weave")};
  deptResults.forEach(x=>{const d=document.createElement("div");d.className="work-summary-row";d.textContent=(deptNames[x.id]||("组别 "+x.id))+" · "+money(x.profit);root.append(d);});
@@ -1645,15 +1653,15 @@ async function loadFinanceOverview(){
  if(!start||!end||start>end){renderFinanceOverview();return;}
  root.textContent=tr("financeLoading");
  try{
-  const [a,b,s]=await Promise.all([
+  const [a,b,s,p]=await Promise.all([
    getDocs(query(collection(db,"dailyRecords"),where("workDate",">=",start),where("workDate","<=",end))),
    getDocs(query(collection(db,"operatingExpenses"),where("expenseDate",">=",start),where("expenseDate","<=",end))),
-   getDocs(query(collection(db,"scrapRequests"),where("requestDate",">=",start),where("requestDate","<=",end)))
+   getDocs(query(collection(db,"scrapRequests"),where("requestDate",">=",start),where("requestDate","<=",end))),\n   getDocs(query(collection(db,"employeeAttendance"),where("workDate",">=",start),where("workDate","<=",end)))
   ]);
   if(requestId!==financeLoadSequence)return;
   financeRecordsCache=a.docs.map(x=>({id:x.id,...x.data()}));
   financeExpensesCache=b.docs.map(x=>x.data());
-  financeScrapCache=s.docs.map(x=>x.data());
+  financeScrapCache=s.docs.map(x=>x.data());\n  financeAttendanceCache=p.docs.map(x=>x.data());
   renderFinanceOverview();
  }catch(e){
   if(requestId!==financeLoadSequence)return;
