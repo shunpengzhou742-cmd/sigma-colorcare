@@ -1612,7 +1612,14 @@ function renderFinanceOverview(){
    payroll.groups.forEach(group=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=departmentLabel(group.id)+" · "+money(group.payrollAmount)+" / "+money(group.accountingLabor)+" · "+money(group.difference);audit.append(line);});
    if(payroll.dailyComparisons.length){
     const dailyTitle=document.createElement("div");dailyTitle.className="work-summary-row";dailyTitle.textContent=tr("financePayrollDailyBreakdown");audit.append(dailyTitle);
-    payroll.dailyComparisons.forEach(row=>{const line=document.createElement("div");line.className="work-summary-row";line.textContent=row.workDate+" · "+departmentLabel(row.departmentId)+" · "+money(row.payrollAmount)+" / "+money(row.accountingLabor)+" · "+money(row.difference);audit.append(line);});
+    payroll.dailyComparisons.forEach(row=>{
+     const line=document.createElement("div");line.className="work-summary-row";line.textContent=row.workDate+" · "+departmentLabel(row.departmentId)+" · "+money(row.payrollAmount)+" / "+money(row.accountingLabor)+" · "+money(row.difference);audit.append(line);
+     row.employees.forEach(employee=>{
+      const detail=document.createElement("div");detail.className="small";detail.style.paddingLeft="16px";
+      detail.textContent="↳ "+employee.employeeName+" · "+tr("attendanceDaysLabel")+": "+employee.payableDays+" · "+tr("attendanceRateLabel")+": "+money(employee.dailyWage)+" · "+tr("attendanceAmount")+": "+money(employee.wageAmount);
+      audit.append(detail);
+     });
+    });
    }
    if(payroll.invalidAttendanceCount){const line=document.createElement("div");line.className="work-summary-row";line.textContent=tr("financePayrollInvalid")+": "+payroll.invalidAttendanceCount;audit.append(line);}
   }
