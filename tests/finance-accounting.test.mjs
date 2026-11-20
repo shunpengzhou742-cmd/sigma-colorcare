@@ -87,6 +87,37 @@ test("flags malformed numeric fields without allowing NaN to corrupt totals", ()
   assert.equal(result.auditIssueCount, 2);
 });
 
+test("rejects malformed expense department IDs instead of treating them as shared costs", () => {
+  const expenses = [
+    { departmentId: 0, amount: 100 },
+    { departmentId: null, amount: 20 },
+    { departmentId: "", amount: 30 },
+    { departmentId: "0", amount: 40 },
+    { amount: 50 }
+  ];
+  const result = calculateFinanceSummary(records, expenses);
+
+  assert.equal(result.sharedExpenses, 100);
+  assert.equal(result.extra, 100);
+  assert.equal(result.invalidExpenseCount, 4);
+  assert.equal(result.companyProfit, 1255);
+  assert.equal(result.auditIssueCount, 4);
+});
+
+test("rejects string department IDs and safely audits non-object records", () => {
+  const result = calculateFinanceSummary(
+    [...records, { ...records[0], departmentId: "1" }, null],
+    [{ departmentId: "1", amount: 60 }, null]
+  );
+
+  assert.equal(result.invalidDeptCount, 2);
+  assert.equal(result.invalidExpenseCount, 2);
+  assert.equal(result.invalidNumericCount, 2);
+  assert.equal(result.revenue, 1800);
+  assert.equal(result.extra, 0);
+  assert.equal(result.auditIssueCount, 6);
+});
+
 test("returns zeroed totals for an empty period", () => {
   const result = calculateFinanceSummary([], []);
 
