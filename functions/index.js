@@ -108,11 +108,12 @@ export const closeFinancePeriod = onCall({
     sourceDigest
   });
 
+  const lockSnapshot = await closureRef.get();
   await closureRef.set({
     ...range,
     status: "closed",
-    startedAt: (await closureRef.get()).get("startedAt") ?? FieldValue.serverTimestamp(),
-    startedBy: (await closureRef.get()).get("startedBy") ?? request.auth.uid,
+    startedAt: lockSnapshot.get("startedAt") ?? FieldValue.serverTimestamp(),
+    startedBy: lockSnapshot.get("startedBy") ?? request.auth.uid,
     closedAt: FieldValue.serverTimestamp(),
     closedBy: request.auth.uid,
     snapshot: closure.snapshot,
