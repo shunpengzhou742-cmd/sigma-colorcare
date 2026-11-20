@@ -1296,7 +1296,10 @@ async function refreshExpenseList(){
    const edit=document.createElement("button");edit.type="button";edit.className="dark";edit.textContent=tr("editExpense");edit.addEventListener("click",()=>beginExpenseEdit(row));
    line.append(detail,edit);target.append(line);
   });
- }catch(error){console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");}
+ }catch(error){
+  if(requestId!==expenseListLoadSequence)return;
+  console.error("Expense list error",error);target.textContent=tr("expenseSaveError")+(error.code||error.message||"unknown");
+ }
 }
 function renderExpensePeriodSummary(rows){
  const root=document.getElementById("expensePeriodSummary");if(!root)return;
