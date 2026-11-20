@@ -53,12 +53,15 @@ jobs:
         run: |
           npm audit --json > npm-audit.json || true
           node --input-type=module -e 'import fs from "node:fs"; const report=JSON.parse(fs.readFileSync("npm-audit.json","utf8")); console.log("NPM AUDIT SUMMARY", JSON.stringify(report.metadata?.vulnerabilities || {})); for (const [name,item] of Object.entries(report.vulnerabilities || {})) console.log(JSON.stringify({name,severity:item.severity,isDirect:item.isDirect,range:item.range,fixAvailable:item.fixAvailable,via:(item.via || []).map(v=>typeof v==="string"?v:{name:v.name,title:v.title,url:v.url,range:v.range})}));'
-      - name: Explain vulnerable dependency paths
+      - name: Block Critical and High dependency advisories
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const v=JSON.parse(fs.readFileSync("npm-audit.json","utf8")).metadata?.vulnerabilities || {}; if ((v.critical || 0) > 0 || (v.high || 0) > 0) { console.error("Critical/High dependency advisories must be fixed before merging."); process.exit(1); } console.log("No Critical or High dependency advisories.");'
+      - name: Explain vulnerable dependency paths and audit production dependencies
         run: |
           npm explain tar || true
           npm explain @grpc/grpc-js || true
           npm explain @firebase/firestore || true
-          npm audit --omit=dev || true
+          npm audit --omit=dev
       - name: Check client JavaScript syntax
         run: npm run check:client
       - name: Run finance calculation unit tests
