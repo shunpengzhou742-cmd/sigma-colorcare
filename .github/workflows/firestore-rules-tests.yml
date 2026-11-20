@@ -41,5 +41,7 @@ jobs:
         run: npm install
       - name: Check client JavaScript syntax
         run: npm run check:client
+      - name: Run finance calculation unit tests
+        run: npm run test:finance
       - name: Run Firestore rules tests
         run: npm run test:rules
