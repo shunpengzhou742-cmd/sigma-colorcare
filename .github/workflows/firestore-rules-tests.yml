@@ -43,6 +43,11 @@ jobs:
         run: |
           npm audit --json > npm-audit.json || true
           node --input-type=module -e 'import fs from "node:fs"; const report=JSON.parse(fs.readFileSync("npm-audit.json","utf8")); console.log("NPM AUDIT SUMMARY", JSON.stringify(report.metadata?.vulnerabilities || {})); for (const [name,item] of Object.entries(report.vulnerabilities || {})) console.log(JSON.stringify({name,severity:item.severity,isDirect:item.isDirect,range:item.range,fixAvailable:item.fixAvailable,via:(item.via || []).map(v=>typeof v==="string"?v:{name:v.name,title:v.title,url:v.url,range:v.range})}));'
+      - name: Preview safe dependency audit fixes
+        run: |
+          npm audit fix --dry-run --json > npm-audit-fix-plan.json || true
+          node --input-type=module -e 'import fs from "node:fs"; const raw=fs.readFileSync("npm-audit-fix-plan.json","utf8"); try { const r=JSON.parse(raw); console.log("AUDIT FIX DRY RUN", JSON.stringify({added:r.added,removed:r.removed,changed:r.changed,audit:r.audit?.metadata?.vulnerabilities,fixes:r.audit?.fixAvailable})); } catch { console.log(raw.slice(-12000)); }'
+          npm ls firebase firebase-tools @firebase/rules-unit-testing @firebase/firestore @grpc/grpc-js tar --all || true
       - name: Check client JavaScript syntax
         run: npm run check:client
       - name: Run finance calculation unit tests
