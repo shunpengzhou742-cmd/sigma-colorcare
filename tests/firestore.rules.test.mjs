@@ -597,6 +597,12 @@ describe("SIGMA financial privacy Firestore rules", () => {
     await assertFails(setDoc(doc(adminDb(), "dailyRecords/bad-timestamp"), {
       ...valid, createdAt: "not-a-timestamp"
     }));
+    await assertFails(setDoc(doc(adminDb(), "dailyRecords/bad-date"), {
+      ...valid, workDate: "2026-1-20"
+    }));
+    await assertFails(setDoc(doc(adminDb(), "dailyRecords/bad-timestamp"), {
+      ...valid, createdAt: "not-a-timestamp"
+    }));
   });
 
   it("allows only the admin to assign or revoke the special-role marker", async () => {
