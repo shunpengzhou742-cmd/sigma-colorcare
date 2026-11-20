@@ -134,3 +134,44 @@ export function calculateFinanceSummary(records = [], expenses = []) {
       mathMismatchCount + (profitGap > 1 ? 1 : 0)
   };
 }
+
+
+/**
+ * Compare payroll attendance snapshots with daily accounting labor cost.
+ * This is a reference-only reconciliation and must never be added to profit costs.
+ */
+export function calculatePayrollReconciliation(dailyRecords = [], attendance = []) {
+  const groups = [1, 2, 3].map(id => ({
+    id,
+    accountingLabor: 0,
+    payrollAmount: 0,
+    difference: 0
+  }));
+  let invalidAttendanceCount = 0;
+  for (const row of dailyRecords) {
+    if (!row || !Number.isInteger(row.departmentId)) continue;
+    const group = groups.find(item => item.id === row.departmentId);
+    const amount = Number(row.laborCost);
+    if (group && Number.isFinite(amount) && amount >= 0) group.accountingLabor += amount;
+  }
+  for (const row of attendance) {
+    const group = row && groups.find(item => item.id === row.departmentId);
+    const amount = row && typeof row.wageAmount === "number" ? row.wageAmount : NaN;
+    if (!group || !Number.isFinite(amount) || amount < 0) {
+      invalidAttendanceCount += 1;
+      continue;
+    }
+    group.payrollAmount += amount;
+  }
+  groups.forEach(group => { group.difference = group.payrollAmount - group.accountingLabor; });
+  const accountingLabor = groups.reduce((sum, group) => sum + group.accountingLabor, 0);
+  const payrollAmount = groups.reduce((sum, group) => sum + group.payrollAmount, 0);
+  return {
+    groups,
+    accountingLabor,
+    payrollAmount,
+    difference: payrollAmount - accountingLabor,
+    invalidAttendanceCount,
+    hasAttendance: attendance.length > 0
+  };
+}
