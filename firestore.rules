@@ -330,11 +330,6 @@ service cloud.firestore {
           && data.keys().hasOnly([
             'employeeUid', 'employeeName', 'workDate', 'departmentId',
             'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
-            'createdBy', 'createdAt', 'updatedAt'
-          ])
-          && data.keys().hasOnly([
-            'employeeUid', 'employeeName', 'workDate', 'departmentId',
-            'payableDays', 'dailyWage', 'wageAmount', 'wageEffectiveDate',
             'createdBy', 'createdAt', 'updatedAt', 'lastAuditLogId'
           ])
           && data.employeeUid is string
