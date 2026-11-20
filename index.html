@@ -317,6 +317,23 @@ body.theme-dark .finance-shared-note{color:#b4c7dd}
         <p id="accountingMessage" class="small" role="status" aria-live="polite"></p>
       </form>
 
+      <div class="dashboard-section-title"><h3 data-i18n="accountingHistoryTitle">每日核算历史记录</h3></div>
+      <div id="dailyAccountingHistory" class="work-panel small" aria-live="polite"></div>
+      <form id="dailyAccountingEditForm" class="work-panel hidden">
+        <strong data-i18n="editAccountingTitle">修改每日核算</strong>
+        <p id="dailyAccountingEditDate" class="small"></p>
+        <label data-i18n="accountingHeadcount">当天人数</label><input id="editAccountingHeadcount" type="number" min="0" step="1" required>
+        <label data-i18n="accountingOutput">当天总产量</label><input id="editAccountingOutput" type="number" min="0" step="1" required>
+        <label data-i18n="accountingUnitPrice">加工单价（VND/件）</label><input id="editAccountingUnitPrice" type="number" min="0" step="any" required>
+        <label data-i18n="accountingDailyWage">每人日薪（VND）</label><input id="editAccountingDailyWage" type="number" min="0" step="any" required>
+        <label data-i18n="accountingMaterialCost">材料费用（VND）</label><input id="editAccountingMaterialCost" type="number" min="0" step="any" required>
+        <label data-i18n="accountingOtherCost">其他组支出（VND，可填0）</label><input id="editAccountingOtherCost" type="number" min="0" step="any" required>
+        <p id="dailyAccountingEditMessage" class="small" role="status" aria-live="polite"></p>
+        <button id="saveDailyAccountingEdit" class="primary" type="submit" data-i18n="saveAccountingEdit">保存修改并记录历史</button>
+        <button id="cancelDailyAccountingEdit" class="dark" type="button" data-i18n="cancelAccountingEdit">取消修改</button>
+      </form>
+      <div id="dailyAccountingAuditHistory" class="work-panel small"></div>
+
       <div class="dashboard-section-title"><h3 data-i18n="wageSettingsTitle">各组日薪设置</h3><span data-i18n="effectiveDateRule">按生效日期执行，不追溯修改历史</span></div>
       <form id="wageRateForm" class="work-panel">
         <label data-i18n="wageDepartment">业务组</label>
@@ -587,6 +604,16 @@ const translations = {
     trendError:"读取趋势失败：",
     trendPieces:"件",
     dailyAccountingTitle:"修色部各组每日经营数据",
+    accountingHistoryTitle:"每日核算历史记录",
+    editAccountingTitle:"修改每日核算",
+    saveAccountingEdit:"保存修改并记录历史",
+    cancelAccountingEdit:"取消修改",
+    accountingEditLoading:"正在保存修改和历史快照……",
+    accountingEditSaved:"修改已保存，历史快照已记录。",
+    accountingEditError:"修改失败：",
+    accountingHistoryEmpty:"当前统计周期没有每日核算记录。",
+    accountingEditButton:"修改记录",
+    accountingAuditEmpty:"该记录暂无修改历史。",
     adminOnlyEntry:"仅负责人录入",
     accountingDate:"核算日期",
     accountingDepartment:"核算业务组",
@@ -712,6 +739,16 @@ const translations = {
     trendError:"Không thể tải xu hướng: ",
     trendPieces:"sản phẩm",
     dailyAccountingTitle:"Dữ liệu kinh doanh hằng ngày của các tổ",
+    accountingHistoryTitle:"Lịch sử hạch toán hằng ngày",
+    editAccountingTitle:"Chỉnh sửa hạch toán ngày",
+    saveAccountingEdit:"Lưu thay đổi và ghi lịch sử",
+    cancelAccountingEdit:"Hủy chỉnh sửa",
+    accountingEditLoading:"Đang lưu thay đổi và bản ghi lịch sử…",
+    accountingEditSaved:"Đã lưu thay đổi và bản ghi lịch sử.",
+    accountingEditError:"Không thể chỉnh sửa: ",
+    accountingHistoryEmpty:"Không có dữ liệu hạch toán trong kỳ đã chọn.",
+    accountingEditButton:"Chỉnh sửa",
+    accountingAuditEmpty:"Bản ghi này chưa có lịch sử chỉnh sửa.",
     adminOnlyEntry:"Chỉ quản lý nhập",
     accountingDate:"Ngày hạch toán",
     accountingDepartment:"Tổ",
