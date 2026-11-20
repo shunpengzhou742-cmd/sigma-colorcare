@@ -317,6 +317,7 @@ service cloud.firestore {
     }
 
 
+    // Attendance and wage snapshots: employees may read only their own active records; managers own all writes.
     match /employeeAttendance/{attendanceId} {
       function validAttendance(data) {
         return data.keys().hasAll([
