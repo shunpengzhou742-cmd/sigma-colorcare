@@ -195,3 +195,56 @@ test("breaks payroll reconciliation differences down by work date and group", ()
     { employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }
   ]);
 });
+
+test("prefers group-specific attendance over duplicate legacy rows but preserves cross-group work", () => {
+  const result = calculatePayrollReconciliation([], [
+    {
+      id: "employee-1_2026-11-20",
+      employeeUid: "employee-1",
+      workDate: "2026-11-20",
+      departmentId: 1,
+      employeeName: "Nguyen A",
+      payableDays: 1,
+      dailyWage: 100000,
+      wageAmount: 100000
+    },
+    {
+      id: "employee-1_2026-11-20_1",
+      employeeUid: "employee-1",
+      workDate: "2026-11-20",
+      departmentId: 1,
+      employeeName: "Nguyen A",
+      payableDays: 0.5,
+      dailyWage: 100000,
+      wageAmount: 50000
+    },
+    {
+      id: "employee-1_2026-11-20_2",
+      employeeUid: "employee-1",
+      workDate: "2026-11-20",
+      departmentId: 2,
+      employeeName: "Nguyen A",
+      payableDays: 0.5,
+      dailyWage: 80000,
+      wageAmount: 40000
+    }
+  ]);
+
+  assert.equal(result.payrollAmount, 90000);
+  assert.deepEqual(result.dailyComparisons.map(row => ({
+    departmentId: row.departmentId,
+    payrollAmount: row.payrollAmount,
+    employees: row.employees
+  })), [
+    {
+      departmentId: 1,
+      payrollAmount: 50000,
+      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 100000, wageAmount: 50000 }]
+    },
+    {
+      departmentId: 2,
+      payrollAmount: 40000,
+      employees: [{ employeeName: "Nguyen A", payableDays: 0.5, dailyWage: 80000, wageAmount: 40000 }]
+    }
+  ]);
+});
