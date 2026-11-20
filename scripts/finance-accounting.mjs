@@ -165,7 +165,28 @@ export function calculatePayrollReconciliation(dailyRecords = [], attendance = [
     group.accountingLabor += amount;
     if (validWorkDate(row.workDate)) getDaily(row.workDate, row.departmentId).accountingLabor += amount;
   }
+  const uniqueAttendance = new Map();
+  const deduplicatedAttendance = [];
   for (const row of attendance) {
+    const uid = typeof row?.employeeUid === "string" ? row.employeeUid.trim() : "";
+    if (!uid || !validWorkDate(row.workDate) || !Number.isInteger(row.departmentId)) {
+      deduplicatedAttendance.push(row);
+      continue;
+    }
+    const key = uid + "|" + row.workDate + "|" + row.departmentId;
+    const existingIndex = uniqueAttendance.get(key);
+    if (existingIndex === undefined) {
+      uniqueAttendance.set(key, deduplicatedAttendance.length);
+      deduplicatedAttendance.push(row);
+      continue;
+    }
+    const existing = deduplicatedAttendance[existingIndex];
+    const canonicalId = uid + "_" + row.workDate + "_" + row.departmentId;
+    const existingIsCanonical = existing?.id === canonicalId;
+    const rowIsCanonical = row?.id === canonicalId;
+    if (rowIsCanonical && !existingIsCanonical) deduplicatedAttendance[existingIndex] = row;
+  }
+  for (const row of deduplicatedAttendance) {
     const group = row && groups.find(item => item.id === row.departmentId);
     const amount = row && typeof row.wageAmount === "number" ? row.wageAmount : NaN;
     if (!group || !Number.isFinite(amount) || amount < 0) {
