@@ -1,6 +1,7 @@
 import { describe, it, before, after } from "node:test";
 import { strict as assert } from "node:assert";
 import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const PROJECT = "demo-sigma-colorcare";
 const REGION = "asia-southeast1";
