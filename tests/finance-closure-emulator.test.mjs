@@ -1,11 +1,11 @@
 import { describe, it, before, after } from "node:test";
 import { strict as assert } from "node:assert";
+import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
 
 const PROJECT = "demo-sigma-colorcare";
 const REGION = "asia-southeast1";
 const FUNCTIONS_URL = `http://127.0.0.1:5001/${PROJECT}/${REGION}/closeFinancePeriod`;
 const AUTH_URL = "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1";
-const FIRESTORE_URL = `http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents`;
 
 async function jsonRequest(url, options = {}) {
   const response = await fetch(url, options);
@@ -23,16 +23,6 @@ async function createAuthUser(email) {
   return body;
 }
 
-async function setAdmin(uid, role = "admin", status = "active") {
-  const url = `${FIRESTORE_URL}/admins/${uid}?updateMask.fieldPaths=role&updateMask.fieldPaths=status`;
-  const { response, body } = await jsonRequest(url, {
-    method: "PATCH",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ fields: { role: { stringValue: role }, status: { stringValue: status } } })
-  });
-  assert.equal(response.status, 200, JSON.stringify(body));
-}
-
 async function callClosure(idToken, periodId) {
   const headers = { "content-type": "application/json" };
   if (idToken) headers.authorization = `Bearer ${idToken}`;
@@ -46,13 +36,19 @@ async function callClosure(idToken, periodId) {
 describe("closeFinancePeriod callable emulator integration", () => {
   let activeUser;
   let inactiveUser;
+  let testEnv;
 
   before(async () => {
+    testEnv = await initializeTestEnvironment({ projectId: PROJECT, firestore: { host: "127.0.0.1", port: 8080 } });
     activeUser = await createAuthUser("closure-admin@example.test");
     inactiveUser = await createAuthUser("inactive-admin@example.test");
-    await setAdmin(activeUser.localId);
-    await setAdmin(inactiveUser.localId, "admin", "inactive");
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc(`admins/${activeUser.localId}`).set({ role: "admin", status: "active" });
+      await context.firestore().doc(`admins/${inactiveUser.localId}`).set({ role: "admin", status: "inactive" });
+    });
   });
+
+  after(async () => { await testEnv?.cleanup(); });
 
   it("rejects unauthenticated callers", async () => {
     const { response, body } = await callClosure(null, "2026-09");
