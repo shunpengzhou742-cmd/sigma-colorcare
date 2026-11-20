@@ -14,8 +14,9 @@ const RECORD_FIELDS = {
 };
 
 function readNumber(row, key, options = {}) {
-  if (!(key in row) && options.required === false) return { value: 0, valid: true };
-  const raw = row[key];
+  const source = row && typeof row === "object" ? row : {};
+  if (!(key in source) && options.required === false) return { value: 0, valid: true };
+  const raw = source[key];
   const hasNumericInput = typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "");
   const value = Number(raw);
   const valid = hasNumericInput && Number.isFinite(value)
@@ -61,8 +62,10 @@ export function calculateFinanceSummary(records = [], expenses = []) {
 
   const sum = (rows, getter) => rows.reduce((total, row) => total + getter(row), 0);
   // Never let a partially malformed daily record affect the reported financial totals.
-  const validRecords = normalizedRecords.filter(item => item.valid && GROUP_IDS.includes(Number(item.row.departmentId)));
-  const validExpenses = normalizedExpenses.filter(item => EXPENSE_GROUP_IDS.includes(Number(item.row.departmentId)));
+  const hasAllowedDepartment = (row, allowedIds) => row && typeof row === "object"
+    && Number.isInteger(row.departmentId) && allowedIds.includes(row.departmentId);
+  const validRecords = normalizedRecords.filter(item => item.valid && hasAllowedDepartment(item.row, GROUP_IDS));
+  const validExpenses = normalizedExpenses.filter(item => hasAllowedDepartment(item.row, EXPENSE_GROUP_IDS));
   const revenue = sum(validRecords, item => item.values.revenue);
   const labor = sum(validRecords, item => item.values.laborCost);
   const materials = sum(validRecords, item => item.values.materialCost);
@@ -70,10 +73,10 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   const extra = sum(validExpenses, item => item.amount);
 
   const invalidDeptCount = records.filter(
-    row => !GROUP_IDS.includes(Number(row.departmentId))
+    row => !hasAllowedDepartment(row, GROUP_IDS)
   ).length;
   const invalidExpenseCount = expenses.filter(
-    row => !EXPENSE_GROUP_IDS.includes(Number(row.departmentId))
+    row => !hasAllowedDepartment(row, EXPENSE_GROUP_IDS)
   ).length;
   const mathMismatchCount = normalizedRecords.filter(({ row, values, valid }) => valid && (
     Math.abs(values.revenue - values.outputQuantity * values.unitPrice) > 1 ||
@@ -84,7 +87,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   )).length;
 
   const departments = GROUP_IDS.map(id => {
-    const own = validRecords.filter(item => Number(item.row.departmentId) === id);
+    const own = validRecords.filter(item => item.row.departmentId === id);
     const ownExpenses = validExpenses.filter(item => Number(item.row.departmentId) === id);
     const departmentRevenue = sum(own, item => item.values.revenue);
     const departmentLabor = sum(own, item => item.values.laborCost);
@@ -102,7 +105,7 @@ export function calculateFinanceSummary(records = [], expenses = []) {
   });
 
   const sharedExpenses = sum(
-    validExpenses.filter(item => Number(item.row.departmentId) === 0),
+    validExpenses.filter(item => item.row.departmentId === 0),
     item => item.amount
   );
   const departmentProfit = departments.reduce((total, row) => total + row.profit, 0);
