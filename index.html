@@ -275,6 +275,14 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
   #logoutBtn{font-size:12px;padding:9px}
 }
 
+
+/* v14: only the account header is a horizontal flex row; content sections stack vertically */
+#appView>section.card{display:block!important;width:100%;max-width:100%;min-width:0}
+#appView>div.card{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-width:0}
+#deptView.card{display:block!important;width:100%;max-width:100%;min-width:0}
+#dashboardPanel,#scrapReviewPanel,#invitePanel,#employeeManagePanel{flex-direction:column;align-items:stretch}
+#dashboardPanel>* ,#scrapReviewPanel>* ,#invitePanel>* ,#employeeManagePanel>*{max-width:100%;min-width:0}
+
 </style>
 </head>
 <body>
