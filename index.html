@@ -869,7 +869,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -1360,23 +1360,25 @@ function renderHolidaySettingsControls(){
     const option=document.createElement("option");option.value=item.id;option.textContent=lang==="zh"?item.zh:item.vi;preview.append(option);
   });
 }
-async function loadHolidayThemeSettings(){
+let unsubscribeHolidayThemeSettings=null;
+function watchHolidayThemeSettings(){
+  if(unsubscribeHolidayThemeSettings){unsubscribeHolidayThemeSettings();unsubscribeHolidayThemeSettings=null;}
   const user=auth.currentUser;if(!user||!["admin","employee"].includes(currentRole))return;
-  try{
-    const snap=await getDoc(doc(db,"appSettings","vietnamHolidayThemes"));
+  unsubscribeHolidayThemeSettings=onSnapshot(doc(db,"appSettings","vietnamHolidayThemes"),snap=>{
+    if(!auth.currentUser||auth.currentUser.uid!==user.uid)return;
     if(snap.exists()){
       const data=snap.data(),validIds=new Set(VIETNAM_HOLIDAY_LABELS.map(item=>item.id));
       const enabled=Array.isArray(data.enabledHolidayIds)?data.enabledHolidayIds.filter(id=>validIds.has(id)):DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds;
       const advance=Number(data.advanceDays);
       holidayThemeSettings={enabledHolidayIds:[...new Set(enabled)],advanceDays:Number.isInteger(advance)&&advance>=0&&advance<=30?advance:3};
-    }else holidayThemeSettings={...DEFAULT_HOLIDAY_THEME_SETTINGS,enabledHolidayIds:[...DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds]};
+    }else holidayThemeSettings={enabledHolidayIds:[...DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds],advanceDays:3};
     holidayPreviewId=null;applyVietnamHolidayTheme();renderHolidaySettingsControls();
-  }catch(error){
-    console.error("Holiday theme settings load failed:",error);
+  },error=>{
+    console.error("Holiday theme settings subscription failed:",error);
     const status=document.getElementById("holidayThemeSettingsStatus");
     if(status&&currentRole==="admin")status.textContent=tr("holidayLoadError")+(error.code||error.message||"unknown");
     applyVietnamHolidayTheme();
-  }
+  });
 }
 async function saveHolidayThemeSettings(){
   const status=document.getElementById("holidayThemeSettingsStatus"),button=document.getElementById("saveHolidayThemeSettingsBtn");
@@ -1497,6 +1499,8 @@ function initializeModuleNavigation(){
   document.getElementById("moduleNav")?.classList.remove("hidden");
 }
 function showLogin(){
+  if(unsubscribeHolidayThemeSettings){unsubscribeHolidayThemeSettings();unsubscribeHolidayThemeSettings=null;}
+  holidayPreviewId=null;
   // Fail closed: clear all in-memory authorization before returning to the login screen.
   currentRole = null;
   currentProfile = null;
@@ -1540,7 +1544,7 @@ function showApp(user, identity){
   document.getElementById("dailyAccountingForm").classList.toggle("hidden",identity.role!=="admin");
   setActiveModule(identity.role==="admin"?"home":"production");
   updateGoogleLinkButton(user);
-  loadHolidayThemeSettings();
+  watchHolidayThemeSettings();
   if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
   currentDept = "";
 }
