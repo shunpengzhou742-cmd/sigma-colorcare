@@ -1138,6 +1138,7 @@ window.switchLang = function(){
   document.getElementById("langBtn").textContent = tr("lang");
   updateNet();
   updateThemeButton();
+  updateHolidayThemeBanner(getVietnamHolidaySchedule());
   if(currentDept) showDeptTitle();
   if(currentRole === "admin") renderEmployeeList(employeeCache);
 };
