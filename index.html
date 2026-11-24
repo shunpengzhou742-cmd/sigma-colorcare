@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ColorCare">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#edf5ff">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
@@ -727,6 +730,36 @@ body.theme-dark:not(.festival-theme) #appView .module-page .table-wrap table td{
   #appView .module-nav-item{transition:none!important}
 }
 
+
+
+/* Cross-device layout: iOS safe areas, compact phones, tablets and foldable screens. */
+html,body{width:100%;min-width:0}
+@supports(padding:max(0px)){
+ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+}
+img,svg,canvas,video{max-width:100%;height:auto}
+input,select,textarea,button{max-width:100%;min-width:0}
+@media(min-width:721px) and (max-width:960px){
+ #appView .module-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ header{gap:8px;padding-left:10px;padding-right:10px}
+ header>div:last-child{gap:5px}
+ #themeToggle,#langBtn{padding:6px 7px;font-size:10px}
+ main{width:calc(100% - 18px)}
+ .card{padding:13px!important}
+ #appView .module-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ #appView .module-nav-item{min-height:54px}
+ .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .calendar-toolbar{align-items:flex-start}
+ .calendar-actions{width:100%;justify-content:space-between}
+}
+@media(orientation:landscape) and (max-height:520px){
+ header{padding-top:9px;padding-bottom:9px}
+ main{margin-top:10px}
+ #loginView{margin:12px auto}
+ #appView .module-nav-item{min-height:48px}
+}
 </style>
 </head>
 <body>
