@@ -410,6 +410,32 @@ body.theme-dark .work-summary-row{
 body.theme-light .work-panel{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(239,247,255,.48))!important}
 body.theme-dark .work-panel{background:linear-gradient(145deg,rgba(9,23,52,.55),rgba(25,35,76,.32))!important}
 
+
+/* v18: six-module navigation architecture — separate workspaces, no mega-scroll */
+.module-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0 14px;padding:8px;border:1px solid rgba(120,160,205,.28);border-radius:18px;background:rgba(255,255,255,.36);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 26px rgba(30,65,110,.08)}
+.module-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:66px;padding:8px 4px;border:1px solid transparent;border-radius:13px;background:transparent;color:#45617e;font-size:11px}
+.module-nav-item span{font-size:20px;line-height:1.1}.module-nav-item b{font-size:11px;white-space:nowrap}
+.module-nav-item.active{background:linear-gradient(135deg,rgba(45,125,210,.18),rgba(35,180,190,.13));border-color:rgba(67,137,205,.28);color:#1557a6;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 4px 14px rgba(36,103,170,.09)}
+#appView>.module-page{display:none!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;margin-top:0!important;min-height:260px}
+#appView>.module-page.active{display:block!important}
+.module-page-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;padding:2px 2px 15px;border-bottom:1px solid rgba(105,145,190,.2)}
+.module-page-heading small{font-size:10px;font-weight:800;letter-spacing:1.6px;color:#3980bd}
+.module-page-heading h2{margin:5px 0 4px;font-size:22px;color:#174b83}
+.module-page-heading p{margin:0;color:#71849b;font-size:12px;line-height:1.5}
+#moduleHomeContent,#moduleProductionContent,#moduleSalaryContent,#moduleCostContent,#moduleProfitContent,#moduleDataContent{min-width:0}
+#moduleDataContent>section{margin-top:0!important;margin-bottom:14px}
+body.theme-dark .module-nav{background:rgba(15,30,54,.68);border-color:rgba(111,151,195,.28);box-shadow:0 8px 26px rgba(0,0,0,.2)}
+body.theme-dark .module-nav-item{color:#c2d5ed}
+body.theme-dark .module-nav-item.active{background:linear-gradient(135deg,rgba(44,126,210,.28),rgba(24,169,184,.2));border-color:rgba(113,180,231,.34);color:#dff4ff}
+body.theme-dark .module-page-heading{border-color:rgba(125,160,200,.2)}
+body.theme-dark .module-page-heading h2{color:#dcecff}
+body.theme-dark .module-page-heading p{color:#b2c5dc}
+@media(max-width:720px){
+ .module-nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0;padding:7px;border-radius:16px}
+ .module-nav-item{min-height:58px;border-radius:11px}
+ .module-page-heading{margin-bottom:12px;padding-bottom:12px}
+ .module-page-heading h2{font-size:20px}
+}
 </style>
 </head>
 <body>
@@ -446,6 +472,38 @@ body.theme-dark .work-panel{background:linear-gradient(145deg,rgba(9,23,52,.55),
       <button id="logoutBtn" type="button" onclick="logout()" data-i18n="logout">退出登录</button>
     </div>
 
+    <nav id="moduleNav" class="module-nav hidden" aria-label="SIGMA 功能导航">
+      <button type="button" class="module-nav-item active" data-module="home" onclick="setActiveModule('home')"><span>⌂</span><b>首页</b></button>
+      <button type="button" class="module-nav-item" data-module="production" onclick="setActiveModule('production')"><span>▦</span><b>产量管理</b></button>
+      <button type="button" class="module-nav-item" data-module="salary" onclick="setActiveModule('salary')"><span>￥</span><b>工资管理</b></button>
+      <button type="button" class="module-nav-item" data-module="cost" onclick="setActiveModule('cost')"><span>◈</span><b>成本管理</b></button>
+      <button type="button" class="module-nav-item" data-module="profit" onclick="setActiveModule('profit')"><span>▤</span><b>盈亏报表</b></button>
+      <button type="button" class="module-nav-item" data-module="data" onclick="setActiveModule('data')"><span>⚙</span><b>数据管理</b></button>
+    </nav>
+    <section id="module-home" class="module-page card active">
+      <div class="module-page-heading"><div><small>SIGMA COLORCARE</small><h2>首页 · 经营总览</h2><p>查看当天进度和三个工作组的运营状态</p></div></div>
+      <div id="moduleHomeContent"></div>
+    </section>
+    <section id="module-production" class="module-page card">
+      <div class="module-page-heading"><div><small>PRODUCTION MANAGEMENT</small><h2>产量管理</h2><p>部门每日核算与修色、清洗、修织工单入口</p></div></div>
+      <div id="moduleProductionContent"></div>
+    </section>
+    <section id="module-salary" class="module-page card">
+      <div class="module-page-heading"><div><small>PAYROLL MANAGEMENT</small><h2>工资管理</h2><p>部门日薪标准及历史生效记录</p></div></div>
+      <div id="moduleSalaryContent"></div>
+    </section>
+    <section id="module-cost" class="module-page card">
+      <div class="module-page-heading"><div><small>COST MANAGEMENT</small><h2>成本管理</h2><p>登记和查询日常经营支出</p></div></div>
+      <div id="moduleCostContent"></div>
+    </section>
+    <section id="module-profit" class="module-page card">
+      <div class="module-page-heading"><div><small>PROFIT & LOSS</small><h2>盈亏报表</h2><p>按月、半年、年度查看收入、成本和利润</p></div></div>
+      <div id="moduleProfitContent"></div>
+    </section>
+    <section id="module-data" class="module-page card">
+      <div class="module-page-heading"><div><small>DATA MANAGEMENT</small><h2>数据管理</h2><p>员工、邀请、报废审核和业务记录管理</p></div></div>
+      <div id="moduleDataContent"></div>
+    </section>
     <section id="dashboardPanel" class="card hidden" style="margin-top:18px">
       <div class="dashboard-heading">
         <div><div class="dashboard-kicker" data-i18n="dashboardKicker">SIGMA · BUSINESS OVERVIEW</div><h2 data-i18n="dashboardTitle">经营总览</h2><p id="dashboardDate" class="small"></p></div>
@@ -1001,6 +1059,56 @@ try{ savedSigmaTheme = localStorage.getItem("sigma-colorcare-theme") === "dark" 
 catch(error){ console.warn("Theme preference could not be read", error); }
 window.setSigmaTheme(savedSigmaTheme);
 
+let activeModuleKey = "home";
+function setActiveModule(key){
+  const keys=["home","production","salary","cost","profit","data"];
+  if(!keys.includes(key)) key="home";
+  if(currentRole!=="admin" && key!=="production") key="production";
+  activeModuleKey=key;
+  keys.forEach(name=>{
+    const page=document.getElementById("module-"+name);
+    const button=document.querySelector('.module-nav-item[data-module="'+name+'"]');
+    if(page) page.classList.toggle("active",name===key);
+    if(button) button.classList.toggle("active",name===key);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function initializeModuleNavigation(){
+  const targets={
+    home:document.getElementById("moduleHomeContent"),
+    production:document.getElementById("moduleProductionContent"),
+    salary:document.getElementById("moduleSalaryContent"),
+    cost:document.getElementById("moduleCostContent"),
+    profit:document.getElementById("moduleProfitContent"),
+    data:document.getElementById("moduleDataContent")
+  };
+  const dashboard=document.getElementById("dashboardPanel");
+  if(dashboard && !dashboard.dataset.reorganized){
+    [...dashboard.children].forEach(node=>{
+      const ids=[node.id,...[...node.querySelectorAll("[id]")].map(el=>el.id)].filter(Boolean);
+      const keys=[...node.querySelectorAll("[data-i18n]")].map(el=>el.getAttribute("data-i18n"));
+      let destination="home";
+      if(ids.some(id=>["dailyAccountingForm","accountingPreview"].includes(id))||keys.includes("dailyAccountingTitle")) destination="production";
+      else if(ids.some(id=>["wageRateForm","wageRateHistory"].includes(id))||keys.includes("wageSettingsTitle")) destination="salary";
+      else if(ids.some(id=>["expenseForm","expenseList","expensePeriodType","expensePeriodSummary"].includes(id))||keys.includes("expenseTitle")||keys.includes("expenseRecent")||keys.includes("expensePeriodLabel")) destination="cost";
+      else if(ids.some(id=>["financePeriodType","financeRevenue","financeCost","financeProfit","financeDepartmentSummary","financeMonthlyReport"].includes(id))||keys.includes("businessFinance")||keys.includes("financeMonthlyTitle")) destination="profit";
+      targets[destination].appendChild(node);
+    });
+    dashboard.dataset.reorganized="true";
+  }
+  const app=document.getElementById("appView");
+  ["scrapReviewPanel","invitePanel","employeeManagePanel"].forEach(id=>{
+    const node=document.getElementById(id);if(node)targets.data.appendChild(node);
+  });
+  ["deptRepair","deptClean","deptWeave"].forEach(id=>{
+    const node=document.getElementById(id);if(node)targets.production.appendChild(node);
+  });
+  const deptHeading=[...app.querySelectorAll(":scope > h3")].find(el=>el.getAttribute("data-i18n")==="selectDept");
+  if(deptHeading)targets.production.insertBefore(deptHeading,targets.production.firstChild);
+  const daily=document.getElementById("dailyAccountingForm");
+  if(daily)daily.classList.add("admin-only-module");
+  document.getElementById("moduleNav")?.classList.remove("hidden");
+}
 function showLogin(){
   document.getElementById("loginView").classList.remove("hidden");
   document.getElementById("appView").classList.add("hidden");
@@ -1022,6 +1130,9 @@ function showApp(user, identity){
   document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
+  document.getElementById("moduleNav").classList.toggle("hidden",identity.role!=="admin");
+  document.getElementById("dailyAccountingForm").classList.toggle("hidden",identity.role!=="admin");
+  setActiveModule(identity.role==="admin"?"home":"production");
   updateGoogleLinkButton(user);
   if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
   currentDept = "";
@@ -1908,8 +2019,10 @@ function showDeptTitle(){
 window.backHome = function(){
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
+  setActiveModule(activeModuleKey);
 };
 
+initializeModuleNavigation();
 onAuthStateChanged(auth, async user => {
   if(handlingAuthState) return;
   handlingAuthState = true;
