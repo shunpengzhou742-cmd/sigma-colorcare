@@ -629,11 +629,17 @@ body.festival-theme .holiday-setting-row{background:rgba(255,255,255,.78);color:
 #appView .module-page .finance-grid article{min-height:94px;justify-content:center;padding:16px}
 #appView .module-page .finance-grid article strong{font-size:clamp(16px,2vw,21px);font-variant-numeric:tabular-nums}
 #appView .module-page .form-grid{gap:14px}
-#appView .module-page input,
+#appView .module-page input:not([type="checkbox"]):not([type="radio"]),
 #appView .module-page select,
 #appView .module-page textarea{
   min-height:44px;border-radius:12px!important;padding:11px 13px!important;
   font:inherit;font-size:14px;line-height:1.4;
+}
+#appView .module-page input[type="checkbox"],
+#appView .module-page input[type="radio"]{
+  width:18px;height:18px;min-height:18px;flex:0 0 18px;
+  margin:0;padding:0!important;border-radius:5px!important;
+  accent-color:#2878cf;vertical-align:middle;
 }
 #appView .module-page textarea{min-height:92px;resize:vertical}
 #appView .module-page button{border-radius:12px;min-height:42px}
@@ -661,6 +667,7 @@ body.festival-theme .holiday-setting-row{background:rgba(255,255,255,.78);color:
   vertical-align:middle;overflow-wrap:anywhere;
 }
 #appView .module-page .work-record{padding:12px 2px}
+#appView .module-page .work-summary-row{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 #appView .module-page .employee-card{padding:16px!important}
 #appView .module-page .employee-actions{gap:8px}
 #appView .module-page .employee-actions button{min-width:110px}
