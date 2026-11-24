@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const moduleMatch = html.match(/<script\\s+type=["']module["']\\s*>([\\s\\S]*?)<\\/script>/i);
+const moduleMatch = html.match(/<script\s+type=["']module["']\s*>([\s\S]*?)<\/script>/i);
 assert.ok(moduleMatch, "index.html must contain its application module");
 const moduleSource = moduleMatch[1];
 const start = moduleSource.indexOf("const VIETNAM_TIME_ZONE");
