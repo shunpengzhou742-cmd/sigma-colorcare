@@ -499,35 +499,35 @@ body.theme-dark #appView .module-page .module-page-heading h2{color:#e0efff}
     </div>
 
     <nav id="moduleNav" class="module-nav hidden" aria-label="SIGMA 功能导航">
-      <button type="button" class="module-nav-item active" data-module="home" onclick="setActiveModule('home')"><span>⌂</span><b>首页</b></button>
-      <button type="button" class="module-nav-item" data-module="production" onclick="setActiveModule('production')"><span>▦</span><b>产量管理</b></button>
-      <button type="button" class="module-nav-item" data-module="salary" onclick="setActiveModule('salary')"><span>￥</span><b>工资管理</b></button>
-      <button type="button" class="module-nav-item" data-module="cost" onclick="setActiveModule('cost')"><span>◈</span><b>成本管理</b></button>
-      <button type="button" class="module-nav-item" data-module="profit" onclick="setActiveModule('profit')"><span>▤</span><b>盈亏报表</b></button>
-      <button type="button" class="module-nav-item" data-module="data" onclick="setActiveModule('data')"><span>⚙</span><b>数据管理</b></button>
+      <button type="button" class="module-nav-item active" data-module="home" onclick="setActiveModule('home')"><span>⌂</span><b data-i18n="moduleHomeNav">首页</b></button>
+      <button type="button" class="module-nav-item" data-module="production" onclick="setActiveModule('production')"><span>▦</span><b data-i18n="moduleProductionNav">产量管理</b></button>
+      <button type="button" class="module-nav-item" data-module="salary" onclick="setActiveModule('salary')"><span>￥</span><b data-i18n="moduleSalaryNav">工资管理</b></button>
+      <button type="button" class="module-nav-item" data-module="cost" onclick="setActiveModule('cost')"><span>◈</span><b data-i18n="moduleCostNav">成本管理</b></button>
+      <button type="button" class="module-nav-item" data-module="profit" onclick="setActiveModule('profit')"><span>▤</span><b data-i18n="moduleProfitNav">盈亏报表</b></button>
+      <button type="button" class="module-nav-item" data-module="data" onclick="setActiveModule('data')"><span>⚙</span><b data-i18n="moduleDataNav">数据管理</b></button>
     </nav>
     <section id="module-home" class="module-page card active">
-      <div class="module-page-heading"><div><small>SIGMA COLORCARE</small><h2>首页 · 经营总览</h2><p>查看当天进度和三个工作组的运营状态</p></div></div>
+      <div class="module-page-heading"><div><small>SIGMA COLORCARE</small><h2 data-i18n="moduleHomeTitle">首页 · 经营总览</h2><p data-i18n="moduleHomeDesc">查看当天进度和三个工作组的运营状态</p></div></div>
       <div id="moduleHomeContent"></div>
     </section>
     <section id="module-production" class="module-page card">
-      <div class="module-page-heading"><div><small>PRODUCTION MANAGEMENT</small><h2>产量管理</h2><p>部门每日核算与修色、清洗、修织工单入口</p></div></div>
+      <div class="module-page-heading"><div><small>PRODUCTION MANAGEMENT</small><h2 data-i18n="moduleProductionTitle">产量管理</h2><p data-i18n="moduleProductionDesc">部门每日核算与修色、清洗、修织工单入口</p></div></div>
       <div id="moduleProductionContent"></div>
     </section>
     <section id="module-salary" class="module-page card">
-      <div class="module-page-heading"><div><small>PAYROLL MANAGEMENT</small><h2>工资管理</h2><p>部门日薪标准及历史生效记录</p></div></div>
+      <div class="module-page-heading"><div><small>PAYROLL MANAGEMENT</small><h2 data-i18n="moduleSalaryTitle">工资管理</h2><p data-i18n="moduleSalaryDesc">部门日薪标准及历史生效记录</p></div></div>
       <div id="moduleSalaryContent"></div>
     </section>
     <section id="module-cost" class="module-page card">
-      <div class="module-page-heading"><div><small>COST MANAGEMENT</small><h2>成本管理</h2><p>登记和查询日常经营支出</p></div></div>
+      <div class="module-page-heading"><div><small>COST MANAGEMENT</small><h2 data-i18n="moduleCostTitle">成本管理</h2><p data-i18n="moduleCostDesc">登记和查询日常经营支出</p></div></div>
       <div id="moduleCostContent"></div>
     </section>
     <section id="module-profit" class="module-page card">
-      <div class="module-page-heading"><div><small>PROFIT & LOSS</small><h2>盈亏报表</h2><p>按月、半年、年度查看收入、成本和利润</p></div></div>
+      <div class="module-page-heading"><div><small>PROFIT & LOSS</small><h2 data-i18n="moduleProfitTitle">盈亏报表</h2><p data-i18n="moduleProfitDesc">按月、半年、年度查看收入、成本和利润</p></div></div>
       <div id="moduleProfitContent"></div>
     </section>
     <section id="module-data" class="module-page card">
-      <div class="module-page-heading"><div><small>DATA MANAGEMENT</small><h2>数据管理</h2><p>员工、邀请、报废审核和业务记录管理</p></div></div>
+      <div class="module-page-heading"><div><small>DATA MANAGEMENT</small><h2 data-i18n="moduleDataTitle">数据管理</h2><p data-i18n="moduleDataDesc">员工、邀请、报废审核和业务记录管理</p></div></div>
       <div id="moduleDataContent"></div>
     </section>
     <section id="dashboardPanel" class="card hidden" style="margin-top:18px">
@@ -765,7 +765,7 @@ googleProvider.setCustomParameters({prompt:"select_account"});
 
 const translations = {
   zh: {
-    subtitle:"智能工厂管理系统", login:"登录系统",
+    moduleHomeNav:"首页",moduleProductionNav:"产量管理",moduleSalaryNav:"工资管理",moduleCostNav:"成本管理",moduleProfitNav:"盈亏报表",moduleDataNav:"数据管理",moduleHomeTitle:"首页 · 经营总览",moduleHomeDesc:"查看当天进度和三个工作组的运营状态",moduleProductionTitle:"产量管理",moduleProductionDesc:"部门每日核算与修色、清洗、修织工单入口",moduleSalaryTitle:"工资管理",moduleSalaryDesc:"部门日薪标准及历史生效记录",moduleCostTitle:"成本管理",moduleCostDesc:"登记和查询日常经营支出",moduleProfitTitle:"盈亏报表",moduleProfitDesc:"按月、半年、年度查看收入、成本和利润",moduleDataTitle:"数据管理",moduleDataDesc:"员工、邀请、报废审核和业务记录管理",subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
     selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
@@ -888,7 +888,7 @@ const translations = {
     expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
   },
   vi: {
-    subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
+    moduleHomeNav:"Trang chủ",moduleProductionNav:"Sản lượng",moduleSalaryNav:"Tiền lương",moduleCostNav:"Chi phí",moduleProfitNav:"Lãi lỗ",moduleDataNav:"Dữ liệu",moduleHomeTitle:"Trang chủ · Tổng quan",moduleHomeDesc:"Theo dõi tiến độ hôm nay và hoạt động của ba nhóm",moduleProductionTitle:"Quản lý sản lượng",moduleProductionDesc:"Hạch toán hằng ngày và lối vào lệnh sửa màu, giặt, sửa dệt",moduleSalaryTitle:"Quản lý tiền lương",moduleSalaryDesc:"Mức lương ngày và lịch sử áp dụng",moduleCostTitle:"Quản lý chi phí",moduleCostDesc:"Ghi nhận và tra cứu chi phí vận hành",moduleProfitTitle:"Báo cáo lãi lỗ",moduleProfitDesc:"Xem doanh thu, chi phí và lợi nhuận theo tháng, nửa năm, năm",moduleDataTitle:"Quản lý dữ liệu",moduleDataDesc:"Nhân viên, lời mời, duyệt phế phẩm và hồ sơ nghiệp vụ",subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
     selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
