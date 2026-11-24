@@ -283,6 +283,133 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
 #dashboardPanel,#scrapReviewPanel,#invitePanel,#employeeManagePanel{flex-direction:column;align-items:stretch}
 #dashboardPanel>* ,#scrapReviewPanel>* ,#invitePanel>* ,#employeeManagePanel>*{max-width:100%;min-width:0}
 
+
+/* v15: explicit two-option theme selector and complete light palette */
+.theme-switch{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(255,255,255,.38);border-radius:13px;background:rgba(8,32,65,.22)}
+.theme-switch button{min-height:36px;padding:7px 12px;border-radius:9px;background:transparent;border:1px solid transparent;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
+.theme-switch button[aria-pressed="true"]{background:#fff;color:#174f94;border-color:#fff;box-shadow:0 2px 8px #09264a35}
+body.theme-light{color:#172b45!important;background:radial-gradient(ellipse at 8% 18%,rgba(50,133,218,.17),transparent 32%),radial-gradient(ellipse at 92% 22%,rgba(35,183,190,.16),transparent 30%),radial-gradient(ellipse at 80% 88%,rgba(142,111,208,.13),transparent 34%),linear-gradient(145deg,#edf5ff 0%,#f7f8fd 48%,#eef9f8 100%)!important}
+body.theme-light .card{background:#fff!important;border-color:#dce6f2!important;color:#172b45!important;box-shadow:0 5px 20px rgba(27,62,102,.08)!important}
+body.theme-light #appView h3,body.theme-light #deptView h2,body.theme-light .work-panel h3{color:#174b83!important}
+body.theme-light label,body.theme-light .work-panel form label{color:#415a77!important}
+body.theme-light .small,body.theme-light #loginMsg,body.theme-light footer{color:#6b7f98!important}
+body.theme-light input,body.theme-light select,body.theme-light textarea{background:#f8fafd!important;border:1px solid #d5e0ed!important;color:#172b45!important}
+body.theme-light .work-panel{background:#f9fbfe!important;border-color:#e1e9f3!important;color:#213c5b!important}
+body.theme-light .employee-card{background:#f8fbff!important;border-color:#e0e9f4!important;color:#213c5b!important}
+body.theme-light .employee-card .small{color:#6d8097!important}
+body.theme-light .warning{background:#fff8e8!important;color:#8a5a00!important;border-color:#f4d99b!important}
+body.theme-dark .theme-switch{background:rgba(0,0,0,.2)}
+body.theme-dark .theme-switch button[aria-pressed="true"]{background:#dcecff;color:#102f59;border-color:#dcecff}
+@media(max-width:520px){.theme-switch button{padding:7px 9px;font-size:11px;min-height:34px}header>div:last-child{gap:7px}}
+/* v16: SIGMA glassmorphism system — both themes retain frosted-glass surfaces */
+:root{--glass-blur:22px;--glass-radius:22px}
+body.theme-light{
+ color:#17304f!important;
+ background:
+ radial-gradient(ellipse at 12% 12%,rgba(74,144,226,.34),transparent 34%),
+ radial-gradient(ellipse at 88% 18%,rgba(92,190,213,.28),transparent 32%),
+ radial-gradient(ellipse at 72% 88%,rgba(163,137,222,.24),transparent 36%),
+ linear-gradient(135deg,#dcecff 0%,#edf4ff 46%,#e2f4f5 100%)!important;
+ background-attachment:fixed!important
+}
+body.theme-dark{
+ color:#edf6ff!important;
+ background:
+ radial-gradient(ellipse at 12% 12%,rgba(30,99,190,.52),transparent 36%),
+ radial-gradient(ellipse at 88% 18%,rgba(100,56,178,.48),transparent 34%),
+ radial-gradient(ellipse at 55% 100%,rgba(6,160,190,.25),transparent 42%),
+ linear-gradient(135deg,#071329 0%,#101d43 48%,#11102f 100%)!important;
+ background-attachment:fixed!important
+}
+body.theme-light .card,body.theme-light .work-panel,body.theme-light .employee-card,
+body.theme-light #appView>.dept,body.theme-light .metric-card,body.theme-light .finance-grid article{
+ background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.42))!important;
+ border:1px solid rgba(255,255,255,.82)!important;
+ box-shadow:0 18px 48px rgba(42,83,135,.13),inset 0 1px 0 rgba(255,255,255,.92)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important;
+ color:#17304f!important
+}
+body.theme-dark .card,body.theme-dark .work-panel,body.theme-dark .employee-card,
+body.theme-dark #appView>.dept,body.theme-dark .metric-card,body.theme-dark .finance-grid article{
+ background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+ border:1px solid rgba(210,231,255,.22)!important;
+ box-shadow:0 20px 55px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important;
+ color:#edf6ff!important
+}
+body.theme-light header,body.theme-dark header{
+ background:linear-gradient(115deg,rgba(20,77,145,.76),rgba(39,112,184,.58))!important;
+ border:1px solid rgba(255,255,255,.24);
+ border-top:0;
+ box-shadow:0 12px 36px rgba(16,55,105,.2),inset 0 1px 0 rgba(255,255,255,.28)!important;
+ backdrop-filter:blur(24px) saturate(160%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(160%)!important
+}
+body.theme-light .work-panel{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(239,247,255,.48))!important}
+body.theme-dark .work-panel{background:linear-gradient(145deg,rgba(9,23,52,.55),rgba(25,35,76,.32))!important}
+body.theme-light input,body.theme-light select,body.theme-light textarea{
+ background:rgba(255,255,255,.66)!important;border:1px solid rgba(255,255,255,.88)!important;
+ box-shadow:inset 0 1px 5px rgba(46,83,130,.07);color:#17304f!important;
+ backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+body.theme-dark input,body.theme-dark select,body.theme-dark textarea{
+ background:rgba(5,15,39,.42)!important;border:1px solid rgba(220,235,255,.2)!important;
+ color:#f4f8ff!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+body.theme-dark label,body.theme-dark .small,body.theme-dark #appView h3,
+body.theme-dark #deptView h2,body.theme-dark .work-panel h3{color:#dbeafe!important}
+body.theme-dark .employee-card .small,body.theme-dark footer{color:#b7c8e2!important}
+body.theme-light .primary,body.theme-dark .primary{
+ background:linear-gradient(110deg,#1686d9 0%,#465ee8 52%,#8855df 100%)!important;
+ border:1px solid rgba(255,255,255,.35)!important;
+ box-shadow:0 9px 28px rgba(45,104,210,.32),inset 0 1px 0 rgba(255,255,255,.35)!important
+}
+body.theme-light .dept,body.theme-dark .dept{
+ border:1px solid rgba(255,255,255,.34)!important;
+ box-shadow:0 12px 30px rgba(22,65,120,.14),inset 0 1px 0 rgba(255,255,255,.28)!important
+}
+body.theme-light .theme-switch{background:rgba(12,58,108,.18);border-color:rgba(255,255,255,.62)}
+body.theme-light .theme-switch button{color:#fff}
+body.theme-light .theme-switch button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#174f94}
+body.theme-dark .theme-switch{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.28)}
+body.theme-dark .theme-switch button{color:#eaf4ff}
+body.theme-dark .theme-switch button[aria-pressed="true"]{background:rgba(225,240,255,.92);color:#102f59}
+button{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+button:active{transform:translateY(1px) scale(.975);filter:brightness(1.12)}
+@media(prefers-reduced-transparency:reduce){
+ body.theme-light .card,body.theme-light .work-panel,body.theme-light .employee-card,
+ body.theme-dark .card,body.theme-dark .work-panel,body.theme-dark .employee-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
+@media(max-width:720px){
+ :root{--glass-blur:18px}
+ body.theme-light,body.theme-dark{background-attachment:scroll!important}
+}
+/* v17: ensure glass layer wins over legacy theme declarations */
+body.theme-light .card,body.theme-light .work-panel,body.theme-light .employee-card,
+body.theme-light #appView>.dept,body.theme-light .metric-card,body.theme-light .finance-grid article,
+body.theme-light .trend-list,body.theme-light .dept-overview,body.theme-light .work-record,
+body.theme-light .work-summary-row{
+ background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(238,247,255,.42))!important;
+ border-color:rgba(255,255,255,.84)!important;
+ box-shadow:0 18px 48px rgba(42,83,135,.13),inset 0 1px 0 rgba(255,255,255,.92)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important
+}
+body.theme-dark .card,body.theme-dark .work-panel,body.theme-dark .employee-card,
+body.theme-dark #appView>.dept,body.theme-dark .metric-card,body.theme-dark .finance-grid article,
+body.theme-dark .trend-list,body.theme-dark .dept-overview,body.theme-dark .work-record,
+body.theme-dark .work-summary-row{
+ background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+ border-color:rgba(210,231,255,.22)!important;
+ box-shadow:0 20px 55px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important
+}
+body.theme-light .work-panel{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(239,247,255,.48))!important}
+body.theme-dark .work-panel{background:linear-gradient(145deg,rgba(9,23,52,.55),rgba(25,35,76,.32))!important}
+
 </style>
 </head>
 <body>
@@ -291,7 +418,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
   <div style="text-align:right">
     <div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">连接中</span></div>
     <button id="langBtn" type="button" onclick="switchLang()">Tiếng Việt</button>
-    <button id="themeToggle" type="button" aria-pressed="false" onclick="toggleSigmaTheme()">🌙 夜间模式 / Chế độ tối</button>
+    <div id="themeSwitch" class="theme-switch" role="group" aria-label="界面主题"><button id="lightThemeBtn" type="button" onclick="setSigmaTheme('light')" aria-pressed="true">☀️ 浅色</button><button id="darkThemeBtn" type="button" onclick="setSigmaTheme('dark')" aria-pressed="false">🌙 深色</button></div>
   </div>
 </header>
 
@@ -843,25 +970,36 @@ window.switchLang = function(){
 };
 
 function updateThemeButton(){
-  const button = document.getElementById("themeToggle");
-  if(!button) return;
   const dark = document.body.classList.contains("theme-dark");
-  button.textContent = lang === "zh"
-    ? (dark ? "☀️ 白天模式" : "🌙 夜间模式")
-    : (dark ? "☀️ Chế độ sáng" : "🌙 Chế độ tối");
-  button.setAttribute("aria-pressed", dark ? "true" : "false");
+  const lightButton = document.getElementById("lightThemeBtn");
+  const darkButton = document.getElementById("darkThemeBtn");
+  if(lightButton){
+    lightButton.textContent = lang === "zh" ? "☀️ 浅色" : "☀️ Sáng";
+    lightButton.setAttribute("aria-pressed", dark ? "false" : "true");
+  }
+  if(darkButton){
+    darkButton.textContent = lang === "zh" ? "🌙 深色" : "🌙 Tối";
+    darkButton.setAttribute("aria-pressed", dark ? "true" : "false");
+  }
 }
 
-window.toggleSigmaTheme = function(){
-  const dark = document.body.classList.toggle("theme-dark");
+window.setSigmaTheme = function(mode){
+  const dark = mode === "dark";
+  document.body.classList.toggle("theme-dark", dark);
+  document.body.classList.toggle("theme-light", !dark);
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute("content", dark ? "#0a1730" : "#edf5ff");
   try{ localStorage.setItem("sigma-colorcare-theme", dark ? "dark" : "light"); }catch(error){ console.warn("Theme preference could not be saved", error); }
   updateThemeButton();
 };
+window.toggleSigmaTheme = function(){
+  window.setSigmaTheme(document.body.classList.contains("theme-dark") ? "light" : "dark");
+};
 
-try{
-  if(localStorage.getItem("sigma-colorcare-theme") === "dark") document.body.classList.add("theme-dark");
-}catch(error){ console.warn("Theme preference could not be read", error); }
-updateThemeButton();
+let savedSigmaTheme = "light";
+try{ savedSigmaTheme = localStorage.getItem("sigma-colorcare-theme") === "dark" ? "dark" : "light"; }
+catch(error){ console.warn("Theme preference could not be read", error); }
+window.setSigmaTheme(savedSigmaTheme);
 
 function showLogin(){
   document.getElementById("loginView").classList.remove("hidden");
