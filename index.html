@@ -219,6 +219,62 @@ body.theme-dark #dailyAccountingForm label{color:#c4d7ef}
 body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm select{background:#102039;border-color:#3c5879;color:#f2f7ff}
 @media(max-width:560px){#dailyAccountingForm{grid-template-columns:1fr}}
 
+
+/* v13 layout repair: prevent dashboard/workspace sections inheriting the user-bar flex layout */
+#appView>.card:not(:first-child){display:block;min-width:0}
+#appView>.card:first-child{display:flex;justify-content:space-between;align-items:center;min-width:0}
+#appView,#dashboardPanel,#deptView,#invitePanel,#employeeManagePanel{min-width:0}
+#dashboardPanel>* ,#deptView>*{min-width:0}
+#dashboardPanel .work-panel,#deptView .work-panel{width:100%;max-width:100%;min-width:0}
+#dashboardPanel .form-grid,#deptView .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#dashboardPanel .form-grid>*,#deptView .form-grid>*{min-width:0}
+#dashboardPanel input,#dashboardPanel select,#dashboardPanel textarea,
+#deptView input,#deptView select,#deptView textarea,
+#invitePanel input,#invitePanel select,#invitePanel textarea,
+#employeeManagePanel input,#employeeManagePanel select,#employeeManagePanel textarea{max-width:100%;min-width:0}
+#dashboardPanel form label,#deptView form label{min-width:0;overflow-wrap:anywhere}
+#dashboardPanel .work-panel>div,#deptView .work-panel>div{min-width:0;overflow-wrap:anywhere}
+#dashboardPanel table,#deptView table{width:100%;border-collapse:collapse}
+#dashboardPanel .work-panel,#deptView .work-panel{overflow-wrap:anywhere}
+.dashboard-grid,.finance-grid,.dept-overview-grid{width:100%;min-width:0}
+.metric-card,.finance-grid article,.dept-overview{min-width:0;overflow-wrap:anywhere}
+.metric-card strong,.finance-grid article strong{overflow-wrap:anywhere;word-break:break-word}
+.dashboard-heading{min-width:0;flex-wrap:wrap}
+.dashboard-heading>div{min-width:0;flex:1 1 180px}
+.dashboard-section-title{min-width:0;flex-wrap:wrap}
+.dashboard-section-title h3{min-width:0;overflow-wrap:anywhere}
+.trend-row{grid-template-columns:minmax(54px,76px) minmax(0,1fr) minmax(48px,64px)}
+.work-record,.work-summary-row,.employee-card{min-width:0;overflow-wrap:anywhere}
+.employee-actions button{min-width:min(120px,100%)}
+#appView>.dept{box-sizing:border-box;max-width:100%}
+#dailyAccountingForm{align-items:center}
+#dailyAccountingForm label{min-width:0;overflow-wrap:anywhere}
+#dailyAccountingForm input,#dailyAccountingForm select{min-width:0;max-width:100%}
+@media(max-width:720px){
+  #appView>.card:first-child{align-items:flex-start;gap:10px}
+  #appView>.card:first-child>div{flex:1 1 auto;min-width:0}
+  #logoutBtn{flex:0 0 auto;max-width:38%;white-space:normal;overflow-wrap:anywhere}
+  #dashboardPanel .form-grid,#deptView .form-grid{grid-template-columns:minmax(0,1fr)}
+  .dashboard-heading{align-items:flex-start}
+  .dashboard-refresh{flex:0 0 auto}
+  .dashboard-section-title{align-items:flex-start}
+  .finance-grid article{gap:8px}
+  .finance-grid article strong{text-align:right}
+  .trend-list{padding:12px}
+  .trend-row{gap:7px}
+  #dailyAccountingForm{grid-template-columns:minmax(0,1fr);gap:5px}
+  #dailyAccountingForm label{margin-top:9px}
+  #dailyAccountingForm input,#dailyAccountingForm select{margin-bottom:7px}
+  .work-panel{padding:13px!important}
+}
+@media(max-width:380px){
+  .dashboard-grid{grid-template-columns:minmax(0,1fr)}
+  .metric-card{min-height:88px}
+  .dashboard-heading h2{font-size:18px}
+  .dashboard-section-title h3{font-size:14px!important}
+  #logoutBtn{font-size:12px;padding:9px}
+}
+
 </style>
 </head>
 <body>
