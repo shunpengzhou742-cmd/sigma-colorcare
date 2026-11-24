@@ -807,6 +807,14 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     }));
     const snapshot = await assertSucceeds(getDoc(ref));
     assert.equal(snapshot.data().rates.length, 3);
+    await assertFails(setDoc(ref, {
+      rates: [{ departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 1 }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      rates: [...snapshot.data().rates, { departmentId: 1, effectiveDate: "2026-11-02", dailyWage: 310000, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
   });
 
   it("rejects employees reading or changing department wage settings", async () => {
@@ -816,37 +824,36 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     await assertFails(setDoc(ref, { rates: [] }));
   });
 
-  it("allows an active admin to create, read, and update daily accounting records", async () => {
+  it("allows an active admin to create and read a validated daily accounting record", async () => {
     const db = adminDb();
-    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+    const ref = doc(db, "dailyRecords/2026-11-19_dept_1");
     const payload = {
-      workDate: "2026-11-19",
-      departmentId: 1,
-      headcount: 3,
-      quantity: 420,
-      unitPrice: 10000,
-      dailyWage: 300000,
-      materialCost: 150000,
-      updatedBy: "admin-1",
-      updatedAt: serverTimestamp()
+      workDate: "2026-11-19", departmentId: 1, headcount: 3, outputQuantity: 420,
+      unitPrice: 10000, dailyWagePerPerson: 300000, materialCost: 150000,
+      otherCost: 20000, revenue: 4200000, laborCost: 900000,
+      netProfit: 3130000, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     };
     await assertSucceeds(setDoc(ref, payload));
     await assertSucceeds(getDoc(ref));
-    await assertSucceeds(setDoc(ref, { ...payload, quantity: 450 }));
+    await assertFails(setDoc(ref, { ...payload, outputQuantity: 450, revenue: 4500000, netProfit: 3430000 }));
   });
 
-  it("rejects employees reading, creating, or changing daily accounting records", async () => {
-    const db = googleDb();
-    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+  it("rejects forged totals, extra fields, and employee access to daily accounting records", async () => {
+    const db = adminDb();
+    const ref = doc(db, "dailyRecords/2026-11-19_dept_1");
     const payload = {
-      workDate: "2026-11-19",
-      departmentId: 1,
-      headcount: 3,
-      quantity: 420
+      workDate: "2026-11-19", departmentId: 1, headcount: 3, outputQuantity: 420,
+      unitPrice: 10000, dailyWagePerPerson: 300000, materialCost: 150000,
+      otherCost: 20000, revenue: 4200000, laborCost: 900000,
+      netProfit: 3130000, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     };
-    await assertFails(getDoc(ref));
-    await assertFails(setDoc(ref, payload));
-    await assertFails(setDoc(ref, { ...payload, quantity: 500 }));
+    await assertFails(setDoc(ref, { ...payload, netProfit: 99999999 }));
+    await assertFails(setDoc(ref, { ...payload, forgedRole: "admin" }));
+    const employeeDb = googleDb();
+    await assertFails(getDoc(doc(employeeDb, "dailyRecords/2026-11-19_dept_1")));
+    await assertFails(setDoc(doc(employeeDb, "dailyRecords/employee-forged"), payload));
   });
 
   it("denies unauthenticated reads and writes across every protected data area", async () => {
