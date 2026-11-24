@@ -255,8 +255,24 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validWageSettings(data) {
+      return data.keys().hasAll(['rates', 'updatedBy', 'updatedAt'])
+        && data.keys().hasOnly(['rates', 'updatedBy', 'updatedAt'])
+        && data.rates is list
+        && data.rates.size() <= 300
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt == request.time;
+    }
+
     match /appSettings/departmentWages {
-      allow get, create, update: if isAdmin();
+      allow get: if isAdmin();
+      allow create: if isAdmin() && validWageSettings(request.resource.data);
+      // Wage history is append-only: an existing effective-date entry cannot be removed or rewritten.
+      allow update: if isAdmin()
+        && validWageSettings(request.resource.data)
+        && resource.data.rates is list
+        && request.resource.data.rates.size() >= resource.data.rates.size()
+        && request.resource.data.rates.hasAll(resource.data.rates);
       allow list, delete: if false;
     }
 
@@ -320,9 +336,52 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validDailyRecord(data) {
+      return data.keys().hasAll([
+          'workDate', 'departmentId', 'headcount', 'outputQuantity',
+          'unitPrice', 'dailyWagePerPerson', 'materialCost', 'otherCost',
+          'revenue', 'laborCost', 'netProfit', 'currency',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'workDate', 'departmentId', 'headcount', 'outputQuantity',
+          'unitPrice', 'dailyWagePerPerson', 'materialCost', 'otherCost',
+          'revenue', 'laborCost', 'netProfit', 'currency',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.workDate is string
+        && data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+)
+        && data.departmentId in [1, 2, 3]
+        && data.headcount is int && data.headcount >= 0 && data.headcount <= 500
+        && data.outputQuantity is int && data.outputQuantity >= 0 && data.outputQuantity <= 10000000
+        && data.unitPrice is number && data.unitPrice >= 0
+        && data.dailyWagePerPerson is number && data.dailyWagePerPerson >= 0
+        && data.materialCost is number && data.materialCost >= 0
+        && data.otherCost is number && data.otherCost >= 0
+        && data.revenue is number && data.revenue >= 0
+        && data.laborCost is number && data.laborCost >= 0
+        && data.netProfit is number
+        && data.currency == 'VND'
+        && data.createdBy == request.auth.uid
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && data.revenue == data.outputQuantity * data.unitPrice
+        && data.laborCost == data.headcount * data.dailyWagePerPerson
+        && data.netProfit == data.revenue - data.laborCost - data.materialCost - data.otherCost;
+    }
+
     match /dailyRecords/{recordId} {
-      allow get, list, create, update: if isAdmin();
-      allow delete: if false;
+      allow get, list: if isAdmin();
+      // Daily accounting entries are immutable after creation to preserve the audit trail.
+      allow create: if isAdmin() && validDailyRecord(request.resource.data);
+      allow update, delete: if false;
     }
 
     match /{document=**} {
