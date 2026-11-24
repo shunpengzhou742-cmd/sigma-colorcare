@@ -1,0 +1,36 @@
+name: Client and Holiday Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - feature/dashboard-interactive-calendar
+
+permissions:
+  contents: read
+
+jobs:
+  client-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Java for the Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install project test dependencies
+        run: npm install --no-package-lock
+      - name: Check browser module syntax
+        run: npm run check:client
+      - name: Test Vietnam holiday calendar and theme dates
+        run: npm run test:holiday
+      - name: Test Firestore security rules
+        run: npm run test:rules
