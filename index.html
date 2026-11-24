@@ -1109,9 +1109,9 @@ const translations = {
     repairModuleDetail:"今日数量以实际提交工单统计",
     moduleInDevelopment:"业务模块开发中",
     moduleNotCounted:"暂不计入产量与利润",
-    dashboardLoading:"正在读取今日修色工单……",
-    dashboardLoaded:"数据来自今日已提交的修色工单。",
-    dashboardError:"读取今日数据失败：",
+    dashboardLoading:"正在读取所选日期的工单数据……",
+    dashboardLoaded:"数据来自所选日期已提交的修色、清洗和修织工单。",
+    dashboardError:"读取所选日期数据失败：",
     dashboardLimit:"近7天记录超过500批，趋势统计最多读取500批。",
     weeklyTrend:"近7天修色产量趋势",
     weeklyTrendHint:"按实际提交工单统计",
@@ -1210,6 +1210,7 @@ const translations = {
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
     repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
     dashboardKicker:"SIGMA · TỔNG QUAN KINH DOANH",
+    calendarTitle:"Tra cứu dữ liệu theo lịch",calendarPrev:"Tháng trước",calendarNext:"Tháng sau",calendarToday:"Hôm nay",calendarSelected:"Ngày đã chọn",calendarNoData:"Không có dữ liệu phiếu công việc trong ngày này",calendarWeekdays:["CN","T2","T3","T4","T5","T6","T7"],
     dashboardTitle:"Tổng quan kinh doanh",
     refreshDashboard:"Làm mới",
     todayRepairQty:"Sửa màu đã ghi nhận hôm nay",
@@ -1232,9 +1233,9 @@ const translations = {
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
     moduleInDevelopment:"Đang phát triển module",
     moduleNotCounted:"Chưa tính vào sản lượng và lợi nhuận",
-    dashboardLoading:"Đang tải phiếu sửa màu hôm nay…",
-    dashboardLoaded:"Dữ liệu lấy từ phiếu sửa màu đã gửi hôm nay.",
-    dashboardError:"Không thể tải dữ liệu hôm nay: ",
+    dashboardLoading:"Đang tải dữ liệu phiếu công việc của ngày đã chọn…",
+    dashboardLoaded:"Dữ liệu lấy từ các phiếu sửa màu, giặt và sửa dệt đã gửi trong ngày đã chọn.",
+    dashboardError:"Không thể tải dữ liệu của ngày đã chọn: ",
     dashboardLimit:"Hơn 500 lô trong 7 ngày; biểu đồ xu hướng chỉ đọc tối đa 500 lô.",
     weeklyTrend:"Xu hướng sản lượng sửa màu 7 ngày",
     weeklyTrendHint:"Thống kê từ phiếu đã gửi thực tế",
@@ -2224,7 +2225,7 @@ setFinanceDates("month");
 async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
 let dashboardCleanRowsCache=[];
 let dashboardWeaveRowsCache=[];
-let dashboardCalendarMonth=new Date();
+let dashboardCalendarMonth=new Date(localWorkDate()+"T12:00:00");
 let dashboardSelectedDate=localWorkDate();
 function dashboardDateKey(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
 function renderDashboardCalendar(){
@@ -2239,6 +2240,7 @@ function renderDashboardCalendar(){
  for(let i=0;i<42;i++){
   const d=new Date(start);d.setDate(start.getDate()+i);const key=dashboardDateKey(d),total=totals[key]||0;
   const btn=document.createElement("button");btn.type="button";btn.className="calendar-day";
+  btn.setAttribute("aria-label",key+(lang==="zh"?"，总工单数量 "+total:"，tổng số lượng phiếu "+total));
   if(d.getMonth()!==month)btn.classList.add("is-outside");
   if(key===dashboardSelectedDate)btn.classList.add("is-selected");
   if(key===localWorkDate())btn.classList.add("is-today");
