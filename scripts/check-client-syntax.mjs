@@ -36,6 +36,24 @@ if (!html.includes('#appView .module-page input[type="checkbox"]')) {
   throw new Error("Checkbox controls must keep their dedicated compact sizing rule.");
 }
 
+// Cross-platform viewport and install-layout safeguards.
+const manifest = JSON.parse(await readFile(new URL("../manifest.json", import.meta.url), "utf8"));
+if (!html.includes('name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"')) {
+  throw new Error("Viewport must support iOS safe areas and user zoom.");
+}
+if (html.includes("maximum-scale=1") || html.includes("user-scalable=no")) {
+  throw new Error("Users must be able to zoom the interface for accessibility.");
+}
+for (const meta of ["apple-mobile-web-app-capable", "apple-mobile-web-app-title", "apple-mobile-web-app-status-bar-style"]) {
+  if (!html.includes('name="' + meta + '"')) throw new Error("Missing iOS web app metadata: " + meta);
+}
+if (Object.hasOwn(manifest, "orientation")) {
+  throw new Error("PWA manifest must not lock phones or foldables to portrait orientation.");
+}
+for (const rule of ["safe-area-inset-top", "safe-area-inset-bottom", "max-width:360px", "max-width:960px", "orientation:landscape"]) {
+  if (!html.includes(rule)) throw new Error("Missing cross-device responsive rule: " + rule);
+}
+
 const tempUrl = new URL("../.index-syntax-check.mjs", import.meta.url);
 const tempPath = fileURLToPath(tempUrl);
 try {
