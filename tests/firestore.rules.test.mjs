@@ -481,6 +481,49 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(getDocs(collection(googleDb(), "employees")));
   });
 
+  it("blocks disabled employees from submitting or reading department work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com"),
+        status: "disabled"
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/disabled-employee-order"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-25", orderNo: "C-001", styleNo: "S-01",
+        color: "Navy", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const db = googleDb();
+    const { addDoc, collection, query, where } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "cleanWorkOrders"), {
+      employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+      workDate: "2026-11-25", orderNo: "C-002", styleNo: "S-02",
+      color: "Black", quantity: 5, note: "", status: "submitted",
+      createdAt: serverTimestamp()
+    }));
+    await assertFails(getDocs(query(
+      collection(db, "cleanWorkOrders"),
+      where("employeeUid", "==", "employee-1"),
+      where("departmentId", "==", 2)
+    )));
+  });
+
+  it("blocks disabled employees from reading shared holiday settings", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com"),
+        status: "disabled"
+      });
+      await setDoc(doc(context.firestore(), "appSettings/vietnamHolidayThemes"), {
+        enabledHolidayIds: ["tet"], advanceDays: 3,
+        updatedAt: Timestamp.now(), updatedBy: "admin-1"
+      });
+    });
+    await assertFails(getDoc(doc(googleDb(), "appSettings/vietnamHolidayThemes")));
+  });
+
   it("rejects employees deleting their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
@@ -764,6 +807,30 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     }));
     const snapshot = await assertSucceeds(getDoc(ref));
     assert.equal(snapshot.data().rates.length, 3);
+    await assertFails(setDoc(ref, {
+      rates: [{ departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 1 }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    const rewrittenRates = snapshot.data().rates.map((rate, index) =>
+      index === 0 ? { ...rate, dailyWage: rate.dailyWage + 1 } : rate
+    );
+    await assertFails(setDoc(ref, {
+      rates: rewrittenRates, updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(setDoc(ref, {
+      rates: [...snapshot.data().rates, { departmentId: 1, effectiveDate: "2026-11-02", dailyWage: 310000, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      rates: [...snapshot.data().rates, { departmentId: 9, effectiveDate: "2026-11-03", dailyWage: -1, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      rates: [...snapshot.data().rates,
+        { departmentId: 1, effectiveDate: "2026-11-03", dailyWage: 310000, createdBy: "admin-1" },
+        { departmentId: 2, effectiveDate: "2026-11-03", dailyWage: 280000, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
   });
 
   it("rejects employees reading or changing department wage settings", async () => {
@@ -773,37 +840,36 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     await assertFails(setDoc(ref, { rates: [] }));
   });
 
-  it("allows an active admin to create, read, and update daily accounting records", async () => {
+  it("allows an active admin to create and read a validated daily accounting record", async () => {
     const db = adminDb();
-    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+    const ref = doc(db, "dailyRecords/2026-11-19_dept_1");
     const payload = {
-      workDate: "2026-11-19",
-      departmentId: 1,
-      headcount: 3,
-      quantity: 420,
-      unitPrice: 10000,
-      dailyWage: 300000,
-      materialCost: 150000,
-      updatedBy: "admin-1",
-      updatedAt: serverTimestamp()
+      workDate: "2026-11-19", departmentId: 1, headcount: 3, outputQuantity: 420,
+      unitPrice: 10000, dailyWagePerPerson: 300000, materialCost: 150000,
+      otherCost: 20000, revenue: 4200000, laborCost: 900000,
+      netProfit: 3130000, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     };
     await assertSucceeds(setDoc(ref, payload));
     await assertSucceeds(getDoc(ref));
-    await assertSucceeds(setDoc(ref, { ...payload, quantity: 450 }));
+    await assertFails(setDoc(ref, { ...payload, outputQuantity: 450, revenue: 4500000, netProfit: 3430000 }));
   });
 
-  it("rejects employees reading, creating, or changing daily accounting records", async () => {
-    const db = googleDb();
-    const ref = doc(db, "dailyRecords/2026-11-19_department-1");
+  it("rejects forged totals, extra fields, and employee access to daily accounting records", async () => {
+    const db = adminDb();
+    const ref = doc(db, "dailyRecords/2026-11-19_dept_1");
     const payload = {
-      workDate: "2026-11-19",
-      departmentId: 1,
-      headcount: 3,
-      quantity: 420
+      workDate: "2026-11-19", departmentId: 1, headcount: 3, outputQuantity: 420,
+      unitPrice: 10000, dailyWagePerPerson: 300000, materialCost: 150000,
+      otherCost: 20000, revenue: 4200000, laborCost: 900000,
+      netProfit: 3130000, currency: "VND", createdBy: "admin-1",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     };
-    await assertFails(getDoc(ref));
-    await assertFails(setDoc(ref, payload));
-    await assertFails(setDoc(ref, { ...payload, quantity: 500 }));
+    await assertFails(setDoc(ref, { ...payload, netProfit: 99999999 }));
+    await assertFails(setDoc(ref, { ...payload, forgedRole: "admin" }));
+    const employeeDb = googleDb();
+    await assertFails(getDoc(doc(employeeDb, "dailyRecords/2026-11-19_dept_1")));
+    await assertFails(setDoc(doc(employeeDb, "dailyRecords/employee-forged"), payload));
   });
 
   it("denies unauthenticated reads and writes across every protected data area", async () => {
@@ -817,6 +883,7 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
       "weaveWorkOrders/any-order",
       "scrapRequests/any-request",
       "appSettings/departmentWages",
+      "appSettings/vietnamHolidayThemes",
       "operatingExpenses/any-expense",
       "dailyRecords/any-record"
     ];
@@ -843,6 +910,7 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     await assertFails(getDoc(doc(db, "employees/employee-1")));
     await assertFails(getDocs(collection(db, "employees")));
     await assertFails(getDoc(doc(db, "appSettings/departmentWages")));
+    await assertFails(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
     await assertFails(getDoc(doc(db, "operatingExpenses/any-expense")));
     await assertFails(getDoc(doc(db, "dailyRecords/any-record")));
     await assertFails(setDoc(doc(db, "operatingExpenses/forged-expense"), {
@@ -857,6 +925,42 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     }));
+  });
+
+  it("allows active employees to read holiday appearance settings but not modify them", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+      await setDoc(doc(context.firestore(), "appSettings/vietnamHolidayThemes"), {
+        enabledHolidayIds: ["tet", "mid-autumn"], advanceDays: 3,
+        updatedBy: "admin-1", updatedAt: Timestamp.now()
+      });
+    });
+    const db = googleDb();
+    await assertSucceeds(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
+    await assertFails(setDoc(doc(db, "appSettings/vietnamHolidayThemes"), {
+      enabledHolidayIds: [], advanceDays: 0, updatedBy: "employee-1", updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("allows admins to save valid holiday settings and rejects invalid advance days or holiday IDs", async () => {
+    const ref = doc(adminDb(), "appSettings/vietnamHolidayThemes");
+    await assertSucceeds(setDoc(ref, {
+      enabledHolidayIds: ["tet", "mid-autumn"], advanceDays: 5,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      enabledHolidayIds: ["unknown-holiday"], advanceDays: 5,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      enabledHolidayIds: ["tet"], advanceDays: 31,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("denies unregistered users from reading holiday settings", async () => {
+    const db = testEnv.authenticatedContext("unregistered-user").firestore();
+    await assertFails(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
   });
 
 });
