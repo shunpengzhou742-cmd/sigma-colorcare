@@ -1117,6 +1117,9 @@ window.setSigmaTheme(savedSigmaTheme);
 
 let activeModuleKey = "home";
 function setActiveModule(key){
+  // Navigation is not an authorization boundary; fail closed without a live,
+  // resolved identity. Firestore rules remain the data-access boundary.
+  if(!auth.currentUser || !["admin","employee"].includes(currentRole)) return;
   const keys=["home","production","salary","cost","profit","data"];
   if(!keys.includes(key)) key="home";
   if(currentRole!=="admin" && key!=="production") key="production";
@@ -1167,11 +1170,30 @@ function initializeModuleNavigation(){
   document.getElementById("moduleNav")?.classList.remove("hidden");
 }
 function showLogin(){
-  document.getElementById("loginView").classList.remove("hidden");
+  // Fail closed: clear all in-memory authorization before returning to the login screen.
+  currentRole = null;
+  currentProfile = null;
+  currentDept = "";
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
+  document.getElementById("moduleNav")?.classList.add("hidden");
+  document.querySelectorAll("#appView .module-page").forEach(page => page.classList.remove("active"));
+  document.getElementById("loginView").classList.remove("hidden");
 }
 function showApp(user, identity){
+  // Never reveal a protected workspace unless the live Firebase session matches
+  // the user whose role/profile was just resolved.
+  if(!user?.uid || !auth.currentUser || auth.currentUser.uid !== user.uid){
+    throw new Error("AUTH_SESSION_MISMATCH");
+  }
+  if(!identity || !["admin","employee"].includes(identity.role)){
+    throw new Error("IDENTITY_INVALID");
+  }
+  if(identity.role === "employee" &&
+     (!Array.isArray(identity.departmentIds) || identity.departmentIds.length === 0 ||
+      identity.departmentIds.some(id => ![1,2,3].includes(id)))){
+    throw new Error("EMPLOYEE_PROFILE_INVALID");
+  }
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
@@ -2047,6 +2069,10 @@ window.logout = async function(){
 };
 
 window.openDept = function(key){
+  if(!auth.currentUser || !["admin","employee"].includes(currentRole)){
+    showLogin();
+    return;
+  }
   const departmentMap = {repair:1, clean:2, weave:3};
   const allowed = currentRole === "admin" || (currentProfile?.departmentIds || []).includes(departmentMap[key]);
   if(!allowed) return;
@@ -2074,6 +2100,10 @@ function showDeptTitle(){
   document.getElementById("deptTitle").textContent = labels[lang][keys[currentDept]];
 }
 window.backHome = function(){
+  if(!auth.currentUser || !["admin","employee"].includes(currentRole)){
+    showLogin();
+    return;
+  }
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("appView").classList.remove("hidden");
   setActiveModule(activeModuleKey);
