@@ -264,15 +264,28 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    function validWageRate(rate) {
+      return rate is map
+        && rate.keys().hasAll(['departmentId', 'effectiveDate', 'dailyWage', 'createdBy'])
+        && rate.keys().hasOnly(['departmentId', 'effectiveDate', 'dailyWage', 'createdBy'])
+        && rate.departmentId in [1, 2, 3]
+        && rate.effectiveDate is string
+        && rate.effectiveDate.size() == 10
+        && rate.dailyWage is number
+        && rate.dailyWage >= 0
+        && rate.createdBy == request.auth.uid;
+    }
+
     match /appSettings/departmentWages {
       allow get: if isAdmin();
       allow create: if isAdmin() && validWageSettings(request.resource.data);
-      // Wage history is append-only: an existing effective-date entry cannot be removed or rewritten.
+      // Existing entries cannot be rewritten. Each update may append exactly one validated rate.
       allow update: if isAdmin()
         && validWageSettings(request.resource.data)
         && resource.data.rates is list
-        && request.resource.data.rates.size() >= resource.data.rates.size()
-        && request.resource.data.rates.hasAll(resource.data.rates);
+        && request.resource.data.rates.size() == resource.data.rates.size() + 1
+        && request.resource.data.rates.hasAll(resource.data.rates)
+        && validWageRate(request.resource.data.rates[resource.data.rates.size()]);
       allow list, delete: if false;
     }
 
