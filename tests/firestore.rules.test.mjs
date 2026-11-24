@@ -859,4 +859,40 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     }));
   });
 
+  it("allows active employees to read holiday appearance settings but not modify them", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), employeeData("employee-1", "employee@example.com"));
+      await setDoc(doc(context.firestore(), "appSettings/vietnamHolidayThemes"), {
+        enabledHolidayIds: ["tet", "mid-autumn"], advanceDays: 3,
+        updatedBy: "admin-1", updatedAt: Timestamp.now()
+      });
+    });
+    const db = googleDb();
+    await assertSucceeds(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
+    await assertFails(setDoc(doc(db, "appSettings/vietnamHolidayThemes"), {
+      enabledHolidayIds: [], advanceDays: 0, updatedBy: "employee-1", updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("allows admins to save valid holiday settings and rejects invalid advance days or holiday IDs", async () => {
+    const ref = doc(adminDb(), "appSettings/vietnamHolidayThemes");
+    await assertSucceeds(setDoc(ref, {
+      enabledHolidayIds: ["tet", "mid-autumn"], advanceDays: 5,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      enabledHolidayIds: ["unknown-holiday"], advanceDays: 5,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      enabledHolidayIds: ["tet"], advanceDays: 31,
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+  });
+
+  it("denies unregistered users from reading holiday settings", async () => {
+    const db = testEnv.authenticatedContext("unregistered-user").firestore();
+    await assertFails(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
+  });
+
 });
