@@ -283,6 +283,24 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
 #dashboardPanel,#scrapReviewPanel,#invitePanel,#employeeManagePanel{flex-direction:column;align-items:stretch}
 #dashboardPanel>* ,#scrapReviewPanel>* ,#invitePanel>* ,#employeeManagePanel>*{max-width:100%;min-width:0}
 
+
+/* v15: explicit two-option theme selector and complete light palette */
+.theme-switch{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(255,255,255,.38);border-radius:13px;background:rgba(8,32,65,.22)}
+.theme-switch button{min-height:36px;padding:7px 12px;border-radius:9px;background:transparent;border:1px solid transparent;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
+.theme-switch button[aria-pressed="true"]{background:#fff;color:#174f94;border-color:#fff;box-shadow:0 2px 8px #09264a35}
+body.theme-light{color:#172b45!important;background:radial-gradient(ellipse at 8% 18%,rgba(50,133,218,.17),transparent 32%),radial-gradient(ellipse at 92% 22%,rgba(35,183,190,.16),transparent 30%),radial-gradient(ellipse at 80% 88%,rgba(142,111,208,.13),transparent 34%),linear-gradient(145deg,#edf5ff 0%,#f7f8fd 48%,#eef9f8 100%)!important}
+body.theme-light .card{background:#fff!important;border-color:#dce6f2!important;color:#172b45!important;box-shadow:0 5px 20px rgba(27,62,102,.08)!important}
+body.theme-light #appView h3,body.theme-light #deptView h2,body.theme-light .work-panel h3{color:#174b83!important}
+body.theme-light label,body.theme-light .work-panel form label{color:#415a77!important}
+body.theme-light .small,body.theme-light #loginMsg,body.theme-light footer{color:#6b7f98!important}
+body.theme-light input,body.theme-light select,body.theme-light textarea{background:#f8fafd!important;border:1px solid #d5e0ed!important;color:#172b45!important}
+body.theme-light .work-panel{background:#f9fbfe!important;border-color:#e1e9f3!important;color:#213c5b!important}
+body.theme-light .employee-card{background:#f8fbff!important;border-color:#e0e9f4!important;color:#213c5b!important}
+body.theme-light .employee-card .small{color:#6d8097!important}
+body.theme-light .warning{background:#fff8e8!important;color:#8a5a00!important;border-color:#f4d99b!important}
+body.theme-dark .theme-switch{background:rgba(0,0,0,.2)}
+body.theme-dark .theme-switch button[aria-pressed="true"]{background:#dcecff;color:#102f59;border-color:#dcecff}
+@media(max-width:520px){.theme-switch button{padding:7px 9px;font-size:11px;min-height:34px}header>div:last-child{gap:7px}}
 </style>
 </head>
 <body>
@@ -291,7 +309,7 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
   <div style="text-align:right">
     <div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">连接中</span></div>
     <button id="langBtn" type="button" onclick="switchLang()">Tiếng Việt</button>
-    <button id="themeToggle" type="button" aria-pressed="false" onclick="toggleSigmaTheme()">🌙 夜间模式 / Chế độ tối</button>
+    <div id="themeSwitch" class="theme-switch" role="group" aria-label="界面主题"><button id="lightThemeBtn" type="button" onclick="setSigmaTheme('light')" aria-pressed="true">☀️ 浅色</button><button id="darkThemeBtn" type="button" onclick="setSigmaTheme('dark')" aria-pressed="false">🌙 深色</button></div>
   </div>
 </header>
 
@@ -843,25 +861,30 @@ window.switchLang = function(){
 };
 
 function updateThemeButton(){
-  const button = document.getElementById("themeToggle");
-  if(!button) return;
   const dark = document.body.classList.contains("theme-dark");
-  button.textContent = lang === "zh"
-    ? (dark ? "☀️ 白天模式" : "🌙 夜间模式")
-    : (dark ? "☀️ Chế độ sáng" : "🌙 Chế độ tối");
-  button.setAttribute("aria-pressed", dark ? "true" : "false");
+  const lightButton = document.getElementById("lightThemeBtn");
+  const darkButton = document.getElementById("darkThemeBtn");
+  if(lightButton) lightButton.setAttribute("aria-pressed", dark ? "false" : "true");
+  if(darkButton) darkButton.setAttribute("aria-pressed", dark ? "true" : "false");
 }
 
-window.toggleSigmaTheme = function(){
-  const dark = document.body.classList.toggle("theme-dark");
+window.setSigmaTheme = function(mode){
+  const dark = mode === "dark";
+  document.body.classList.toggle("theme-dark", dark);
+  document.body.classList.toggle("theme-light", !dark);
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute("content", dark ? "#0a1730" : "#edf5ff");
   try{ localStorage.setItem("sigma-colorcare-theme", dark ? "dark" : "light"); }catch(error){ console.warn("Theme preference could not be saved", error); }
   updateThemeButton();
 };
+window.toggleSigmaTheme = function(){
+  window.setSigmaTheme(document.body.classList.contains("theme-dark") ? "light" : "dark");
+};
 
-try{
-  if(localStorage.getItem("sigma-colorcare-theme") === "dark") document.body.classList.add("theme-dark");
-}catch(error){ console.warn("Theme preference could not be read", error); }
-updateThemeButton();
+let savedSigmaTheme = "light";
+try{ savedSigmaTheme = localStorage.getItem("sigma-colorcare-theme") === "dark" ? "dark" : "light"; }
+catch(error){ console.warn("Theme preference could not be read", error); }
+window.setSigmaTheme(savedSigmaTheme);
 
 function showLogin(){
   document.getElementById("loginView").classList.remove("hidden");
