@@ -811,7 +811,13 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
       rates: [{ departmentId: 1, effectiveDate: "2026-11-01", dailyWage: 1 }],
       updatedBy: "admin-1", updatedAt: serverTimestamp()
     }));
+    const rewrittenRates = snapshot.data().rates.map((rate, index) =>
+      index === 0 ? { ...rate, dailyWage: rate.dailyWage + 1 } : rate
+    );
     await assertFails(setDoc(ref, {
+      rates: rewrittenRates, updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertSucceeds(setDoc(ref, {
       rates: [...snapshot.data().rates, { departmentId: 1, effectiveDate: "2026-11-02", dailyWage: 310000, createdBy: "admin-1" }],
       updatedBy: "admin-1", updatedAt: serverTimestamp()
     }));
