@@ -1153,7 +1153,7 @@ function showApp(user, identity){
   document.getElementById("deptWeave").classList.toggle("hidden", !departmentIds.includes(3));
   document.getElementById("googleLinkBtn").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("invitePanel").classList.toggle("hidden", identity.role !== "admin");
-  document.getElementById("dashboardPanel").classList.toggle("hidden", identity.role !== "admin");
+  document.getElementById("dashboardPanel").classList.add("hidden"); // legacy data container stays hidden after its children move into module pages
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   document.getElementById("moduleNav").classList.toggle("hidden",identity.role!=="admin");
