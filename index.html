@@ -864,8 +864,14 @@ function updateThemeButton(){
   const dark = document.body.classList.contains("theme-dark");
   const lightButton = document.getElementById("lightThemeBtn");
   const darkButton = document.getElementById("darkThemeBtn");
-  if(lightButton) lightButton.setAttribute("aria-pressed", dark ? "false" : "true");
-  if(darkButton) darkButton.setAttribute("aria-pressed", dark ? "true" : "false");
+  if(lightButton){
+    lightButton.textContent = lang === "zh" ? "☀️ 浅色" : "☀️ Sáng";
+    lightButton.setAttribute("aria-pressed", dark ? "false" : "true");
+  }
+  if(darkButton){
+    darkButton.textContent = lang === "zh" ? "🌙 深色" : "🌙 Tối";
+    darkButton.setAttribute("aria-pressed", dark ? "true" : "false");
+  }
 }
 
 window.setSigmaTheme = function(mode){
