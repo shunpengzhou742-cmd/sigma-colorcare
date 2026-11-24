@@ -1778,9 +1778,27 @@ function updateDashboardMetrics(date){
  document.getElementById("dashboardDate").textContent=date;
  document.getElementById("dashboardMessage").textContent=repair.length+clean.length+weave.length?tr("dashboardLoaded"):tr("calendarNoData");
 }
-function selectDashboardDate(date){dashboardSelectedDate=date;updateDashboardMetrics(date);renderDashboardCalendar();}
+function selectDashboardDate(date){
+ dashboardSelectedDate=date;
+ const selected=new Date(date+"T12:00:00");
+ if(selected.getFullYear()!==dashboardCalendarMonth.getFullYear()||selected.getMonth()!==dashboardCalendarMonth.getMonth()){
+  dashboardCalendarMonth=new Date(selected.getFullYear(),selected.getMonth(),1,12);
+  loadDashboard();return;
+ }
+ updateDashboardMetrics(date);renderDashboardCalendar();
+}
+function changeDashboardMonth(delta){
+ const target=new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth()+delta,1,12);
+ const preferredDay=Number(dashboardSelectedDate.slice(-2))||1;
+ const lastDay=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();
+ dashboardCalendarMonth=target;
+ dashboardSelectedDate=dashboardDateKey(new Date(target.getFullYear(),target.getMonth(),Math.min(preferredDay,lastDay),12));
+ loadDashboard();
+}
+let dashboardLoadSequence=0;
 async function loadDashboard(){
  if(currentRole!=="admin")return;
+ const requestId=++dashboardLoadSequence;
  const button=document.getElementById("refreshDashboardBtn"),message=document.getElementById("dashboardMessage");
  if(button)button.disabled=true;message.textContent=tr("dashboardLoading");
  try{
@@ -1791,20 +1809,22 @@ async function loadDashboard(){
    getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
    getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000)))
   ]);
+  if(requestId!==dashboardLoadSequence)return;
   dashboardRowsCache=repair.docs.map(x=>x.data());dashboardCleanRowsCache=clean.docs.map(x=>x.data());dashboardWeaveRowsCache=weave.docs.map(x=>x.data());
   renderDashboardCalendar();updateDashboardMetrics(dashboardSelectedDate);
   const endDate=new Date(dashboardSelectedDate+"T12:00:00"),startDate=new Date(endDate);startDate.setDate(endDate.getDate()-6);
   renderRepairTrend(dashboardRowsCache,dashboardDateKey(startDate),dashboardSelectedDate);
   await loadFinanceOverview();
  }catch(error){
+  if(requestId!==dashboardLoadSequence)return;
   console.error("SIGMA dashboard load error:",error);
   ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
   document.getElementById("repairTrend").textContent=tr("trendError")+(error.code||error.message||"unknown");
   message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
- }finally{if(button)button.disabled=false;}
+ }finally{if(requestId===dashboardLoadSequence&&button)button.disabled=false;}
 }
-document.getElementById("calendarPrev").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()-1);loadDashboard();});
-document.getElementById("calendarNext").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()+1);loadDashboard();});
+document.getElementById("calendarPrev").addEventListener("click",()=>changeDashboardMonth(-1));
+document.getElementById("calendarNext").addEventListener("click",()=>changeDashboardMonth(1));
 document.getElementById("calendarToday").addEventListener("click",()=>{dashboardSelectedDate=localWorkDate();dashboardCalendarMonth=new Date(dashboardSelectedDate+"T12:00:00");loadDashboard();});
 
 document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);
