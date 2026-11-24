@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ColorCare">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#edf5ff">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
@@ -440,7 +443,7 @@ html.theme-dark{--muted:#c7d2fe;--ink:#f8fafc;--cyan:#67e8f9;--blue:#60a5fa;--vi
 
 
 /* v18: six-module navigation architecture — separate workspaces, no mega-scroll */
-.module-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0 14px;padding:8px;border:1px solid rgba(120,160,205,.28);border-radius:18px;background:rgba(255,255,255,.36);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 26px rgba(30,65,110,.08)}
+ .module-nav{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:16px 0 14px;padding:8px;border:1px solid rgba(120,160,205,.28);border-radius:18px;background:rgba(255,255,255,.36);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 26px rgba(30,65,110,.08)}
 .module-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:66px;padding:8px 4px;border:1px solid transparent;border-radius:13px;background:transparent;color:#45617e;font-size:11px}
 .module-nav-item span{font-size:20px;line-height:1.1}.module-nav-item b{font-size:11px;white-space:nowrap}
 .module-nav-item.active{background:linear-gradient(135deg,rgba(45,125,210,.18),rgba(35,180,190,.13));border-color:rgba(67,137,205,.28);color:#1557a6;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 4px 14px rgba(36,103,170,.09)}
@@ -509,6 +512,254 @@ body.theme-dark .login-brand-copy span{color:#c2d5ed}
 @media(max-width:420px){.login-brand{gap:13px;margin-bottom:20px}.login-brand>img{width:66px;height:66px;flex-basis:66px;border-radius:19px}}
 
 .dashboard-calendar{margin:14px 0 18px;padding:16px!important;border:1px solid rgba(130,170,210,.3)!important;background:rgba(255,255,255,.42)!important;backdrop-filter:blur(18px)}.calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}.calendar-toolbar h3{margin:0;font-size:15px;color:#214f80}.calendar-toolbar p{margin:4px 0 0}.calendar-actions{display:flex;align-items:center;gap:8px}.calendar-actions strong{min-width:94px;text-align:center;font-size:13px}.calendar-nav,.calendar-today{width:auto;min-width:34px;min-height:34px;padding:5px 10px;border-radius:10px;border:1px solid rgba(91,145,196,.25);background:rgba(255,255,255,.68);color:#245b8c;font-weight:750}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.calendar-weekday{text-align:center;font-size:10px;font-weight:800;color:#7890a8;padding:5px 0}.calendar-day{min-width:0;min-height:46px;border:1px solid rgba(126,163,199,.17);border-radius:11px;background:rgba(255,255,255,.45);color:#345575;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;padding:4px 1px}.calendar-day.is-outside{opacity:.34}.calendar-day.is-selected{background:linear-gradient(140deg,#337fc5,#32aeb5);color:white}.calendar-day.is-today:not(.is-selected){outline:2px solid rgba(49,139,197,.55)}.calendar-day-number{font-size:12px;font-weight:800}.calendar-day-total{font-size:9px;min-height:10px}.calendar-day.has-data:after{content:"";width:5px;height:5px;border-radius:50%;background:#18a58e;position:absolute;top:5px;right:6px}.calendar-day{position:relative}body.theme-dark .dashboard-calendar{background:rgba(14,30,52,.52)!important;border-color:rgba(144,182,220,.2)!important}body.theme-dark .calendar-toolbar h3,body.theme-dark .calendar-actions strong{color:#d7eaff}body.theme-dark .calendar-day{background:rgba(25,48,76,.66);color:#d5e7f8}body.theme-dark .calendar-weekday{color:#9ab2ca}@media(max-width:520px){.dashboard-calendar{padding:12px!important}.calendar-grid{gap:3px}.calendar-day{min-height:42px}}
+
+/* Vietnam holiday themes: applied globally without changing the user's saved light/dark preference. */
+body.festival-theme{background:linear-gradient(145deg,#fff7f0 0%,#fff0e8 48%,#fff8ef 100%)!important;color:#5b1d20!important}
+body.festival-theme:before,body.festival-theme:after{display:block!important;position:fixed!important;z-index:8!important;pointer-events:none!important;filter:drop-shadow(0 8px 12px rgba(110,20,20,.22))!important;opacity:1!important;font-family:system-ui,sans-serif!important}
+body.festival-theme:before{content:var(--festival-deco-left,"🎊")!important;left:12px!important;top:112px!important;width:auto!important;height:auto!important;background:none!important;border-radius:0!important;font-size:clamp(30px,5vw,52px)!important;filter:drop-shadow(0 8px 12px rgba(110,20,20,.22))!important}
+body.festival-theme:after{content:var(--festival-deco-right,"🎊")!important;right:12px!important;top:160px!important;width:auto!important;height:auto!important;background:none!important;border-radius:0!important;font-size:clamp(30px,5vw,52px)!important;filter:drop-shadow(0 8px 12px rgba(110,20,20,.22))!important}
+body.festival-theme header{background:linear-gradient(110deg,var(--festival-deep,#8f1725),var(--festival-main,#c62838),var(--festival-accent,#e35b4d))!important;box-shadow:0 10px 28px rgba(120,20,30,.2)!important}
+body.festival-theme .card,body.festival-theme .work-panel,body.festival-theme .dashboard-calendar,body.festival-theme .metric-card,body.festival-theme .finance-grid article{background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(255,245,239,.76))!important;border-color:rgba(160,55,55,.2)!important;color:#64272a!important;box-shadow:0 12px 32px rgba(120,30,35,.10),inset 0 1px 0 rgba(255,255,255,.9)!important;backdrop-filter:blur(22px) saturate(155%)!important;-webkit-backdrop-filter:blur(22px) saturate(155%)!important}
+body.festival-theme h2,body.festival-theme h3,body.festival-theme .dashboard-section-title,body.festival-theme .calendar-toolbar h3,body.festival-theme .calendar-actions strong{color:#8e2430!important}
+body.festival-theme button.primary,body.festival-theme button.dark,body.festival-theme .calendar-day.is-selected{background:linear-gradient(120deg,var(--festival-deep,#8f1725),var(--festival-main,#c62838),var(--festival-accent,#e35b4d))!important;color:#fff!important;border-color:rgba(130,25,35,.2)!important;box-shadow:0 8px 20px rgba(155,35,45,.2)!important}
+body.festival-theme .calendar-nav,body.festival-theme .calendar-today,body.festival-theme .calendar-day{background:rgba(255,255,255,.78)!important;border-color:rgba(155,50,55,.18)!important;color:#7b3035!important}
+body.festival-theme .calendar-day.is-selected{color:#fff!important}
+body.festival-theme .calendar-weekday{color:#a35b5c!important}
+body.festival-theme input,body.festival-theme select,body.festival-theme textarea{background:rgba(255,255,255,.86)!important;color:#55272a!important;border-color:rgba(155,50,55,.25)!important}
+body.festival-theme #loginView:before{background:linear-gradient(90deg,#f6c453,#c62838,#f6c453)!important}
+body.festival-theme .login-brand-copy strong{color:#8e2430!important}
+body.festival-theme .login-brand-copy span{color:#9b5555!important}
+body.festival-theme .holiday-theme-banner{background:linear-gradient(100deg,#8f1725,#c62838,#e35b4d)!important;color:#fff!important}
+body.festival-theme.festival-tet{--festival-deep:#8b101d;--festival-main:#c51f32;--festival-accent:#f0a23a;--festival-deco-left:"🏮";--festival-deco-right:"🏮"}
+body.festival-theme.festival-tet .holiday-theme-banner{background:linear-gradient(100deg,#7f101c,#c51f32,#e9a13a)!important}
+body.festival-theme.festival-hung-kings{--festival-deep:#5b3422;--festival-main:#9b4a2e;--festival-accent:#d49b45;--festival-deco-left:"🥁";--festival-deco-right:"🌾"}
+body.festival-theme.festival-reunification,body.festival-theme.festival-national{--festival-deep:#8d1722;--festival-main:#c62838;--festival-accent:#e2a52c;--festival-deco-left:"🇻🇳";--festival-deco-right:"⭐"}
+body.festival-theme.festival-mid-autumn{--festival-deep:#743d13;--festival-main:#c4771d;--festival-accent:#e9b94d;--festival-deco-left:"🏮";--festival-deco-right:"🌕"}
+body.festival-theme.festival-women{--festival-deep:#872c59;--festival-main:#c34d83;--festival-accent:#e99ab8;--festival-deco-left:"🌸";--festival-deco-right:"🌷"}
+body.festival-theme.festival-christmas{--festival-deep:#14543d;--festival-main:#b32432;--festival-accent:#d5aa48;--festival-deco-left:"🎄";--festival-deco-right:"❄️"}
+body.festival-theme.festival-new-year{--festival-deep:#173b75;--festival-main:#365eae;--festival-accent:#d3a33c;--festival-deco-left:"🎆";--festival-deco-right:"✨"}
+body.festival-theme.festival-dragon-boat{--festival-deep:#17635c;--festival-main:#218c80;--festival-accent:#e2a33b;--festival-deco-left:"🐉";--festival-deco-right:"🛶"}
+body.festival-theme.festival-vu-lan{--festival-deep:#6b3b76;--festival-main:#9c5aa8;--festival-accent:#d8a6d7;--festival-deco-left:"🪷";--festival-deco-right:"🌸"}
+body.festival-theme.festival-teachers{--festival-deep:#205b50;--festival-main:#35836c;--festival-accent:#d4a44e;--festival-deco-left:"🌼";--festival-deco-right:"📚"}
+body.festival-theme.festival-children{--festival-deep:#245e9b;--festival-main:#368ec4;--festival-accent:#f0b34c;--festival-deco-left:"🎈";--festival-deco-right:"🎠"}
+.holiday-theme-banner{display:block;width:min(100% - 28px,1120px);margin:10px auto 0;padding:10px 16px;border-radius:14px;text-align:center;font-size:13px;font-weight:800;letter-spacing:.2px;background:linear-gradient(100deg,#8f1725,#c62838,#e35b4d);color:white;box-shadow:0 7px 20px rgba(120,20,30,.16)}
+@media(max-width:520px){body.festival-theme:before{left:4px!important;top:104px!important;font-size:30px!important}body.festival-theme:after{right:4px!important;top:150px!important;font-size:30px!important}.holiday-theme-banner{font-size:11px;padding:9px 10px}}
+@media(prefers-reduced-motion:no-preference){body.festival-theme:before,body.festival-theme:after{animation:festivalLanternFloat 4s ease-in-out infinite alternate!important}@keyframes festivalLanternFloat{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(7px) rotate(3deg)}}}
+
+
+/* Admin holiday theme manager */
+.holiday-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.holiday-setting-row{display:flex;align-items:center;gap:9px;min-width:0;padding:11px 12px;border:1px solid rgba(120,150,190,.24);border-radius:12px;background:rgba(255,255,255,.56);color:#274565;font-size:13px}
+.holiday-setting-row input{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:#2563eb}
+.holiday-preview-controls,.holiday-settings-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.holiday-preview-controls select{flex:1;min-width:160px}
+.holiday-preview-controls button{width:auto;flex:1;min-width:110px}
+.holiday-settings-actions .primary{width:auto;min-width:170px}
+body.theme-dark .holiday-setting-row{background:rgba(12,27,48,.72);color:#e1efff;border-color:rgba(130,165,205,.25)}
+body.festival-theme .holiday-setting-row{background:rgba(255,255,255,.78);color:#64272a}
+@media(max-width:560px){.holiday-settings-grid{grid-template-columns:1fr}.holiday-preview-controls{display:grid;grid-template-columns:1fr 1fr}.holiday-preview-controls select{grid-column:1/-1}.holiday-preview-controls button{width:100%;min-width:0}.holiday-settings-actions .primary{width:100%}}
+
+/* SIGMA ColorCare v20 — unified glass workspace across all functional modules */
+:root{
+  --sigma-glass-radius:20px;
+  --sigma-glass-blur:22px;
+  --sigma-focus:rgba(48,132,218,.42);
+}
+#appView{width:100%;min-width:0}
+#appView>.card:first-child{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-radius:18px!important;
+  padding:16px 19px!important;
+}
+#appView>.card:first-child:after{
+  content:"";position:absolute;inset:0 0 auto;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,#35a2d8,#7b78d5,#45bdb1);opacity:.8;
+}
+#appView .module-nav{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:8px;padding:9px;margin:14px 0 16px;
+  border-radius:20px;
+  box-shadow:0 12px 32px rgba(35,76,125,.10),inset 0 1px 0 rgba(255,255,255,.45);
+}
+#appView .module-nav-item{
+  min-width:0;min-height:68px;padding:9px 5px;
+  border-radius:14px;gap:6px;font-size:11px;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+#appView .module-nav-item span{font-size:21px}
+#appView .module-nav-item b{font-size:11px;line-height:1.25;white-space:normal;text-align:center}
+#appView .module-nav-item:focus-visible,
+#appView button:focus-visible,
+#appView a:focus-visible,
+#appView input:focus-visible,
+#appView select:focus-visible,
+#appView textarea:focus-visible{
+  outline:3px solid var(--sigma-focus)!important;outline-offset:2px!important;
+}
+#appView>section.module-page.card{
+  width:100%;min-width:0;max-width:100%;
+  margin:0 0 18px;border-radius:var(--sigma-glass-radius)!important;
+  padding:clamp(17px,2.5vw,27px)!important;
+  overflow:visible;
+}
+#appView .module-page-heading{
+  align-items:flex-start;margin:0 0 20px;padding:3px 2px 16px;
+}
+#appView .module-page-heading>div{min-width:0}
+#appView .module-page-heading small{display:inline-block;margin-bottom:4px}
+#appView .module-page-heading h2{font-size:clamp(20px,2.4vw,25px);font-weight:850;letter-spacing:-.35px}
+#appView .module-page-heading p{max-width:760px;font-size:12px;line-height:1.65}
+#appView .module-page .work-panel{
+  min-width:0;border-radius:17px!important;padding:clamp(14px,2vw,20px)!important;
+  margin:14px 0!important;
+}
+#appView .module-page .work-panel>h3:first-child{margin-top:2px!important}
+#appView .module-page .dashboard-section-title{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:18px 0 10px;padding-bottom:8px;border-bottom:1px solid rgba(115,150,190,.18);
+}
+#appView .module-page .dashboard-section-title h3{margin:0!important;font-size:14px!important;font-weight:800}
+#appView .module-page .metric-card,
+#appView .module-page .finance-grid article,
+#appView .module-page .dept-overview,
+#appView .module-page .employee-card{
+  border-radius:16px!important;overflow:hidden;
+}
+#appView .module-page .metric-card{min-height:112px;padding:16px;box-shadow:0 10px 24px rgba(28,67,112,.10),inset 0 1px 0 rgba(255,255,255,.22)}
+#appView .module-page .metric-card strong{font-size:clamp(22px,2.7vw,30px);font-variant-numeric:tabular-nums}
+#appView .module-page .finance-grid{gap:12px}
+#appView .module-page .finance-grid article{min-height:94px;justify-content:center;padding:16px}
+#appView .module-page .finance-grid article strong{font-size:clamp(16px,2vw,21px);font-variant-numeric:tabular-nums}
+#appView .module-page .form-grid{gap:14px}
+#appView .module-page input:not([type="checkbox"]):not([type="radio"]),
+#appView .module-page select,
+#appView .module-page textarea{
+  min-height:44px;border-radius:12px!important;padding:11px 13px!important;
+  font:inherit;font-size:14px;line-height:1.4;
+}
+#appView .module-page input[type="checkbox"],
+#appView .module-page input[type="radio"]{
+  width:18px;height:18px;min-height:18px;flex:0 0 18px;
+  margin:0;padding:0!important;border-radius:5px!important;
+  accent-color:#2878cf;vertical-align:middle;
+}
+#appView .module-page textarea{min-height:92px;resize:vertical}
+#appView .module-page button{border-radius:12px;min-height:42px}
+#appView .module-page button:not(.primary):not(.calendar-day){
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+}
+#appView .module-page .table-wrap{
+  display:block;width:100%;max-width:100%;overflow-x:auto;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  border-radius:13px;border:1px solid rgba(120,155,195,.20);
+}
+#appView .module-page table.data-table,
+#appView .module-page .table-wrap table{
+  width:100%;min-width:620px;border-collapse:separate;border-spacing:0;
+  font-size:12px;line-height:1.5;
+}
+#appView .module-page table.data-table th,
+#appView .module-page .table-wrap table th{
+  position:sticky;top:0;z-index:1;text-align:left;font-weight:800;
+  padding:11px 12px;white-space:nowrap;
+}
+#appView .module-page table.data-table td,
+#appView .module-page .table-wrap table td{
+  padding:10px 12px;border-top:1px solid rgba(120,155,195,.16);
+  vertical-align:middle;overflow-wrap:anywhere;
+}
+#appView .module-page .work-record{padding:12px 2px}
+#appView .module-page .work-summary-row{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+#appView .module-page .employee-card{padding:16px!important}
+#appView .module-page .employee-actions{gap:8px}
+#appView .module-page .employee-actions button{min-width:110px}
+body.theme-light:not(.festival-theme) #appView>.card:first-child,
+body.theme-light:not(.festival-theme) #appView .module-nav{
+  background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(237,247,255,.43))!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  backdrop-filter:blur(var(--sigma-glass-blur)) saturate(165%)!important;
+  -webkit-backdrop-filter:blur(var(--sigma-glass-blur)) saturate(165%)!important;
+}
+body.theme-light:not(.festival-theme) #appView .module-nav-item.active{
+  background:linear-gradient(135deg,rgba(50,128,211,.20),rgba(48,183,183,.16))!important;
+  color:#164f89!important;border-color:rgba(70,143,205,.32)!important;
+}
+body.theme-light:not(.festival-theme) #appView .module-page .table-wrap{background:rgba(255,255,255,.34)}
+body.theme-light:not(.festival-theme) #appView .module-page table.data-table th,
+body.theme-light:not(.festival-theme) #appView .module-page .table-wrap table th{
+  background:rgba(225,239,253,.88);color:#244e78;
+}
+body.theme-light:not(.festival-theme) #appView .module-page table.data-table td,
+body.theme-light:not(.festival-theme) #appView .module-page .table-wrap table td{color:#29445f}
+body.theme-dark:not(.festival-theme) #appView>.card:first-child,
+body.theme-dark:not(.festival-theme) #appView .module-nav{
+  background:linear-gradient(145deg,rgba(27,49,79,.76),rgba(14,30,54,.62))!important;
+  border:1px solid rgba(139,178,220,.30)!important;
+  backdrop-filter:blur(25px) saturate(155%)!important;
+  -webkit-backdrop-filter:blur(25px) saturate(155%)!important;
+}
+body.theme-dark:not(.festival-theme) #appView .module-nav-item.active{
+  background:linear-gradient(135deg,rgba(57,135,211,.32),rgba(34,164,177,.22))!important;
+  color:#e6f5ff!important;border-color:rgba(124,183,231,.38)!important;
+}
+body.theme-dark:not(.festival-theme) #appView .module-page .table-wrap{background:rgba(8,22,42,.28);border-color:rgba(131,168,207,.24)}
+body.theme-dark:not(.festival-theme) #appView .module-page table.data-table th,
+body.theme-dark:not(.festival-theme) #appView .module-page .table-wrap table th{
+  background:rgba(31,56,87,.96);color:#e3f0ff;
+}
+body.theme-dark:not(.festival-theme) #appView .module-page table.data-table td,
+body.theme-dark:not(.festival-theme) #appView .module-page .table-wrap table td{color:#d5e5f6}
+@media(max-width:720px){
+  #appView>.card:first-child{padding:13px 14px!important}
+  #appView .module-nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:7px;border-radius:16px}
+  #appView .module-nav-item{min-height:59px;padding:7px 4px}
+  #appView>section.module-page.card{padding:16px!important;border-radius:17px!important}
+  #appView .module-page-heading{margin-bottom:14px;padding-bottom:12px}
+  #appView .module-page .metric-card{min-height:94px;padding:12px}
+  #appView .module-page .finance-grid{grid-template-columns:1fr}
+  #appView .module-page .finance-grid article{min-height:64px;flex-direction:row;align-items:center;justify-content:space-between}
+  #appView .module-page .table-wrap{margin:10px 0}
+}
+@media(max-width:420px){
+  #appView .module-nav-item b{font-size:10px}
+  #appView .module-page-heading h2{font-size:19px}
+  #appView .module-page .employee-actions button{flex:1 1 100%;min-width:0}
+}
+@media(prefers-reduced-motion:reduce){
+  #appView .module-nav-item{transition:none!important}
+}
+
+
+
+/* Cross-device layout: iOS safe areas, compact phones, tablets and foldable screens. */
+html,body{width:100%;min-width:0}
+@supports(padding:max(0px)){
+ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+}
+img,svg,canvas,video{max-width:100%;height:auto}
+input,select,textarea,button{max-width:100%;min-width:0}
+@media(min-width:721px) and (max-width:960px){
+ #appView .module-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ header{gap:8px;padding-left:10px;padding-right:10px}
+ header>div:last-child{gap:5px}
+ #themeToggle,#langBtn{padding:6px 7px;font-size:10px}
+ main{width:calc(100% - 18px)}
+ .card{padding:13px!important}
+ #appView .module-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ #appView .module-nav-item{min-height:54px}
+ .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .calendar-toolbar{align-items:flex-start}
+ .calendar-actions{width:100%;justify-content:space-between}
+}
+@media(orientation:landscape) and (max-height:520px){
+ header{padding-top:9px;padding-bottom:9px}
+ main{margin-top:10px}
+ #loginView{margin:12px auto}
+ #appView .module-nav-item{min-height:48px}
+}
 </style>
 </head>
 <body>
@@ -520,6 +771,7 @@ body.theme-dark .login-brand-copy span{color:#c2d5ed}
     <div id="themeSwitch" class="theme-switch" role="group" aria-label="界面主题"><button id="lightThemeBtn" type="button" onclick="setSigmaTheme('light')" aria-pressed="true">☀️ 浅色</button><button id="darkThemeBtn" type="button" onclick="setSigmaTheme('dark')" aria-pressed="false">🌙 深色</button></div>
   </div>
 </header>
+<aside id="holidayThemeBanner" class="holiday-theme-banner hidden" role="status" aria-live="polite"></aside>
 
 <main>
   <section id="loginView" class="card">
@@ -559,6 +811,7 @@ body.theme-dark .login-brand-copy span{color:#c2d5ed}
       <button type="button" class="module-nav-item" data-module="cost" onclick="setActiveModule('cost')"><span>◈</span><b data-i18n="moduleCostNav">成本管理</b></button>
       <button type="button" class="module-nav-item" data-module="profit" onclick="setActiveModule('profit')"><span>▤</span><b data-i18n="moduleProfitNav">盈亏报表</b></button>
       <button type="button" class="module-nav-item" data-module="data" onclick="setActiveModule('data')"><span>⚙</span><b data-i18n="moduleDataNav">数据管理</b></button>
+      <button type="button" class="module-nav-item" data-module="settings" onclick="setActiveModule('settings')"><span>🎨</span><b data-i18n="moduleSettingsNav">主题设置</b></button>
     </nav>
     <section id="module-home" class="module-page card active">
       <div class="module-page-heading"><div><small>SIGMA COLORCARE</small><h2 data-i18n="moduleHomeTitle">首页 · 经营总览</h2><p data-i18n="moduleHomeDesc">查看当天进度和三个工作组的运营状态</p></div></div>
@@ -583,6 +836,27 @@ body.theme-dark .login-brand-copy span{color:#c2d5ed}
     <section id="module-data" class="module-page card">
       <div class="module-page-heading"><div><small>DATA MANAGEMENT</small><h2 data-i18n="moduleDataTitle">数据管理</h2><p data-i18n="moduleDataDesc">员工、邀请、报废审核和业务记录管理</p></div></div>
       <div id="moduleDataContent"></div>
+    </section>
+    <section id="module-settings" class="module-page card">
+      <div class="module-page-heading"><div><small>APPEARANCE & HOLIDAYS</small><h2 data-i18n="moduleSettingsTitle">节日主题管理</h2><p data-i18n="moduleSettingsDesc">统一管理越南节日主题、提前切换时间和节日预览</p></div></div>
+      <div class="work-panel holiday-settings-panel">
+        <h3 data-i18n="holidaySettingsHeading">自动节日主题</h3>
+        <p class="small" data-i18n="holidaySettingsHint">启用的节日会按越南当地日期自动切换，设置对所有已登录员工生效。</p>
+        <label for="holidayAdvanceDays" data-i18n="holidayAdvanceLabel">提前切换天数</label>
+        <select id="holidayAdvanceDays" aria-label="Holiday theme advance days"></select>
+        <div class="dashboard-section-title"><h3 data-i18n="holidayEnabledTitle">启用的节日</h3></div>
+        <div id="holidayThemeOptions" class="holiday-settings-grid"></div>
+        <div class="dashboard-section-title"><h3 data-i18n="holidayPreviewTitle">主题预览</h3></div>
+        <div class="holiday-preview-controls">
+          <select id="holidayPreviewSelect" aria-label="Preview a holiday theme"></select>
+          <button id="previewHolidayThemeBtn" class="dark" type="button" data-i18n="holidayPreviewButton">预览主题</button>
+          <button id="clearHolidayPreviewBtn" class="dark" type="button" data-i18n="holidayPreviewClear">恢复自动主题</button>
+        </div>
+        <div class="holiday-settings-actions">
+          <button id="saveHolidayThemeSettingsBtn" class="primary" type="button" data-i18n="holidaySaveButton">保存全局设置</button>
+          <span id="holidayThemeSettingsStatus" class="small" role="status" aria-live="polite"></span>
+        </div>
+      </div>
     </section>
     <section id="dashboardPanel" class="card hidden" style="margin-top:18px">
       <div class="dashboard-heading">
@@ -800,7 +1074,7 @@ import {
   getAuth, signInWithEmailAndPassword, signInWithRedirect, onAuthStateChanged, signOut,
   GoogleAuthProvider, linkWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, Timestamp, serverTimestamp, collection, getDocs, updateDoc, addDoc, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByXsPal78Fx7568VOlbGE3Q9SriQi1Utw",
@@ -819,7 +1093,7 @@ googleProvider.setCustomParameters({prompt:"select_account"});
 
 const translations = {
   zh: {
-    moduleHomeNav:"首页",moduleProductionNav:"产量管理",moduleSalaryNav:"工资管理",moduleCostNav:"成本管理",moduleProfitNav:"盈亏报表",moduleDataNav:"数据管理",moduleHomeTitle:"首页 · 经营总览",moduleHomeDesc:"查看当天进度和三个工作组的运营状态",moduleProductionTitle:"产量管理",moduleProductionDesc:"部门每日核算与修色、清洗、修织工单入口",moduleSalaryTitle:"工资管理",moduleSalaryDesc:"部门日薪标准及历史生效记录",moduleCostTitle:"成本管理",moduleCostDesc:"登记和查询日常经营支出",moduleProfitTitle:"盈亏报表",moduleProfitDesc:"按月、半年、年度查看收入、成本和利润",moduleDataTitle:"数据管理",moduleDataDesc:"员工、邀请、报废审核和业务记录管理",subtitle:"智能工厂管理系统", login:"登录系统",
+    moduleHomeNav:"首页",moduleProductionNav:"产量管理",moduleSalaryNav:"工资管理",moduleCostNav:"成本管理",moduleProfitNav:"盈亏报表",moduleDataNav:"数据管理",moduleHomeTitle:"首页 · 经营总览",moduleHomeDesc:"查看当天进度和三个工作组的运营状态",moduleProductionTitle:"产量管理",moduleProductionDesc:"部门每日核算与修色、清洗、修织工单入口",moduleSalaryTitle:"工资管理",moduleSalaryDesc:"部门日薪标准及历史生效记录",moduleCostTitle:"成本管理",moduleCostDesc:"登记和查询日常经营支出",moduleProfitTitle:"盈亏报表",moduleProfitDesc:"按月、半年、年度查看收入、成本和利润",moduleDataTitle:"数据管理",moduleDataDesc:"员工、邀请、报废审核和业务记录管理",moduleSettingsNav:"主题设置",moduleSettingsTitle:"节日主题管理",moduleSettingsDesc:"统一管理越南节日主题、提前切换时间和节日预览",holidaySettingsHeading:"自动节日主题",holidaySettingsHint:"启用的节日会按越南当地日期自动切换，设置对所有已登录员工生效。",holidayAdvanceLabel:"提前切换天数",holidayEnabledTitle:"启用的节日",holidayPreviewTitle:"主题预览",holidayPreviewButton:"预览主题",holidayPreviewClear:"恢复自动主题",holidaySaveButton:"保存全局设置",holidaySaved:"节日主题设置已保存并同步。",holidaySaveError:"保存节日主题设置失败：",holidayLoadError:"无法读取全局节日主题设置：",holidayPreviewActive:"正在预览主题；不会更改已保存设置。",holidayPreviewRestored:"已恢复自动节日主题。",subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
     selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
@@ -868,9 +1142,9 @@ const translations = {
     repairModuleDetail:"今日数量以实际提交工单统计",
     moduleInDevelopment:"业务模块开发中",
     moduleNotCounted:"暂不计入产量与利润",
-    dashboardLoading:"正在读取今日修色工单……",
-    dashboardLoaded:"数据来自今日已提交的修色工单。",
-    dashboardError:"读取今日数据失败：",
+    dashboardLoading:"正在读取所选日期的工单数据……",
+    dashboardLoaded:"数据来自所选日期已提交的修色、清洗和修织工单。",
+    dashboardError:"读取所选日期数据失败：",
     dashboardLimit:"近7天记录超过500批，趋势统计最多读取500批。",
     weeklyTrend:"近7天修色产量趋势",
     weeklyTrendHint:"按实际提交工单统计",
@@ -942,7 +1216,7 @@ const translations = {
     expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
   },
   vi: {
-    moduleHomeNav:"Trang chủ",moduleProductionNav:"Sản lượng",moduleSalaryNav:"Tiền lương",moduleCostNav:"Chi phí",moduleProfitNav:"Lãi lỗ",moduleDataNav:"Dữ liệu",moduleHomeTitle:"Trang chủ · Tổng quan",moduleHomeDesc:"Theo dõi tiến độ hôm nay và hoạt động của ba nhóm",moduleProductionTitle:"Quản lý sản lượng",moduleProductionDesc:"Hạch toán hằng ngày và lối vào lệnh sửa màu, giặt, sửa dệt",moduleSalaryTitle:"Quản lý tiền lương",moduleSalaryDesc:"Mức lương ngày và lịch sử áp dụng",moduleCostTitle:"Quản lý chi phí",moduleCostDesc:"Ghi nhận và tra cứu chi phí vận hành",moduleProfitTitle:"Báo cáo lãi lỗ",moduleProfitDesc:"Xem doanh thu, chi phí và lợi nhuận theo tháng, nửa năm, năm",moduleDataTitle:"Quản lý dữ liệu",moduleDataDesc:"Nhân viên, lời mời, duyệt phế phẩm và hồ sơ nghiệp vụ",subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
+    moduleHomeNav:"Trang chủ",moduleProductionNav:"Sản lượng",moduleSalaryNav:"Tiền lương",moduleCostNav:"Chi phí",moduleProfitNav:"Lãi lỗ",moduleDataNav:"Dữ liệu",moduleHomeTitle:"Trang chủ · Tổng quan",moduleHomeDesc:"Theo dõi tiến độ hôm nay và hoạt động của ba nhóm",moduleProductionTitle:"Quản lý sản lượng",moduleProductionDesc:"Hạch toán hằng ngày và lối vào lệnh sửa màu, giặt, sửa dệt",moduleSalaryTitle:"Quản lý tiền lương",moduleSalaryDesc:"Mức lương ngày và lịch sử áp dụng",moduleCostTitle:"Quản lý chi phí",moduleCostDesc:"Ghi nhận và tra cứu chi phí vận hành",moduleProfitTitle:"Báo cáo lãi lỗ",moduleProfitDesc:"Xem doanh thu, chi phí và lợi nhuận theo tháng, nửa năm, năm",moduleDataTitle:"Quản lý dữ liệu",moduleDataDesc:"Nhân viên, lời mời, duyệt phế phẩm và hồ sơ nghiệp vụ",moduleSettingsNav:"Giao diện",moduleSettingsTitle:"Quản lý giao diện ngày lễ",moduleSettingsDesc:"Quản lý giao diện lễ hội Việt Nam, số ngày đổi trước và xem trước",holidaySettingsHeading:"Tự động đổi giao diện ngày lễ",holidaySettingsHint:"Ngày lễ được tự động nhận diện theo giờ Việt Nam; thiết lập áp dụng cho tất cả nhân viên đã đăng nhập.",holidayAdvanceLabel:"Số ngày đổi giao diện trước lễ",holidayEnabledTitle:"Bật các ngày lễ",holidayPreviewTitle:"Xem trước giao diện",holidayPreviewButton:"Xem trước",holidayPreviewClear:"Khôi phục tự động",holidaySaveButton:"Lưu thiết lập chung",holidaySaved:"Đã lưu và đồng bộ thiết lập giao diện ngày lễ.",holidaySaveError:"Không thể lưu thiết lập giao diện: ",holidayLoadError:"Không thể tải thiết lập giao diện chung: ",holidayPreviewActive:"Đang xem trước; thiết lập đã lưu không bị thay đổi.",holidayPreviewRestored:"Đã khôi phục giao diện tự động.",subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
     selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
@@ -969,6 +1243,7 @@ const translations = {
     googleNeedPassword:"Vui lòng đăng nhập bằng email và mật khẩu của quản trị viên trước, sau đó mới liên kết Google.",
     repairEntryTitle:"Nhập phiếu sửa màu (theo từng lô)", repairEntryDesc:"Mỗi lô hàng tạo một phiếu riêng; hệ thống tự tổng hợp theo ngày và loại sửa màu.", workDate:"Ngày thực hiện", repairType:"Loại sửa màu", sprayRepair:"Phun màu", handRepair:"Vẽ thủ công", orderNo:"Mã đơn hàng (không bắt buộc)", styleNo:"Mã kiểu (không bắt buộc)", color:"Màu sắc (không bắt buộc)", quantity:"Số lượng lô này", workNote:"Ghi chú (không bắt buộc)", submitWorkOrder:"Gửi phiếu của lô này", submittingWorkOrder:"Đang gửi…", workOrderSaved:"Đã gửi phiếu của lô hàng này.", workOrderError:"Gửi phiếu thất bại: ", dailyRepairSummary:"Tổng hợp sửa màu hằng ngày", myRepairOrders:"Danh sách phiếu sửa màu", refreshRecords:"Làm mới dữ liệu", noRepairOrders:"Chưa có phiếu sửa màu.", otherDeptComing:"Trang công việc của bộ phận này sẽ được phát triển sau khi xác minh module sửa màu.",employeeManageTitle:"Quản lý nhân viên", employeeManageDesc:"Xem hồ sơ, điều chỉnh quyền bộ phận hoặc khóa quyền truy cập hệ thống.", refreshEmployees:"Làm mới danh sách", loadingEmployees:"Đang tải danh sách nhân viên…", noEmployees:"Chưa có hồ sơ nhân viên.", employeeLoadError:"Không thể tải danh sách: ", saveAccess:"Lưu quyền bộ phận", savingAccess:"Đang lưu…", accessSaved:"Đã cập nhật quyền bộ phận.", disableEmployee:"Khóa truy cập", enableEmployee:"Mở lại truy cập", employeeDisabled:"Nhân viên đã bị khóa truy cập hệ thống.", employeeEnabled:"Đã khôi phục quyền truy cập.", employeeSaveError:"Cập nhật nhân viên thất bại: ", statusActive:"Trạng thái: Đang hoạt động", statusDisabled:"Trạng thái: Đã khóa",
     dashboardKicker:"SIGMA · TỔNG QUAN KINH DOANH",
+    calendarTitle:"Tra cứu dữ liệu theo lịch",calendarPrev:"Tháng trước",calendarNext:"Tháng sau",calendarToday:"Hôm nay",calendarSelected:"Ngày đã chọn",calendarNoData:"Không có dữ liệu phiếu công việc trong ngày này",calendarWeekdays:["CN","T2","T3","T4","T5","T6","T7"],
     dashboardTitle:"Tổng quan kinh doanh",
     refreshDashboard:"Làm mới",
     todayRepairQty:"Sửa màu đã ghi nhận hôm nay",
@@ -991,9 +1266,9 @@ const translations = {
     repairModuleDetail:"Số lượng hôm nay tính từ phiếu đã gửi thực tế",
     moduleInDevelopment:"Đang phát triển module",
     moduleNotCounted:"Chưa tính vào sản lượng và lợi nhuận",
-    dashboardLoading:"Đang tải phiếu sửa màu hôm nay…",
-    dashboardLoaded:"Dữ liệu lấy từ phiếu sửa màu đã gửi hôm nay.",
-    dashboardError:"Không thể tải dữ liệu hôm nay: ",
+    dashboardLoading:"Đang tải dữ liệu phiếu công việc của ngày đã chọn…",
+    dashboardLoaded:"Dữ liệu lấy từ các phiếu sửa màu, giặt và sửa dệt đã gửi trong ngày đã chọn.",
+    dashboardError:"Không thể tải dữ liệu của ngày đã chọn: ",
     dashboardLimit:"Hơn 500 lô trong 7 ngày; biểu đồ xu hướng chỉ đọc tối đa 500 lô.",
     weeklyTrend:"Xu hướng sản lượng sửa màu 7 ngày",
     weeklyTrendHint:"Thống kê từ phiếu đã gửi thực tế",
@@ -1103,53 +1378,287 @@ window.switchLang = function(){
   document.getElementById("langBtn").textContent = tr("lang");
   updateNet();
   updateThemeButton();
+  if(holidayPreviewId){const item=VIETNAM_HOLIDAY_LABELS.find(entry=>entry.id===holidayPreviewId);updateHolidayThemeBanner(item?{...item,daysUntil:0}:getVietnamHolidaySchedule());}
+  else updateHolidayThemeBanner(getVietnamHolidaySchedule());
+  if(currentRole==="admin")renderHolidaySettingsControls();
   if(currentDept) showDeptTitle();
   if(currentRole === "admin") renderEmployeeList(employeeCache);
 };
 
-function updateThemeButton(){
-  const dark = document.body.classList.contains("theme-dark");
-  const lightButton = document.getElementById("lightThemeBtn");
-  const darkButton = document.getElementById("darkThemeBtn");
-  if(lightButton){
-    lightButton.textContent = lang === "zh" ? "☀️ 浅色" : "☀️ Sáng";
-    lightButton.setAttribute("aria-pressed", dark ? "false" : "true");
-  }
-  if(darkButton){
-    darkButton.textContent = lang === "zh" ? "🌙 深色" : "🌙 Tối";
-    darkButton.setAttribute("aria-pressed", dark ? "true" : "false");
-  }
-}
-
-window.setSigmaTheme = function(mode){
-  const dark = mode === "dark";
-  document.body.classList.toggle("theme-dark", dark);
-  document.body.classList.toggle("theme-light", !dark);
-  const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if(metaTheme) metaTheme.setAttribute("content", dark ? "#0a1730" : "#edf5ff");
-  document.documentElement.classList.toggle("theme-dark", dark);
-  document.documentElement.classList.toggle("theme-light", !dark);
-  try{ localStorage.setItem("sigma-colorcare-theme-v2", dark ? "dark" : "light"); }catch(error){ console.warn("Theme preference could not be saved", error); }
-  updateThemeButton();
-};
-window.toggleSigmaTheme = function(){
-  window.setSigmaTheme(document.body.classList.contains("theme-dark") ? "light" : "dark");
-};
 
 let savedSigmaTheme = "light";
 try{ savedSigmaTheme = localStorage.getItem("sigma-colorcare-theme-v2") === "dark" ? "dark" : "light"; }
 catch(error){ console.warn("Theme preference could not be read", error); }
+
+const VIETNAM_TIME_ZONE = "Asia/Ho_Chi_Minh";
+const lunarHolidayDateCache = new Map();
+function vietnamDateParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat("en-CA",{timeZone:VIETNAM_TIME_ZONE,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(date);
+  const value = Object.fromEntries(parts.map(part=>[part.type,part.value]));
+  return {year:Number(value.year),month:Number(value.month),day:Number(value.day)};
+}
+function vietnamDateKey(year,month,day){
+  return year+"-"+String(month).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+}
+function vietnamDateOrdinal(key){
+  const [year,month,day]=key.split("-").map(Number);
+  return Math.floor(Date.UTC(year,month-1,day)/86400000);
+}
+function jdFromDate(dd,mm,yy){
+  const a=Math.floor((14-mm)/12),y=yy+4800-a,m=mm+12*a-3;
+  let jd=dd+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)-Math.floor(y/100)+Math.floor(y/400)-32045;
+  if(jd<2299161)jd=dd+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)-32083;
+  return jd;
+}
+function getNewMoonDay(k,tz){
+  const T=k/1236.85,T2=T*T,T3=T2*T,dr=Math.PI/180;
+  let jd1=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3;
+  jd1+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+  const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3;
+  const Mpr=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3;
+  const F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+  const C1=(0.1734-0.000393*T)*Math.sin(M*dr)+0.0021*Math.sin(2*M*dr)-0.4068*Math.sin(Mpr*dr)+0.0161*Math.sin(2*Mpr*dr)-0.0004*Math.sin(3*Mpr*dr)+0.0104*Math.sin(2*F*dr)-0.0051*Math.sin((M+Mpr)*dr)-0.0074*Math.sin((M-Mpr)*dr)+0.0004*Math.sin((2*F+M)*dr)-0.0004*Math.sin((2*F-M)*dr)-0.0006*Math.sin((2*F+Mpr)*dr)+0.0010*Math.sin((2*F-Mpr)*dr)+0.0005*Math.sin((2*Mpr+M)*dr);
+  const deltaT=T<-11?0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3:-0.000278+0.000265*T+0.000262*T2;
+  return Math.floor(jd1+C1-deltaT+0.5+tz/24);
+}
+function getSunLongitude(jdn,tz){
+  const T=(jdn-2451545.5-tz/24)/36525,T2=T*T,dr=Math.PI/180;
+  const M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T2*T;
+  const L0=280.46645+36000.76983*T+0.0003032*T2;
+  const DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(M*dr)+(0.019993-0.000101*T)*Math.sin(2*M*dr)+0.000290*Math.sin(3*M*dr);
+  let L=(L0+DL)*dr;L-=2*Math.PI*Math.floor(L/(2*Math.PI));
+  return Math.floor(L/Math.PI*6);
+}
+function getLunarMonth11(year,tz){
+  const off=jdFromDate(31,12,year)-2415021,k=Math.floor(off/29.530588853);
+  let nm=getNewMoonDay(k,tz);
+  if(getSunLongitude(nm,tz)>=9)nm=getNewMoonDay(k-1,tz);
+  return nm;
+}
+function getLeapMonthOffset(a11,tz){
+  const k=Math.floor(0.5+(a11-2415021.076998695)/29.530588853);
+  let last=0,i=1,arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
+  while(arc!==last&&i<14){last=arc;i++;arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);}
+  return i-1;
+}
+function convertVietnamSolarToLunar(day,month,year){
+  const tz=7,dayNumber=jdFromDate(day,month,year),k=Math.floor((dayNumber-2415021.076998695)/29.530588853);
+  let monthStart=getNewMoonDay(k+1,tz);
+  if(monthStart>dayNumber)monthStart=getNewMoonDay(k,tz);
+  let a11=getLunarMonth11(year,tz),b11=a11,lunarYear=year;
+  if(a11>=monthStart)a11=getLunarMonth11(year-1,tz);
+  else{b11=getLunarMonth11(year+1,tz);lunarYear=year+1;}
+  const lunarDay=dayNumber-monthStart+1,diff=Math.floor((monthStart-a11)/29);
+  let lunarLeap=0,lunarMonth=diff+11;
+  if(b11-a11>365){
+    const leapMonthDiff=getLeapMonthOffset(a11,tz);
+    if(diff>=leapMonthDiff){lunarMonth=diff+10;if(diff===leapMonthDiff)lunarLeap=1;}
+  }
+  if(lunarMonth>12)lunarMonth-=12;
+  if(lunarMonth>=11&&diff<4)lunarYear-=1;
+  return {day:lunarDay,month:lunarMonth,year:lunarYear,leap:lunarLeap};
+}
+function findVietnamLunarDate(year,lunarMonth,lunarDay){
+  const cacheKey=year+"-"+lunarMonth+"-"+lunarDay;
+  if(lunarHolidayDateCache.has(cacheKey))return lunarHolidayDateCache.get(cacheKey);
+  const daysInYear=(year%4===0&&(year%100!==0||year%400===0))?366:365;
+  let found=null;
+  for(let offset=0;offset<daysInYear;offset++){
+    const date=new Date(Date.UTC(year,0,1+offset));
+    const lunar=convertVietnamSolarToLunar(date.getUTCDate(),date.getUTCMonth()+1,year);
+    if(lunar.day===lunarDay&&lunar.month===lunarMonth&&lunar.leap===0){
+      found=vietnamDateKey(year,date.getUTCMonth()+1,date.getUTCDate());break;
+    }
+  }
+  lunarHolidayDateCache.set(cacheKey,found);
+  return found;
+}
+const VIETNAM_FIXED_HOLIDAYS=[
+  {id:"new-year",month:1,day:1,after:0,zh:"元旦",vi:"Tết Dương lịch"},
+  {id:"women",month:3,day:8,after:0,zh:"国际妇女节",vi:"Ngày Quốc tế Phụ nữ"},
+  {id:"reunification",month:4,day:30,after:1,zh:"越南南方解放日与国际劳动节",vi:"Ngày Giải phóng miền Nam và Quốc tế Lao động"},
+  {id:"children",month:6,day:1,after:0,zh:"国际儿童节",vi:"Ngày Quốc tế Thiếu nhi"},
+  {id:"national",month:9,day:2,after:0,zh:"越南国庆节",vi:"Quốc khánh Việt Nam"},
+  {id:"women",month:10,day:20,after:0,zh:"越南妇女节",vi:"Ngày Phụ nữ Việt Nam"},
+  {id:"teachers",month:11,day:20,after:0,zh:"越南教师节",vi:"Ngày Nhà giáo Việt Nam"},
+  {id:"christmas",month:12,day:24,after:1,zh:"圣诞节",vi:"Lễ Giáng sinh"},
+  {id:"christmas",month:12,day:25,after:0,zh:"圣诞节",vi:"Lễ Giáng sinh"}
+];
+const VIETNAM_LUNAR_HOLIDAYS=[
+  {id:"tet",month:1,day:1,after:7,zh:"越南春节",vi:"Tết Nguyên Đán"},
+  {id:"hung-kings",month:3,day:10,after:0,zh:"雄王祭祖日",vi:"Giỗ Tổ Hùng Vương"},
+  {id:"dragon-boat",month:5,day:5,after:0,zh:"端午节",vi:"Tết Đoan Ngọ"},
+  {id:"vu-lan",month:7,day:15,after:0,zh:"盂兰节",vi:"Lễ Vu Lan"},
+  {id:"mid-autumn",month:8,day:15,after:0,zh:"中秋节",vi:"Tết Trung Thu"}
+];
+const VIETNAM_HOLIDAY_LABELS=[
+  {id:"new-year",zh:"元旦",vi:"Tết Dương lịch"},{id:"women",zh:"国际妇女节",vi:"Ngày Quốc tế Phụ nữ"},
+  {id:"reunification",zh:"越南南方解放日与劳动节",vi:"Ngày Giải phóng miền Nam và Quốc tế Lao động"},
+  {id:"children",zh:"国际儿童节",vi:"Ngày Quốc tế Thiếu nhi"},{id:"national",zh:"越南国庆节",vi:"Quốc khánh Việt Nam"},
+  {id:"teachers",zh:"越南教师节",vi:"Ngày Nhà giáo Việt Nam"},{id:"christmas",zh:"圣诞节",vi:"Lễ Giáng sinh"},
+  {id:"tet",zh:"越南春节",vi:"Tết Nguyên Đán"},{id:"hung-kings",zh:"雄王祭祖日",vi:"Giỗ Tổ Hùng Vương"},
+  {id:"dragon-boat",zh:"端午节",vi:"Tết Đoan Ngọ"},{id:"vu-lan",zh:"盂兰节",vi:"Lễ Vu Lan"},{id:"mid-autumn",zh:"中秋节",vi:"Tết Trung Thu"}
+];
+const DEFAULT_HOLIDAY_THEME_SETTINGS={enabledHolidayIds:VIETNAM_HOLIDAY_LABELS.map(item=>item.id),advanceDays:3};
+let holidayThemeSettings={...DEFAULT_HOLIDAY_THEME_SETTINGS};
+let holidayPreviewId=null;
+function getVietnamHolidaySchedule(dateParts=vietnamDateParts()){
+  const today=vietnamDateKey(dateParts.year,dateParts.month,dateParts.day),todayOrdinal=vietnamDateOrdinal(today),events=[];
+  for(let year=dateParts.year-1;year<=dateParts.year+1;year++){
+    VIETNAM_FIXED_HOLIDAYS.forEach(item=>events.push({...item,date:vietnamDateKey(year,item.month,item.day)}));
+    VIETNAM_LUNAR_HOLIDAYS.forEach(item=>{
+      const date=findVietnamLunarDate(year,item.month,item.day);
+      if(date)events.push({...item,date});
+    });
+  }
+  const enabled=new Set(Array.isArray(holidayThemeSettings.enabledHolidayIds)?holidayThemeSettings.enabledHolidayIds:DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds);
+  const advanceDays=Number.isInteger(holidayThemeSettings.advanceDays)&&holidayThemeSettings.advanceDays>=0&&holidayThemeSettings.advanceDays<=30?holidayThemeSettings.advanceDays:3;
+  const active=events.filter(event=>enabled.has(event.id)).map(event=>({...event,daysUntil:vietnamDateOrdinal(event.date)-todayOrdinal}))
+    .filter(event=>event.daysUntil<=advanceDays&&event.daysUntil>=-event.after)
+    .sort((a,b)=>(a.daysUntil-b.daysUntil)||((b.id==="tet"?10:0)-(a.id==="tet"?10:0)));
+  return active[0]||null;
+}
+function updateHolidayThemeBanner(event){
+  const banner=document.getElementById("holidayThemeBanner");
+  if(!banner)return;
+  if(!event){banner.classList.add("hidden");banner.textContent="";return;}
+  const name=lang==="zh"?event.zh:event.vi;
+  banner.textContent=event.id==="tet"
+    ?(lang==="zh"?"🏮 "+name+" · 新春限定红色灯笼主题已开启":"🏮 "+name+" · Giao diện đèn lồng đỏ ngày Tết đã bật")
+    :(lang==="zh"?"🎉 "+name+" · 节日限定主题已自动开启":"🎉 "+name+" · Giao diện lễ hội đã tự động bật");
+  banner.classList.remove("hidden");
+}
+function applyVietnamHolidayTheme(previewEvent=null){
+  const event=previewEvent||getVietnamHolidaySchedule();
+  const classes=["festival-theme","festival-tet","festival-hung-kings","festival-reunification","festival-national","festival-mid-autumn","festival-women","festival-christmas","festival-new-year","festival-dragon-boat","festival-vu-lan","festival-teachers","festival-children"];
+  [document.body,document.documentElement].forEach(root=>{
+    classes.forEach(name=>root.classList.remove(name));
+    if(event){root.classList.add("festival-theme","festival-"+event.id);}
+  });
+  const colors={tet:"#c51f32","hung-kings":"#9b4a2e",reunification:"#c62838",national:"#c62838","mid-autumn":"#c4771d",women:"#c34d83",christmas:"#14543d","new-year":"#365eae","dragon-boat":"#218c80","vu-lan":"#9c5aa8",teachers:"#35836c",children:"#368ec4"};
+  const metaTheme=document.querySelector('meta[name="theme-color"]');
+  if(metaTheme)metaTheme.setAttribute("content",event?(colors[event.id]||"#c62838"):(savedSigmaTheme==="dark"?"#0a1730":"#edf5ff"));
+  updateHolidayThemeBanner(event);
+  updateThemeButton();
+}
+
+function renderHolidaySettingsControls(){
+  if(currentRole!=="admin")return;
+  const options=document.getElementById("holidayThemeOptions"),advance=document.getElementById("holidayAdvanceDays"),preview=document.getElementById("holidayPreviewSelect");
+  if(!options||!advance||!preview)return;
+  options.replaceChildren();
+  const enabled=new Set(holidayThemeSettings.enabledHolidayIds||DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds);
+  VIETNAM_HOLIDAY_LABELS.forEach(item=>{
+    const label=document.createElement("label");label.className="holiday-setting-row";
+    const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.value=item.id;checkbox.checked=enabled.has(item.id);checkbox.dataset.holidayId=item.id;
+    const name=document.createElement("span");name.textContent=lang==="zh"?item.zh:item.vi;
+    label.append(checkbox,name);options.append(label);
+  });
+  advance.replaceChildren();
+  for(let days=0;days<=30;days++){
+    const option=document.createElement("option");option.value=String(days);
+    option.textContent=lang==="zh"?days+" 天前":days+" ngày trước";
+    advance.append(option);
+  }
+  advance.value=String(holidayThemeSettings.advanceDays);
+  preview.replaceChildren();
+  VIETNAM_HOLIDAY_LABELS.forEach(item=>{
+    const option=document.createElement("option");option.value=item.id;option.textContent=lang==="zh"?item.zh:item.vi;preview.append(option);
+  });
+}
+let unsubscribeHolidayThemeSettings=null;
+function watchHolidayThemeSettings(){
+  if(unsubscribeHolidayThemeSettings){unsubscribeHolidayThemeSettings();unsubscribeHolidayThemeSettings=null;}
+  const user=auth.currentUser;if(!user||!["admin","employee"].includes(currentRole))return;
+  unsubscribeHolidayThemeSettings=onSnapshot(doc(db,"appSettings","vietnamHolidayThemes"),snap=>{
+    if(!auth.currentUser||auth.currentUser.uid!==user.uid)return;
+    if(snap.exists()){
+      const data=snap.data(),validIds=new Set(VIETNAM_HOLIDAY_LABELS.map(item=>item.id));
+      const enabled=Array.isArray(data.enabledHolidayIds)?data.enabledHolidayIds.filter(id=>validIds.has(id)):DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds;
+      const advance=Number(data.advanceDays);
+      holidayThemeSettings={enabledHolidayIds:[...new Set(enabled)],advanceDays:Number.isInteger(advance)&&advance>=0&&advance<=30?advance:3};
+    }else holidayThemeSettings={enabledHolidayIds:[...DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds],advanceDays:3};
+    holidayPreviewId=null;applyVietnamHolidayTheme();renderHolidaySettingsControls();
+  },error=>{
+    console.error("Holiday theme settings subscription failed:",error);
+    const status=document.getElementById("holidayThemeSettingsStatus");
+    if(status&&currentRole==="admin")status.textContent=tr("holidayLoadError")+(error.code||error.message||"unknown");
+    applyVietnamHolidayTheme();
+  });
+}
+async function saveHolidayThemeSettings(){
+  const status=document.getElementById("holidayThemeSettingsStatus"),button=document.getElementById("saveHolidayThemeSettingsBtn");
+  if(currentRole!=="admin"||!auth.currentUser){if(status)status.textContent=tr("permission");return;}
+  const enabledHolidayIds=[...document.querySelectorAll("#holidayThemeOptions input[data-holiday-id]:checked")].map(input=>input.dataset.holidayId);
+  const advanceDays=Number(document.getElementById("holidayAdvanceDays").value);
+  if(!Number.isInteger(advanceDays)||advanceDays<0||advanceDays>30||enabledHolidayIds.some(id=>!VIETNAM_HOLIDAY_LABELS.some(item=>item.id===id))){if(status)status.textContent=tr("accountingInvalid");return;}
+  if(button)button.disabled=true;if(status)status.textContent=lang==="zh"?"正在保存……":"Đang lưu…";
+  try{
+    const next={enabledHolidayIds:[...new Set(enabledHolidayIds)],advanceDays,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid};
+    await setDoc(doc(db,"appSettings","vietnamHolidayThemes"),next);
+    holidayThemeSettings={enabledHolidayIds:next.enabledHolidayIds,advanceDays};holidayPreviewId=null;
+    applyVietnamHolidayTheme();renderHolidaySettingsControls();
+    if(status)status.textContent=tr("holidaySaved");
+  }catch(error){
+    console.error("Holiday theme settings save failed:",error);
+    if(status)status.textContent=tr("holidaySaveError")+(error.code||error.message||"unknown");
+  }finally{if(button)button.disabled=false;}
+}
+function previewSelectedHolidayTheme(){
+  if(currentRole!=="admin")return;
+  const id=document.getElementById("holidayPreviewSelect")?.value,item=VIETNAM_HOLIDAY_LABELS.find(entry=>entry.id===id);
+  if(!item)return;
+  holidayPreviewId=id;applyVietnamHolidayTheme({id:item.id,zh:item.zh,vi:item.vi,daysUntil:0});
+  const status=document.getElementById("holidayThemeSettingsStatus");if(status)status.textContent=tr("holidayPreviewActive");
+}
+function clearHolidayThemePreview(){
+  holidayPreviewId=null;applyVietnamHolidayTheme();
+  const status=document.getElementById("holidayThemeSettingsStatus");if(status&&currentRole==="admin")status.textContent=tr("holidayPreviewRestored");
+}
+document.getElementById("saveHolidayThemeSettingsBtn").addEventListener("click",saveHolidayThemeSettings);
+document.getElementById("previewHolidayThemeBtn").addEventListener("click",previewSelectedHolidayTheme);
+document.getElementById("clearHolidayPreviewBtn").addEventListener("click",clearHolidayThemePreview);
+
+function updateThemeButton(){
+  const dark=savedSigmaTheme==="dark";
+  const lightButton=document.getElementById("lightThemeBtn");
+  const darkButton=document.getElementById("darkThemeBtn");
+  if(lightButton){
+    lightButton.textContent=lang==="zh"?"☀️ 浅色":"☀️ Sáng";
+    lightButton.setAttribute("aria-pressed",dark?"false":"true");
+  }
+  if(darkButton){
+    darkButton.textContent=lang==="zh"?"🌙 深色":"🌙 Tối";
+    darkButton.setAttribute("aria-pressed",dark?"true":"false");
+  }
+}
+window.setSigmaTheme=function(mode){
+  holidayPreviewId=null;
+  savedSigmaTheme=mode==="dark"?"dark":"light";
+  try{localStorage.setItem("sigma-colorcare-theme-v2",savedSigmaTheme);}catch(error){console.warn("Theme preference could not be saved",error);}
+  document.body.classList.toggle("theme-dark",savedSigmaTheme==="dark");
+  document.body.classList.toggle("theme-light",savedSigmaTheme!=="dark");
+  document.documentElement.classList.toggle("theme-dark",savedSigmaTheme==="dark");
+  document.documentElement.classList.toggle("theme-light",savedSigmaTheme!=="dark");
+  applyVietnamHolidayTheme();
+};
+window.toggleSigmaTheme=function(){window.setSigmaTheme(savedSigmaTheme==="dark"?"light":"dark");};
 window.setSigmaTheme(savedSigmaTheme);
+window.addEventListener("focus",applyVietnamHolidayTheme);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)applyVietnamHolidayTheme();});
+setInterval(applyVietnamHolidayTheme,60000);
+
 
 let activeModuleKey = "home";
 function setActiveModule(key){
   // Navigation is not an authorization boundary; fail closed without a live,
   // resolved identity. Firestore rules remain the data-access boundary.
   if(!auth.currentUser || !["admin","employee"].includes(currentRole)) return;
-  const keys=["home","production","salary","cost","profit","data"];
+  const keys=["home","production","salary","cost","profit","data","settings"];
   if(!keys.includes(key)) key="home";
   if(currentRole!=="admin" && key!=="production") key="production";
   activeModuleKey=key;
+  if(key==="settings") renderHolidaySettingsControls();
   keys.forEach(name=>{
     const page=document.getElementById("module-"+name);
     const button=document.querySelector('.module-nav-item[data-module="'+name+'"]');
@@ -1166,7 +1675,8 @@ function initializeModuleNavigation(){
     salary:document.getElementById("moduleSalaryContent"),
     cost:document.getElementById("moduleCostContent"),
     profit:document.getElementById("moduleProfitContent"),
-    data:document.getElementById("moduleDataContent")
+    data:document.getElementById("moduleDataContent"),
+    settings:document.getElementById("module-settings")
   };
   const dashboard=document.getElementById("dashboardPanel");
   if(dashboard && !dashboard.dataset.reorganized){
@@ -1196,6 +1706,9 @@ function initializeModuleNavigation(){
   document.getElementById("moduleNav")?.classList.remove("hidden");
 }
 function showLogin(){
+  if(unsubscribeHolidayThemeSettings){unsubscribeHolidayThemeSettings();unsubscribeHolidayThemeSettings=null;}
+  holidayPreviewId=null;
+  applyVietnamHolidayTheme();
   // Fail closed: clear all in-memory authorization before returning to the login screen.
   currentRole = null;
   currentProfile = null;
@@ -1239,6 +1752,7 @@ function showApp(user, identity){
   document.getElementById("dailyAccountingForm").classList.toggle("hidden",identity.role!=="admin");
   setActiveModule(identity.role==="admin"?"home":"production");
   updateGoogleLinkButton(user);
+  watchHolidayThemeSettings();
   if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
   currentDept = "";
 }
@@ -1651,6 +2165,7 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
    message.textContent=tr("expenseSaved");
   }
   await refreshExpenseList();
+  await loadFinanceOverview();
  }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
@@ -1744,7 +2259,7 @@ setFinanceDates("month");
 async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
 let dashboardCleanRowsCache=[];
 let dashboardWeaveRowsCache=[];
-let dashboardCalendarMonth=new Date();
+let dashboardCalendarMonth=new Date(localWorkDate()+"T12:00:00");
 let dashboardSelectedDate=localWorkDate();
 function dashboardDateKey(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
 function renderDashboardCalendar(){
@@ -1759,6 +2274,7 @@ function renderDashboardCalendar(){
  for(let i=0;i<42;i++){
   const d=new Date(start);d.setDate(start.getDate()+i);const key=dashboardDateKey(d),total=totals[key]||0;
   const btn=document.createElement("button");btn.type="button";btn.className="calendar-day";
+  btn.setAttribute("aria-label",key+(lang==="zh"?"，总工单数量 "+total:"，tổng số lượng phiếu "+total));
   if(d.getMonth()!==month)btn.classList.add("is-outside");
   if(key===dashboardSelectedDate)btn.classList.add("is-selected");
   if(key===localWorkDate())btn.classList.add("is-today");
@@ -1778,33 +2294,53 @@ function updateDashboardMetrics(date){
  document.getElementById("dashboardDate").textContent=date;
  document.getElementById("dashboardMessage").textContent=repair.length+clean.length+weave.length?tr("dashboardLoaded"):tr("calendarNoData");
 }
-function selectDashboardDate(date){dashboardSelectedDate=date;updateDashboardMetrics(date);renderDashboardCalendar();}
+function selectDashboardDate(date){
+ dashboardSelectedDate=date;
+ const selected=new Date(date+"T12:00:00");
+ if(selected.getFullYear()!==dashboardCalendarMonth.getFullYear()||selected.getMonth()!==dashboardCalendarMonth.getMonth()){
+  dashboardCalendarMonth=new Date(selected.getFullYear(),selected.getMonth(),1,12);
+  loadDashboard();return;
+ }
+ updateDashboardMetrics(date);renderDashboardCalendar();
+}
+function changeDashboardMonth(delta){
+ const target=new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth()+delta,1,12);
+ const preferredDay=Number(dashboardSelectedDate.slice(-2))||1;
+ const lastDay=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();
+ dashboardCalendarMonth=target;
+ dashboardSelectedDate=dashboardDateKey(new Date(target.getFullYear(),target.getMonth(),Math.min(preferredDay,lastDay),12));
+ loadDashboard();
+}
+let dashboardLoadSequence=0;
 async function loadDashboard(){
  if(currentRole!=="admin")return;
+ const requestId=++dashboardLoadSequence;
  const button=document.getElementById("refreshDashboardBtn"),message=document.getElementById("dashboardMessage");
  if(button)button.disabled=true;message.textContent=tr("dashboardLoading");
  try{
   const start=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth(),1));
   const end=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth()+1,0));
   const [repair,clean,weave]=await Promise.all([
-   getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
-   getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
-   getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000)))
+   getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",start),where("workDate","<=",end))),
+   getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end))),
+   getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end)))
   ]);
+  if(requestId!==dashboardLoadSequence)return;
   dashboardRowsCache=repair.docs.map(x=>x.data());dashboardCleanRowsCache=clean.docs.map(x=>x.data());dashboardWeaveRowsCache=weave.docs.map(x=>x.data());
   renderDashboardCalendar();updateDashboardMetrics(dashboardSelectedDate);
   const endDate=new Date(dashboardSelectedDate+"T12:00:00"),startDate=new Date(endDate);startDate.setDate(endDate.getDate()-6);
   renderRepairTrend(dashboardRowsCache,dashboardDateKey(startDate),dashboardSelectedDate);
   await loadFinanceOverview();
  }catch(error){
+  if(requestId!==dashboardLoadSequence)return;
   console.error("SIGMA dashboard load error:",error);
   ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
   document.getElementById("repairTrend").textContent=tr("trendError")+(error.code||error.message||"unknown");
   message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
- }finally{if(button)button.disabled=false;}
+ }finally{if(requestId===dashboardLoadSequence&&button)button.disabled=false;}
 }
-document.getElementById("calendarPrev").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()-1);loadDashboard();});
-document.getElementById("calendarNext").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()+1);loadDashboard();});
+document.getElementById("calendarPrev").addEventListener("click",()=>changeDashboardMonth(-1));
+document.getElementById("calendarNext").addEventListener("click",()=>changeDashboardMonth(1));
 document.getElementById("calendarToday").addEventListener("click",()=>{dashboardSelectedDate=localWorkDate();dashboardCalendarMonth=new Date(dashboardSelectedDate+"T12:00:00");loadDashboard();});
 
 document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);

@@ -10,6 +10,13 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active';
     }
 
+    function isActiveEmployee() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.roleType == 1;
+    }
+
     function isGoogleUser() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'google.com'
@@ -248,8 +255,58 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validWageSettings(data) {
+      return data.keys().hasAll(['rates', 'updatedBy', 'updatedAt'])
+        && data.keys().hasOnly(['rates', 'updatedBy', 'updatedAt'])
+        && data.rates is list
+        && data.rates.size() <= 300
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt == request.time;
+    }
+
+    function validWageRate(rate) {
+      return rate is map
+        && rate.keys().hasAll(['departmentId', 'effectiveDate', 'dailyWage', 'createdBy'])
+        && rate.keys().hasOnly(['departmentId', 'effectiveDate', 'dailyWage', 'createdBy'])
+        && rate.departmentId in [1, 2, 3]
+        && rate.effectiveDate is string
+        && rate.effectiveDate.size() == 10
+        && rate.dailyWage is number
+        && rate.dailyWage >= 0
+        && rate.createdBy == request.auth.uid;
+    }
+
     match /appSettings/departmentWages {
-      allow get, create, update: if isAdmin();
+      allow get: if isAdmin();
+      allow create: if isAdmin() && validWageSettings(request.resource.data);
+      // Existing entries cannot be rewritten. Each update may append exactly one validated rate.
+      allow update: if isAdmin()
+        && validWageSettings(request.resource.data)
+        && resource.data.rates is list
+        && request.resource.data.rates.size() == resource.data.rates.size() + 1
+        && request.resource.data.rates.hasAll(resource.data.rates)
+        && validWageRate(request.resource.data.rates[resource.data.rates.size()]);
+      allow list, delete: if false;
+    }
+
+    match /appSettings/vietnamHolidayThemes {
+      // This document contains public appearance preferences only, not business or employee data.
+      // Signed-in active employees may read it; only an active admin may change it.
+      allow get: if isAdmin() || isActiveEmployee();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['enabledHolidayIds', 'advanceDays', 'updatedAt', 'updatedBy'])
+        && request.resource.data.keys().hasOnly(['enabledHolidayIds', 'advanceDays', 'updatedAt', 'updatedBy'])
+        && request.resource.data.enabledHolidayIds is list
+        && request.resource.data.enabledHolidayIds.size() <= 12
+        && request.resource.data.enabledHolidayIds.hasOnly([
+          'new-year', 'women', 'reunification', 'children', 'national', 'teachers',
+          'christmas', 'tet', 'hung-kings', 'dragon-boat', 'vu-lan', 'mid-autumn'
+        ])
+        && request.resource.data.advanceDays is int
+        && request.resource.data.advanceDays >= 0
+        && request.resource.data.advanceDays <= 30
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
       allow list, delete: if false;
     }
 
@@ -292,9 +349,44 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validDailyRecord(data) {
+      return data.keys().hasAll([
+          'workDate', 'departmentId', 'headcount', 'outputQuantity',
+          'unitPrice', 'dailyWagePerPerson', 'materialCost', 'otherCost',
+          'revenue', 'laborCost', 'netProfit', 'currency',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'workDate', 'departmentId', 'headcount', 'outputQuantity',
+          'unitPrice', 'dailyWagePerPerson', 'materialCost', 'otherCost',
+          'revenue', 'laborCost', 'netProfit', 'currency',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.workDate is string
+        && data.workDate.size() == 10
+        && data.departmentId in [1, 2, 3]
+        && data.headcount is int && data.headcount >= 0 && data.headcount <= 500
+        && data.outputQuantity is int && data.outputQuantity >= 0 && data.outputQuantity <= 10000000
+        && data.unitPrice is number && data.unitPrice >= 0
+        && data.dailyWagePerPerson is number && data.dailyWagePerPerson >= 0
+        && data.materialCost is number && data.materialCost >= 0
+        && data.otherCost is number && data.otherCost >= 0
+        && data.revenue is number && data.revenue >= 0
+        && data.laborCost is number && data.laborCost >= 0
+        && data.netProfit is number
+        && data.currency == 'VND'
+        && data.createdBy == request.auth.uid
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && data.revenue == data.outputQuantity * data.unitPrice
+        && data.laborCost == data.headcount * data.dailyWagePerPerson
+        && data.netProfit == data.revenue - data.laborCost - data.materialCost - data.otherCost;
+    }
+
     match /dailyRecords/{recordId} {
-      allow get, list, create, update: if isAdmin();
-      allow delete: if false;
+      allow get, list: if isAdmin();
+      allow create: if isAdmin() && validDailyRecord(request.resource.data);
+      allow update, delete: if false;
     }
 
     match /{document=**} {
