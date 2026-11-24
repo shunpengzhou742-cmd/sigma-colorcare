@@ -1283,6 +1283,17 @@ const VIETNAM_LUNAR_HOLIDAYS=[
   {id:"vu-lan",month:7,day:15,after:0,zh:"盂兰节",vi:"Lễ Vu Lan"},
   {id:"mid-autumn",month:8,day:15,after:0,zh:"中秋节",vi:"Tết Trung Thu"}
 ];
+const VIETNAM_HOLIDAY_LABELS=[
+  {id:"new-year",zh:"元旦",vi:"Tết Dương lịch"},{id:"women",zh:"国际妇女节",vi:"Ngày Quốc tế Phụ nữ"},
+  {id:"reunification",zh:"越南南方解放日与劳动节",vi:"Ngày Giải phóng miền Nam và Quốc tế Lao động"},
+  {id:"children",zh:"国际儿童节",vi:"Ngày Quốc tế Thiếu nhi"},{id:"national",zh:"越南国庆节",vi:"Quốc khánh Việt Nam"},
+  {id:"teachers",zh:"越南教师节",vi:"Ngày Nhà giáo Việt Nam"},{id:"christmas",zh:"圣诞节",vi:"Lễ Giáng sinh"},
+  {id:"tet",zh:"越南春节",vi:"Tết Nguyên Đán"},{id:"hung-kings",zh:"雄王祭祖日",vi:"Giỗ Tổ Hùng Vương"},
+  {id:"dragon-boat",zh:"端午节",vi:"Tết Đoan Ngọ"},{id:"vu-lan",zh:"盂兰节",vi:"Lễ Vu Lan"},{id:"mid-autumn",zh:"中秋节",vi:"Tết Trung Thu"}
+];
+const DEFAULT_HOLIDAY_THEME_SETTINGS={enabledHolidayIds:VIETNAM_HOLIDAY_LABELS.map(item=>item.id),advanceDays:3};
+let holidayThemeSettings={...DEFAULT_HOLIDAY_THEME_SETTINGS};
+let holidayPreviewId=null;
 function getVietnamHolidaySchedule(dateParts=vietnamDateParts()){
   const today=vietnamDateKey(dateParts.year,dateParts.month,dateParts.day),todayOrdinal=vietnamDateOrdinal(today),events=[];
   for(let year=dateParts.year-1;year<=dateParts.year+1;year++){
@@ -1292,8 +1303,10 @@ function getVietnamHolidaySchedule(dateParts=vietnamDateParts()){
       if(date)events.push({...item,date});
     });
   }
-  const active=events.map(event=>({...event,daysUntil:vietnamDateOrdinal(event.date)-todayOrdinal}))
-    .filter(event=>event.daysUntil<=3&&event.daysUntil>=-event.after)
+  const enabled=new Set(Array.isArray(holidayThemeSettings.enabledHolidayIds)?holidayThemeSettings.enabledHolidayIds:DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds);
+  const advanceDays=Number.isInteger(holidayThemeSettings.advanceDays)&&holidayThemeSettings.advanceDays>=0&&holidayThemeSettings.advanceDays<=30?holidayThemeSettings.advanceDays:3;
+  const active=events.filter(event=>enabled.has(event.id)).map(event=>({...event,daysUntil:vietnamDateOrdinal(event.date)-todayOrdinal}))
+    .filter(event=>event.daysUntil<=advanceDays&&event.daysUntil>=-event.after)
     .sort((a,b)=>(a.daysUntil-b.daysUntil)||((b.id==="tet"?10:0)-(a.id==="tet"?10:0)));
   return active[0]||null;
 }
@@ -1307,8 +1320,8 @@ function updateHolidayThemeBanner(event){
     :(lang==="zh"?"🎉 "+name+" · 节日限定主题已自动开启":"🎉 "+name+" · Giao diện lễ hội đã tự động bật");
   banner.classList.remove("hidden");
 }
-function applyVietnamHolidayTheme(){
-  const event=getVietnamHolidaySchedule();
+function applyVietnamHolidayTheme(previewEvent=null){
+  const event=previewEvent||getVietnamHolidaySchedule();
   const classes=["festival-theme","festival-tet","festival-hung-kings","festival-reunification","festival-national","festival-mid-autumn","festival-women","festival-christmas","festival-new-year","festival-dragon-boat","festival-vu-lan","festival-teachers","festival-children"];
   [document.body,document.documentElement].forEach(root=>{
     classes.forEach(name=>root.classList.remove(name));
@@ -1320,6 +1333,82 @@ function applyVietnamHolidayTheme(){
   updateHolidayThemeBanner(event);
   updateThemeButton();
 }
+
+function renderHolidaySettingsControls(){
+  if(currentRole!=="admin")return;
+  const options=document.getElementById("holidayThemeOptions"),advance=document.getElementById("holidayAdvanceDays"),preview=document.getElementById("holidayPreviewSelect");
+  if(!options||!advance||!preview)return;
+  options.replaceChildren();
+  const enabled=new Set(holidayThemeSettings.enabledHolidayIds||DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds);
+  VIETNAM_HOLIDAY_LABELS.forEach(item=>{
+    const label=document.createElement("label");label.className="holiday-setting-row";
+    const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.value=item.id;checkbox.checked=enabled.has(item.id);checkbox.dataset.holidayId=item.id;
+    const name=document.createElement("span");name.textContent=lang==="zh"?item.zh:item.vi;
+    label.append(checkbox,name);options.append(label);
+  });
+  advance.replaceChildren();
+  for(let days=0;days<=30;days++){
+    const option=document.createElement("option");option.value=String(days);
+    option.textContent=lang==="zh"?days+" 天前":days+" ngày trước";
+    advance.append(option);
+  }
+  advance.value=String(holidayThemeSettings.advanceDays);
+  preview.replaceChildren();
+  VIETNAM_HOLIDAY_LABELS.forEach(item=>{
+    const option=document.createElement("option");option.value=item.id;option.textContent=lang==="zh"?item.zh:item.vi;preview.append(option);
+  });
+}
+async function loadHolidayThemeSettings(){
+  const user=auth.currentUser;if(!user||!["admin","employee"].includes(currentRole))return;
+  try{
+    const snap=await getDoc(doc(db,"appSettings","vietnamHolidayThemes"));
+    if(snap.exists()){
+      const data=snap.data(),validIds=new Set(VIETNAM_HOLIDAY_LABELS.map(item=>item.id));
+      const enabled=Array.isArray(data.enabledHolidayIds)?data.enabledHolidayIds.filter(id=>validIds.has(id)):DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds;
+      const advance=Number(data.advanceDays);
+      holidayThemeSettings={enabledHolidayIds:[...new Set(enabled)],advanceDays:Number.isInteger(advance)&&advance>=0&&advance<=30?advance:3};
+    }else holidayThemeSettings={...DEFAULT_HOLIDAY_THEME_SETTINGS,enabledHolidayIds:[...DEFAULT_HOLIDAY_THEME_SETTINGS.enabledHolidayIds]};
+    holidayPreviewId=null;applyVietnamHolidayTheme();renderHolidaySettingsControls();
+  }catch(error){
+    console.error("Holiday theme settings load failed:",error);
+    const status=document.getElementById("holidayThemeSettingsStatus");
+    if(status&&currentRole==="admin")status.textContent=tr("holidayLoadError")+(error.code||error.message||"unknown");
+    applyVietnamHolidayTheme();
+  }
+}
+async function saveHolidayThemeSettings(){
+  const status=document.getElementById("holidayThemeSettingsStatus"),button=document.getElementById("saveHolidayThemeSettingsBtn");
+  if(currentRole!=="admin"||!auth.currentUser){if(status)status.textContent=tr("permission");return;}
+  const enabledHolidayIds=[...document.querySelectorAll("#holidayThemeOptions input[data-holiday-id]:checked")].map(input=>input.dataset.holidayId);
+  const advanceDays=Number(document.getElementById("holidayAdvanceDays").value);
+  if(!Number.isInteger(advanceDays)||advanceDays<0||advanceDays>30||enabledHolidayIds.some(id=>!VIETNAM_HOLIDAY_LABELS.some(item=>item.id===id))){if(status)status.textContent=tr("accountingInvalid");return;}
+  if(button)button.disabled=true;if(status)status.textContent=lang==="zh"?"正在保存……":"Đang lưu…";
+  try{
+    const next={enabledHolidayIds:[...new Set(enabledHolidayIds)],advanceDays,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid};
+    await setDoc(doc(db,"appSettings","vietnamHolidayThemes"),next);
+    holidayThemeSettings={enabledHolidayIds:next.enabledHolidayIds,advanceDays};holidayPreviewId=null;
+    applyVietnamHolidayTheme();renderHolidaySettingsControls();
+    if(status)status.textContent=tr("holidaySaved");
+  }catch(error){
+    console.error("Holiday theme settings save failed:",error);
+    if(status)status.textContent=tr("holidaySaveError")+(error.code||error.message||"unknown");
+  }finally{if(button)button.disabled=false;}
+}
+function previewSelectedHolidayTheme(){
+  if(currentRole!=="admin")return;
+  const id=document.getElementById("holidayPreviewSelect")?.value,item=VIETNAM_HOLIDAY_LABELS.find(entry=>entry.id===id);
+  if(!item)return;
+  holidayPreviewId=id;applyVietnamHolidayTheme({id:item.id,zh:item.zh,vi:item.vi,daysUntil:0});
+  const status=document.getElementById("holidayThemeSettingsStatus");if(status)status.textContent=tr("holidayPreviewActive");
+}
+function clearHolidayThemePreview(){
+  holidayPreviewId=null;applyVietnamHolidayTheme();
+  const status=document.getElementById("holidayThemeSettingsStatus");if(status&&currentRole==="admin")status.textContent=tr("holidayPreviewRestored");
+}
+document.getElementById("saveHolidayThemeSettingsBtn").addEventListener("click",saveHolidayThemeSettings);
+document.getElementById("previewHolidayThemeBtn").addEventListener("click",previewSelectedHolidayTheme);
+document.getElementById("clearHolidayPreviewBtn").addEventListener("click",clearHolidayThemePreview);
+
 function updateThemeButton(){
   const dark=savedSigmaTheme==="dark";
   const lightButton=document.getElementById("lightThemeBtn");
