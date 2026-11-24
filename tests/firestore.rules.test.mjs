@@ -817,6 +817,7 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
       "weaveWorkOrders/any-order",
       "scrapRequests/any-request",
       "appSettings/departmentWages",
+      "appSettings/vietnamHolidayThemes",
       "operatingExpenses/any-expense",
       "dailyRecords/any-record"
     ];
@@ -843,6 +844,7 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     await assertFails(getDoc(doc(db, "employees/employee-1")));
     await assertFails(getDocs(collection(db, "employees")));
     await assertFails(getDoc(doc(db, "appSettings/departmentWages")));
+    await assertFails(getDoc(doc(db, "appSettings/vietnamHolidayThemes")));
     await assertFails(getDoc(doc(db, "operatingExpenses/any-expense")));
     await assertFails(getDoc(doc(db, "dailyRecords/any-record")));
     await assertFails(setDoc(doc(db, "operatingExpenses/forged-expense"), {
