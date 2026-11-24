@@ -9,6 +9,8 @@ import {
 import {
   doc,
   getDoc,
+  getDocs,
+  collection,
   runTransaction,
   serverTimestamp,
   Timestamp,
@@ -761,4 +763,58 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
     await assertFails(setDoc(ref, payload));
     await assertFails(setDoc(ref, { ...payload, quantity: 500 }));
   });
+
+  it("denies unauthenticated reads and writes across every protected data area", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    const protectedDocs = [
+      "admins/admin-1",
+      "employeeInvites/invite-valid",
+      "employees/employee-1",
+      "repairWorkOrders/any-order",
+      "cleanWorkOrders/any-order",
+      "weaveWorkOrders/any-order",
+      "scrapRequests/any-request",
+      "appSettings/departmentWages",
+      "operatingExpenses/any-expense",
+      "dailyRecords/any-record"
+    ];
+    for (const path of protectedDocs) {
+      await assertFails(getDoc(doc(db, path)));
+    }
+    for (const name of [
+      "admins", "employeeInvites", "employees", "repairWorkOrders",
+      "cleanWorkOrders", "weaveWorkOrders", "scrapRequests",
+      "operatingExpenses", "dailyRecords"
+    ]) {
+      await assertFails(getDocs(collection(db, name)));
+    }
+    await assertFails(setDoc(doc(db, "dailyRecords/unauthenticated-write"), {
+      workDate: "2026-11-24",
+      departmentId: 1,
+      netProfit: 999999
+    }));
+  });
+
+  it("denies authenticated users without an admin or employee role from privileged data", async () => {
+    const db = testEnv.authenticatedContext("unregistered-user").firestore();
+    await assertFails(getDoc(doc(db, "admins/admin-1")));
+    await assertFails(getDoc(doc(db, "employees/employee-1")));
+    await assertFails(getDocs(collection(db, "employees")));
+    await assertFails(getDoc(doc(db, "appSettings/departmentWages")));
+    await assertFails(getDoc(doc(db, "operatingExpenses/any-expense")));
+    await assertFails(getDoc(doc(db, "dailyRecords/any-record")));
+    await assertFails(setDoc(doc(db, "operatingExpenses/forged-expense"), {
+      expenseDate: "2026-11-24",
+      category: "other",
+      departmentId: 0,
+      entryMode: "item",
+      amount: 1,
+      note: "",
+      currency: "VND",
+      createdBy: "unregistered-user",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }));
+  });
+
 });
