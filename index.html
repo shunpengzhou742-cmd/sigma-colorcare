@@ -284,6 +284,23 @@ body.theme-dark #dailyAccountingForm input,body.theme-dark #dailyAccountingForm 
 #dashboardPanel>* ,#scrapReviewPanel>* ,#invitePanel>* ,#employeeManagePanel>*{max-width:100%;min-width:0}
 
 
+/* v15: explicit two-option theme selector and complete light palette */
+.theme-switch{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(255,255,255,.38);border-radius:13px;background:rgba(8,32,65,.22)}
+.theme-switch button{min-height:36px;padding:7px 12px;border-radius:9px;background:transparent;border:1px solid transparent;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
+.theme-switch button[aria-pressed="true"]{background:#fff;color:#174f94;border-color:#fff;box-shadow:0 2px 8px #09264a35}
+body.theme-light{color:#172b45!important;background:radial-gradient(ellipse at 8% 18%,rgba(50,133,218,.17),transparent 32%),radial-gradient(ellipse at 92% 22%,rgba(35,183,190,.16),transparent 30%),radial-gradient(ellipse at 80% 88%,rgba(142,111,208,.13),transparent 34%),linear-gradient(145deg,#edf5ff 0%,#f7f8fd 48%,#eef9f8 100%)!important}
+body.theme-light .card{background:#fff!important;border-color:#dce6f2!important;color:#172b45!important;box-shadow:0 5px 20px rgba(27,62,102,.08)!important}
+body.theme-light #appView h3,body.theme-light #deptView h2,body.theme-light .work-panel h3{color:#174b83!important}
+body.theme-light label,body.theme-light .work-panel form label{color:#415a77!important}
+body.theme-light .small,body.theme-light #loginMsg,body.theme-light footer{color:#6b7f98!important}
+body.theme-light input,body.theme-light select,body.theme-light textarea{background:#f8fafd!important;border:1px solid #d5e0ed!important;color:#172b45!important}
+body.theme-light .work-panel{background:#f9fbfe!important;border-color:#e1e9f3!important;color:#213c5b!important}
+body.theme-light .employee-card{background:#f8fbff!important;border-color:#e0e9f4!important;color:#213c5b!important}
+body.theme-light .employee-card .small{color:#6d8097!important}
+body.theme-light .warning{background:#fff8e8!important;color:#8a5a00!important;border-color:#f4d99b!important}
+body.theme-dark .theme-switch{background:rgba(0,0,0,.2)}
+body.theme-dark .theme-switch button[aria-pressed="true"]{background:#dcecff;color:#102f59;border-color:#dcecff}
+@media(max-width:520px){.theme-switch button{padding:7px 9px;font-size:11px;min-height:34px}header>div:last-child{gap:7px}}
 /* v16: SIGMA glassmorphism system — both themes retain frosted-glass surfaces */
 :root{--glass-blur:22px;--glass-radius:22px}
 body.theme-light{
@@ -369,24 +386,30 @@ button:active{transform:translateY(1px) scale(.975);filter:brightness(1.12)}
  :root{--glass-blur:18px}
  body.theme-light,body.theme-dark{background-attachment:scroll!important}
 }
+/* v17: ensure glass layer wins over legacy theme declarations */
+body.theme-light .card,body.theme-light .work-panel,body.theme-light .employee-card,
+body.theme-light #appView>.dept,body.theme-light .metric-card,body.theme-light .finance-grid article,
+body.theme-light .trend-list,body.theme-light .dept-overview,body.theme-light .work-record,
+body.theme-light .work-summary-row{
+ background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(238,247,255,.42))!important;
+ border-color:rgba(255,255,255,.84)!important;
+ box-shadow:0 18px 48px rgba(42,83,135,.13),inset 0 1px 0 rgba(255,255,255,.92)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(155%)!important
+}
+body.theme-dark .card,body.theme-dark .work-panel,body.theme-dark .employee-card,
+body.theme-dark #appView>.dept,body.theme-dark .metric-card,body.theme-dark .finance-grid article,
+body.theme-dark .trend-list,body.theme-dark .dept-overview,body.theme-dark .work-record,
+body.theme-dark .work-summary-row{
+ background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.055))!important;
+ border-color:rgba(210,231,255,.22)!important;
+ box-shadow:0 20px 55px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(150%)!important
+}
+body.theme-light .work-panel{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(239,247,255,.48))!important}
+body.theme-dark .work-panel{background:linear-gradient(145deg,rgba(9,23,52,.55),rgba(25,35,76,.32))!important}
 
-/* v15: explicit two-option theme selector and complete light palette */
-.theme-switch{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(255,255,255,.38);border-radius:13px;background:rgba(8,32,65,.22)}
-.theme-switch button{min-height:36px;padding:7px 12px;border-radius:9px;background:transparent;border:1px solid transparent;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
-.theme-switch button[aria-pressed="true"]{background:#fff;color:#174f94;border-color:#fff;box-shadow:0 2px 8px #09264a35}
-body.theme-light{color:#172b45!important;background:radial-gradient(ellipse at 8% 18%,rgba(50,133,218,.17),transparent 32%),radial-gradient(ellipse at 92% 22%,rgba(35,183,190,.16),transparent 30%),radial-gradient(ellipse at 80% 88%,rgba(142,111,208,.13),transparent 34%),linear-gradient(145deg,#edf5ff 0%,#f7f8fd 48%,#eef9f8 100%)!important}
-body.theme-light .card{background:#fff!important;border-color:#dce6f2!important;color:#172b45!important;box-shadow:0 5px 20px rgba(27,62,102,.08)!important}
-body.theme-light #appView h3,body.theme-light #deptView h2,body.theme-light .work-panel h3{color:#174b83!important}
-body.theme-light label,body.theme-light .work-panel form label{color:#415a77!important}
-body.theme-light .small,body.theme-light #loginMsg,body.theme-light footer{color:#6b7f98!important}
-body.theme-light input,body.theme-light select,body.theme-light textarea{background:#f8fafd!important;border:1px solid #d5e0ed!important;color:#172b45!important}
-body.theme-light .work-panel{background:#f9fbfe!important;border-color:#e1e9f3!important;color:#213c5b!important}
-body.theme-light .employee-card{background:#f8fbff!important;border-color:#e0e9f4!important;color:#213c5b!important}
-body.theme-light .employee-card .small{color:#6d8097!important}
-body.theme-light .warning{background:#fff8e8!important;color:#8a5a00!important;border-color:#f4d99b!important}
-body.theme-dark .theme-switch{background:rgba(0,0,0,.2)}
-body.theme-dark .theme-switch button[aria-pressed="true"]{background:#dcecff;color:#102f59;border-color:#dcecff}
-@media(max-width:520px){.theme-switch button{padding:7px 9px;font-size:11px;min-height:34px}header>div:last-child{gap:7px}}
 </style>
 </head>
 <body>
