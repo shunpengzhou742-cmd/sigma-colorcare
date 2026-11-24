@@ -760,6 +760,218 @@ input,select,textarea,button{max-width:100%;min-width:0}
  #loginView{margin:12px auto}
  #appView .module-nav-item{min-height:48px}
 }
+
+/* SIGMA ColorCare v21 — Aurora Prism Glass: vivid color, outlined frosted glass, consistent contrast */
+:root{
+  --sigma-glass-radius:22px;
+  --sigma-glass-blur:26px;
+  --sigma-focus:rgba(75,190,232,.52);
+  --sigma-accent:#397fe8;
+  --sigma-accent-2:#8a65dc;
+  --sigma-accent-3:#29b9ad;
+}
+body.theme-light:not(.festival-theme){
+  color:#253858!important;
+  background:
+    radial-gradient(ellipse at 8% 7%,rgba(102,166,255,.42),transparent 34%),
+    radial-gradient(ellipse at 94% 12%,rgba(183,143,245,.34),transparent 32%),
+    radial-gradient(ellipse at 82% 86%,rgba(84,211,196,.28),transparent 34%),
+    radial-gradient(ellipse at 12% 92%,rgba(255,174,198,.22),transparent 30%),
+    linear-gradient(135deg,#eaf3ff 0%,#f2edff 48%,#e8f8f5 100%)!important;
+  background-attachment:fixed!important;
+}
+body.theme-dark:not(.festival-theme){
+  color:#eef5ff!important;
+  background:
+    radial-gradient(ellipse at 8% 8%,rgba(43,112,221,.50),transparent 36%),
+    radial-gradient(ellipse at 94% 14%,rgba(127,76,205,.43),transparent 34%),
+    radial-gradient(ellipse at 78% 92%,rgba(16,161,166,.27),transparent 36%),
+    radial-gradient(ellipse at 10% 88%,rgba(178,72,143,.18),transparent 32%),
+    linear-gradient(135deg,#07152d 0%,#111b3c 48%,#171631 100%)!important;
+  background-attachment:fixed!important;
+}
+body.theme-light:not(.festival-theme):before,
+body.theme-light:not(.festival-theme):after,
+body.theme-dark:not(.festival-theme):before,
+body.theme-dark:not(.festival-theme):after{
+  display:block!important;z-index:0!important;pointer-events:none!important;
+  filter:blur(68px)!important;opacity:.30!important;
+}
+body.theme-light:not(.festival-theme):before{background:#75b8ff!important}
+body.theme-light:not(.festival-theme):after{background:#b69af1!important}
+body.theme-dark:not(.festival-theme):before{background:#287ce2!important;opacity:.34!important}
+body.theme-dark:not(.festival-theme):after{background:#8b55d7!important;opacity:.30!important}
+body.theme-light:not(.festival-theme) main,
+body.theme-dark:not(.festival-theme) main{position:relative;z-index:1}
+body.theme-light:not(.festival-theme) header,
+body.theme-dark:not(.festival-theme) header{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(112deg,rgba(44,111,190,.82),rgba(89,119,205,.72) 54%,rgba(50,157,157,.70))!important;
+  border:1px solid rgba(255,255,255,.48)!important;border-top:0!important;
+  border-radius:0 0 24px 24px!important;
+  box-shadow:0 14px 36px rgba(45,83,145,.20),inset 0 1px 0 rgba(255,255,255,.42)!important;
+  backdrop-filter:blur(28px) saturate(175%)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+}
+body.theme-light:not(.festival-theme) header:after,
+body.theme-dark:not(.festival-theme) header:after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(105deg,transparent 18%,rgba(255,255,255,.17) 48%,transparent 76%);
+}
+body.theme-light:not(.festival-theme) .card,
+body.theme-light:not(.festival-theme) .work-panel,
+body.theme-light:not(.festival-theme) .employee-card,
+body.theme-light:not(.festival-theme) .dashboard-calendar,
+body.theme-light:not(.festival-theme) .metric-card,
+body.theme-light:not(.festival-theme) .finance-grid article,
+body.theme-light:not(.festival-theme) .dept-overview,
+body.theme-light:not(.festival-theme) .trend-list,
+body.theme-light:not(.festival-theme) #appView .module-nav{
+  position:relative;
+  background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(235,244,255,.43))!important;
+  border:1px solid rgba(255,255,255,.88)!important;
+  box-shadow:0 18px 48px rgba(51,88,145,.13),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(120,156,210,.12)!important;
+  backdrop-filter:blur(26px) saturate(175%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+  color:#253858!important;
+}
+body.theme-dark:not(.festival-theme) .card,
+body.theme-dark:not(.festival-theme) .work-panel,
+body.theme-dark:not(.festival-theme) .employee-card,
+body.theme-dark:not(.festival-theme) .dashboard-calendar,
+body.theme-dark:not(.festival-theme) .metric-card,
+body.theme-dark:not(.festival-theme) .finance-grid article,
+body.theme-dark:not(.festival-theme) .dept-overview,
+body.theme-dark:not(.festival-theme) .trend-list,
+body.theme-dark:not(.festival-theme) #appView .module-nav{
+  position:relative;
+  background:linear-gradient(145deg,rgba(35,58,96,.78),rgba(18,34,66,.62))!important;
+  border:1px solid rgba(151,190,244,.34)!important;
+  box-shadow:0 20px 58px rgba(0,0,0,.30),inset 0 1px 0 rgba(226,241,255,.18),inset 0 -1px 0 rgba(92,145,214,.16)!important;
+  backdrop-filter:blur(28px) saturate(165%)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(165%)!important;
+  color:#eef5ff!important;
+}
+body.theme-light:not(.festival-theme) #loginView,
+body.theme-light:not(.festival-theme) #appView>section.module-page.card{
+  border-color:rgba(255,255,255,.94)!important;
+  box-shadow:0 24px 66px rgba(53,92,154,.17),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(125,169,230,.12)!important;
+}
+body.theme-dark:not(.festival-theme) #loginView,
+body.theme-dark:not(.festival-theme) #appView>section.module-page.card{
+  border-color:rgba(155,196,247,.38)!important;
+  box-shadow:0 25px 72px rgba(0,0,0,.36),inset 0 1px 0 rgba(230,244,255,.20),inset 0 0 0 1px rgba(87,146,221,.16)!important;
+}
+body.theme-light:not(.festival-theme) .card:before,
+body.theme-dark:not(.festival-theme) .card:before{
+  content:"";position:absolute;inset:0 0 auto;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.88),rgba(117,180,236,.48),transparent);
+  border-radius:inherit;
+}
+body.theme-light:not(.festival-theme) h1,
+body.theme-light:not(.festival-theme) h2,
+body.theme-light:not(.festival-theme) h3,
+body.theme-light:not(.festival-theme) h4,
+body.theme-light:not(.festival-theme) .module-page-heading h2,
+body.theme-light:not(.festival-theme) .dashboard-section-title h3{color:#284e7c!important}
+body.theme-dark:not(.festival-theme) h1,
+body.theme-dark:not(.festival-theme) h2,
+body.theme-dark:not(.festival-theme) h3,
+body.theme-dark:not(.festival-theme) h4,
+body.theme-dark:not(.festival-theme) .module-page-heading h2,
+body.theme-dark:not(.festival-theme) .dashboard-section-title h3{color:#e7f1ff!important}
+body.theme-light:not(.festival-theme) label,
+body.theme-light:not(.festival-theme) .small,
+body.theme-light:not(.festival-theme) .module-page-heading p{color:#526987!important}
+body.theme-dark:not(.festival-theme) label,
+body.theme-dark:not(.festival-theme) .small,
+body.theme-dark:not(.festival-theme) .module-page-heading p{color:#bfd1e9!important}
+body.theme-light:not(.festival-theme) input,
+body.theme-light:not(.festival-theme) select,
+body.theme-light:not(.festival-theme) textarea{
+  background:rgba(255,255,255,.72)!important;border:1px solid rgba(112,151,202,.34)!important;
+  color:#263e5c!important;box-shadow:inset 0 1px 5px rgba(55,89,137,.06)!important;
+  backdrop-filter:blur(14px) saturate(150%)!important;-webkit-backdrop-filter:blur(14px) saturate(150%)!important;
+}
+body.theme-dark:not(.festival-theme) input,
+body.theme-dark:not(.festival-theme) select,
+body.theme-dark:not(.festival-theme) textarea{
+  background:rgba(7,20,44,.58)!important;border:1px solid rgba(139,181,235,.34)!important;
+  color:#f1f7ff!important;box-shadow:inset 0 1px 6px rgba(0,0,0,.18)!important;
+  backdrop-filter:blur(14px) saturate(145%)!important;-webkit-backdrop-filter:blur(14px) saturate(145%)!important;
+}
+body.theme-light:not(.festival-theme) input:focus,
+body.theme-light:not(.festival-theme) select:focus,
+body.theme-light:not(.festival-theme) textarea:focus,
+body.theme-dark:not(.festival-theme) input:focus,
+body.theme-dark:not(.festival-theme) select:focus,
+body.theme-dark:not(.festival-theme) textarea:focus{
+  border-color:#55a9ed!important;box-shadow:0 0 0 3px rgba(61,157,226,.20),0 0 18px rgba(70,160,230,.12)!important;
+}
+body.theme-light:not(.festival-theme) .primary,
+body.theme-dark:not(.festival-theme) .primary{
+  color:#fff!important;background:linear-gradient(112deg,#287de0 0%,#6565df 54%,#8c5bd4 100%)!important;
+  border:1px solid rgba(255,255,255,.44)!important;
+  box-shadow:0 10px 26px rgba(70,100,205,.30),inset 0 1px 0 rgba(255,255,255,.40)!important;
+}
+body.theme-light:not(.festival-theme) .google-login,
+body.theme-light:not(.festival-theme) #logoutBtn,
+body.theme-light:not(.festival-theme) .dark,
+body.theme-light:not(.festival-theme) .calendar-nav,
+body.theme-light:not(.festival-theme) .calendar-today{
+  color:#315b88!important;background:rgba(255,255,255,.62)!important;
+  border:1px solid rgba(112,151,202,.35)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+body.theme-dark:not(.festival-theme) .google-login,
+body.theme-dark:not(.festival-theme) #logoutBtn,
+body.theme-dark:not(.festival-theme) .dark,
+body.theme-dark:not(.festival-theme) .calendar-nav,
+body.theme-dark:not(.festival-theme) .calendar-today{
+  color:#e4f1ff!important;background:rgba(45,70,110,.62)!important;
+  border:1px solid rgba(142,183,235,.30)!important;
+  box-shadow:inset 0 1px 0 rgba(235,246,255,.13)!important;
+}
+body.theme-light:not(.festival-theme) .module-nav-item{color:#526d91!important}
+body.theme-light:not(.festival-theme) .module-nav-item.active{
+  color:#254f91!important;background:linear-gradient(135deg,rgba(82,150,232,.25),rgba(75,198,184,.20),rgba(170,135,230,.16))!important;
+  border:1px solid rgba(91,145,210,.38)!important;box-shadow:0 7px 20px rgba(76,125,190,.12),inset 0 1px 0 rgba(255,255,255,.75)!important;
+}
+body.theme-dark:not(.festival-theme) .module-nav-item{color:#c4d7f0!important}
+body.theme-dark:not(.festival-theme) .module-nav-item.active{
+  color:#f1f8ff!important;background:linear-gradient(135deg,rgba(65,137,226,.34),rgba(45,183,179,.22),rgba(139,91,211,.24))!important;
+  border:1px solid rgba(132,186,241,.42)!important;box-shadow:0 8px 22px rgba(0,0,0,.20),inset 0 1px 0 rgba(235,247,255,.16)!important;
+}
+body.theme-light:not(.festival-theme) .calendar-day{background:rgba(255,255,255,.66)!important;color:#3b5d82!important;border-color:rgba(114,154,203,.24)!important}
+body.theme-dark:not(.festival-theme) .calendar-day{background:rgba(25,47,80,.72)!important;color:#d9eaff!important;border-color:rgba(136,175,222,.24)!important}
+body.theme-light:not(.festival-theme) .calendar-day.is-selected,
+body.theme-dark:not(.festival-theme) .calendar-day.is-selected{background:linear-gradient(130deg,#347fdf,#27aaa9,#7867d8)!important;color:#fff!important}
+body.theme-light:not(.festival-theme) .metric-blue{border-top:3px solid #4c8fe8!important}
+body.theme-light:not(.festival-theme) .metric-teal{border-top:3px solid #36b8ad!important}
+body.theme-light:not(.festival-theme) .metric-violet{border-top:3px solid #9272d8!important}
+body.theme-light:not(.festival-theme) .metric-amber{border-top:3px solid #e2aa4e!important}
+body.theme-dark:not(.festival-theme) .metric-blue{border-top:3px solid #66aaff!important}
+body.theme-dark:not(.festival-theme) .metric-teal{border-top:3px solid #53d5c5!important}
+body.theme-dark:not(.festival-theme) .metric-violet{border-top:3px solid #b59aff!important}
+body.theme-dark:not(.festival-theme) .metric-amber{border-top:3px solid #f2c36d!important}
+body.theme-light:not(.festival-theme) .metric-card strong{color:#285c9a!important}
+body.theme-dark:not(.festival-theme) .metric-card strong{color:#dcecff!important}
+body.theme-light:not(.festival-theme) .status{background:rgba(255,255,255,.36)!important;color:#f7fbff!important;border-color:rgba(255,255,255,.38)!important}
+body.theme-dark:not(.festival-theme) .status{background:rgba(8,24,48,.48)!important;color:#dcecff!important;border-color:rgba(155,193,238,.26)!important}
+@media(max-width:720px){
+ body.theme-light:not(.festival-theme),body.theme-dark:not(.festival-theme){background-attachment:scroll!important}
+ body.theme-light:not(.festival-theme) .card,body.theme-dark:not(.festival-theme) .card,
+ body.theme-light:not(.festival-theme) .work-panel,body.theme-dark:not(.festival-theme) .work-panel{
+  backdrop-filter:blur(18px) saturate(155%)!important;-webkit-backdrop-filter:blur(18px) saturate(155%)!important;
+ }
+}
+@media(prefers-reduced-transparency:reduce){
+ body.theme-light:not(.festival-theme) .card,body.theme-dark:not(.festival-theme) .card,
+ body.theme-light:not(.festival-theme) .work-panel,body.theme-dark:not(.festival-theme) .work-panel{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ }
+}
+
 </style>
 </head>
 <body>
