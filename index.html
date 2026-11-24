@@ -1427,6 +1427,7 @@ function updateThemeButton(){
   }
 }
 window.setSigmaTheme=function(mode){
+  holidayPreviewId=null;
   savedSigmaTheme=mode==="dark"?"dark":"light";
   try{localStorage.setItem("sigma-colorcare-theme-v2",savedSigmaTheme);}catch(error){console.warn("Theme preference could not be saved",error);}
   document.body.classList.toggle("theme-dark",savedSigmaTheme==="dark");
@@ -1501,6 +1502,7 @@ function initializeModuleNavigation(){
 function showLogin(){
   if(unsubscribeHolidayThemeSettings){unsubscribeHolidayThemeSettings();unsubscribeHolidayThemeSettings=null;}
   holidayPreviewId=null;
+  applyVietnamHolidayTheme();
   // Fail closed: clear all in-memory authorization before returning to the login screen.
   currentRole = null;
   currentProfile = null;
