@@ -184,6 +184,48 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertSucceeds(getDocs(ownQuery));
   });
 
+  it("allows the admin dashboard to query repair, cleaning, and weaving work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      await setDoc(doc(db, "repairWorkOrders/dashboard-repair"), {
+        employeeUid: "employee-2", createdBy: "employee-2", departmentId: 1,
+        repairTypeId: 101, workDate: "2026-11-25", orderNo: "", styleNo: "",
+        color: "", quantity: 12, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(db, "cleanWorkOrders/dashboard-clean"), {
+        employeeUid: "employee-3", createdBy: "employee-3", departmentId: 2,
+        workDate: "2026-11-25", orderNo: "", styleNo: "", color: "",
+        quantity: 20, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+      await setDoc(doc(db, "weaveWorkOrders/dashboard-weave"), {
+        employeeUid: "employee-4", createdBy: "employee-4", departmentId: 3,
+        workDate: "2026-11-25", orderNo: "", styleNo: "", color: "",
+        quantity: 30, note: "", status: "submitted", createdAt: Timestamp.now()
+      });
+    });
+    const db = adminDb();
+    const { collection, getDocs, query, where, limit } = await import("firebase/firestore");
+    const repair = await assertSucceeds(getDocs(query(
+      collection(db, "repairWorkOrders"),
+      where("workDate", ">=", "2026-11-19"),
+      where("workDate", "<=", "2026-11-25"),
+      limit(500)
+    )));
+    const clean = await assertSucceeds(getDocs(query(
+      collection(db, "cleanWorkOrders"),
+      where("workDate", "==", "2026-11-25"),
+      limit(500)
+    )));
+    const weave = await assertSucceeds(getDocs(query(
+      collection(db, "weaveWorkOrders"),
+      where("workDate", "==", "2026-11-25"),
+      limit(500)
+    )));
+    assert.equal(repair.size, 1);
+    assert.equal(clean.size, 1);
+    assert.equal(weave.size, 1);
+  });
+
   it("allows an active admin to create a valid one-day invitation", async () => {
     const db = adminDb();
     await assertSucceeds(setDoc(doc(db, "employeeInvites/new-invite"), {
