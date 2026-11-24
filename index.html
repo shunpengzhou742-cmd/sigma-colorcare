@@ -2132,6 +2132,7 @@ document.getElementById("expenseForm").addEventListener("submit",async event=>{
    message.textContent=tr("expenseSaved");
   }
   await refreshExpenseList();
+  await loadFinanceOverview();
  }catch(error){console.error("Expense save error",error);message.textContent=error.message==="EXPENSE_SUMMARY_EXISTS"?tr("expenseDuplicate"):tr("expenseSaveError")+(error.code||error.message||"unknown");}
  finally{button.disabled=false;}
 });
