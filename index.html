@@ -1172,7 +1172,9 @@ window.switchLang = function(){
   document.getElementById("langBtn").textContent = tr("lang");
   updateNet();
   updateThemeButton();
-  updateHolidayThemeBanner(getVietnamHolidaySchedule());
+  if(holidayPreviewId){const item=VIETNAM_HOLIDAY_LABELS.find(entry=>entry.id===holidayPreviewId);updateHolidayThemeBanner(item?{...item,daysUntil:0}:getVietnamHolidaySchedule());}
+  else updateHolidayThemeBanner(getVietnamHolidaySchedule());
+  if(currentRole==="admin")renderHolidaySettingsControls();
   if(currentDept) showDeptTitle();
   if(currentRole === "admin") renderEmployeeList(employeeCache);
 };
