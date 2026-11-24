@@ -440,7 +440,7 @@ html.theme-dark{--muted:#c7d2fe;--ink:#f8fafc;--cyan:#67e8f9;--blue:#60a5fa;--vi
 
 
 /* v18: six-module navigation architecture — separate workspaces, no mega-scroll */
-.module-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0 14px;padding:8px;border:1px solid rgba(120,160,205,.28);border-radius:18px;background:rgba(255,255,255,.36);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 26px rgba(30,65,110,.08)}
+ .module-nav{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:16px 0 14px;padding:8px;border:1px solid rgba(120,160,205,.28);border-radius:18px;background:rgba(255,255,255,.36);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 26px rgba(30,65,110,.08)}
 .module-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:66px;padding:8px 4px;border:1px solid transparent;border-radius:13px;background:transparent;color:#45617e;font-size:11px}
 .module-nav-item span{font-size:20px;line-height:1.1}.module-nav-item b{font-size:11px;white-space:nowrap}
 .module-nav-item.active{background:linear-gradient(135deg,rgba(45,125,210,.18),rgba(35,180,190,.13));border-color:rgba(67,137,205,.28);color:#1557a6;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 4px 14px rgba(36,103,170,.09)}
@@ -543,6 +543,18 @@ body.festival-theme.festival-children{--festival-deep:#245e9b;--festival-main:#3
 @media(max-width:520px){body.festival-theme:before{left:4px!important;top:104px!important;font-size:30px!important}body.festival-theme:after{right:4px!important;top:150px!important;font-size:30px!important}.holiday-theme-banner{font-size:11px;padding:9px 10px}}
 @media(prefers-reduced-motion:no-preference){body.festival-theme:before,body.festival-theme:after{animation:festivalLanternFloat 4s ease-in-out infinite alternate!important}@keyframes festivalLanternFloat{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(7px) rotate(3deg)}}}
 
+
+/* Admin holiday theme manager */
+.holiday-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.holiday-setting-row{display:flex;align-items:center;gap:9px;min-width:0;padding:11px 12px;border:1px solid rgba(120,150,190,.24);border-radius:12px;background:rgba(255,255,255,.56);color:#274565;font-size:13px}
+.holiday-setting-row input{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:#2563eb}
+.holiday-preview-controls,.holiday-settings-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.holiday-preview-controls select{flex:1;min-width:160px}
+.holiday-preview-controls button{width:auto;flex:1;min-width:110px}
+.holiday-settings-actions .primary{width:auto;min-width:170px}
+body.theme-dark .holiday-setting-row{background:rgba(12,27,48,.72);color:#e1efff;border-color:rgba(130,165,205,.25)}
+body.festival-theme .holiday-setting-row{background:rgba(255,255,255,.78);color:#64272a}
+@media(max-width:560px){.holiday-settings-grid{grid-template-columns:1fr}.holiday-preview-controls{display:grid;grid-template-columns:1fr 1fr}.holiday-preview-controls select{grid-column:1/-1}.holiday-preview-controls button{width:100%;min-width:0}.holiday-settings-actions .primary{width:100%}}
 </style>
 </head>
 <body>
@@ -594,6 +606,7 @@ body.festival-theme.festival-children{--festival-deep:#245e9b;--festival-main:#3
       <button type="button" class="module-nav-item" data-module="cost" onclick="setActiveModule('cost')"><span>◈</span><b data-i18n="moduleCostNav">成本管理</b></button>
       <button type="button" class="module-nav-item" data-module="profit" onclick="setActiveModule('profit')"><span>▤</span><b data-i18n="moduleProfitNav">盈亏报表</b></button>
       <button type="button" class="module-nav-item" data-module="data" onclick="setActiveModule('data')"><span>⚙</span><b data-i18n="moduleDataNav">数据管理</b></button>
+      <button type="button" class="module-nav-item" data-module="settings" onclick="setActiveModule('settings')"><span>🎨</span><b data-i18n="moduleSettingsNav">主题设置</b></button>
     </nav>
     <section id="module-home" class="module-page card active">
       <div class="module-page-heading"><div><small>SIGMA COLORCARE</small><h2 data-i18n="moduleHomeTitle">首页 · 经营总览</h2><p data-i18n="moduleHomeDesc">查看当天进度和三个工作组的运营状态</p></div></div>
@@ -618,6 +631,27 @@ body.festival-theme.festival-children{--festival-deep:#245e9b;--festival-main:#3
     <section id="module-data" class="module-page card">
       <div class="module-page-heading"><div><small>DATA MANAGEMENT</small><h2 data-i18n="moduleDataTitle">数据管理</h2><p data-i18n="moduleDataDesc">员工、邀请、报废审核和业务记录管理</p></div></div>
       <div id="moduleDataContent"></div>
+    </section>
+    <section id="module-settings" class="module-page card">
+      <div class="module-page-heading"><div><small>APPEARANCE & HOLIDAYS</small><h2 data-i18n="moduleSettingsTitle">节日主题管理</h2><p data-i18n="moduleSettingsDesc">统一管理越南节日主题、提前切换时间和节日预览</p></div></div>
+      <div class="work-panel holiday-settings-panel">
+        <h3 data-i18n="holidaySettingsHeading">自动节日主题</h3>
+        <p class="small" data-i18n="holidaySettingsHint">启用的节日会按越南当地日期自动切换，设置对所有已登录员工生效。</p>
+        <label for="holidayAdvanceDays" data-i18n="holidayAdvanceLabel">提前切换天数</label>
+        <select id="holidayAdvanceDays" aria-label="Holiday theme advance days"></select>
+        <div class="dashboard-section-title"><h3 data-i18n="holidayEnabledTitle">启用的节日</h3></div>
+        <div id="holidayThemeOptions" class="holiday-settings-grid"></div>
+        <div class="dashboard-section-title"><h3 data-i18n="holidayPreviewTitle">主题预览</h3></div>
+        <div class="holiday-preview-controls">
+          <select id="holidayPreviewSelect" aria-label="Preview a holiday theme"></select>
+          <button id="previewHolidayThemeBtn" class="dark" type="button" data-i18n="holidayPreviewButton">预览主题</button>
+          <button id="clearHolidayPreviewBtn" class="dark" type="button" data-i18n="holidayPreviewClear">恢复自动主题</button>
+        </div>
+        <div class="holiday-settings-actions">
+          <button id="saveHolidayThemeSettingsBtn" class="primary" type="button" data-i18n="holidaySaveButton">保存全局设置</button>
+          <span id="holidayThemeSettingsStatus" class="small" role="status" aria-live="polite"></span>
+        </div>
+      </div>
     </section>
     <section id="dashboardPanel" class="card hidden" style="margin-top:18px">
       <div class="dashboard-heading">
@@ -854,7 +888,7 @@ googleProvider.setCustomParameters({prompt:"select_account"});
 
 const translations = {
   zh: {
-    moduleHomeNav:"首页",moduleProductionNav:"产量管理",moduleSalaryNav:"工资管理",moduleCostNav:"成本管理",moduleProfitNav:"盈亏报表",moduleDataNav:"数据管理",moduleHomeTitle:"首页 · 经营总览",moduleHomeDesc:"查看当天进度和三个工作组的运营状态",moduleProductionTitle:"产量管理",moduleProductionDesc:"部门每日核算与修色、清洗、修织工单入口",moduleSalaryTitle:"工资管理",moduleSalaryDesc:"部门日薪标准及历史生效记录",moduleCostTitle:"成本管理",moduleCostDesc:"登记和查询日常经营支出",moduleProfitTitle:"盈亏报表",moduleProfitDesc:"按月、半年、年度查看收入、成本和利润",moduleDataTitle:"数据管理",moduleDataDesc:"员工、邀请、报废审核和业务记录管理",subtitle:"智能工厂管理系统", login:"登录系统",
+    moduleHomeNav:"首页",moduleProductionNav:"产量管理",moduleSalaryNav:"工资管理",moduleCostNav:"成本管理",moduleProfitNav:"盈亏报表",moduleDataNav:"数据管理",moduleHomeTitle:"首页 · 经营总览",moduleHomeDesc:"查看当天进度和三个工作组的运营状态",moduleProductionTitle:"产量管理",moduleProductionDesc:"部门每日核算与修色、清洗、修织工单入口",moduleSalaryTitle:"工资管理",moduleSalaryDesc:"部门日薪标准及历史生效记录",moduleCostTitle:"成本管理",moduleCostDesc:"登记和查询日常经营支出",moduleProfitTitle:"盈亏报表",moduleProfitDesc:"按月、半年、年度查看收入、成本和利润",moduleDataTitle:"数据管理",moduleDataDesc:"员工、邀请、报废审核和业务记录管理",moduleSettingsNav:"主题设置",moduleSettingsTitle:"节日主题管理",moduleSettingsDesc:"统一管理越南节日主题、提前切换时间和节日预览",holidaySettingsHeading:"自动节日主题",holidaySettingsHint:"启用的节日会按越南当地日期自动切换，设置对所有已登录员工生效。",holidayAdvanceLabel:"提前切换天数",holidayEnabledTitle:"启用的节日",holidayPreviewTitle:"主题预览",holidayPreviewButton:"预览主题",holidayPreviewClear:"恢复自动主题",holidaySaveButton:"保存全局设置",holidaySaved:"节日主题设置已保存并同步。",holidaySaveError:"保存节日主题设置失败：",holidayLoadError:"无法读取全局节日主题设置：",holidayPreviewActive:"正在预览主题；不会更改已保存设置。",holidayPreviewRestored:"已恢复自动节日主题。",subtitle:"智能工厂管理系统", login:"登录系统",
     configWarning:"Firebase 尚未配置。", email:"账号 / 邮箱", password:"密码",
     loginBtn:"邮箱密码登录", googleLogin:"使用 Google 账号登录", orContinue:"或使用其他方式", user:"当前用户", logout:"退出登录",
     selectDept:"请选择部门", repair:"修色部门", repairDesc:"喷色 / 手工描绘",
@@ -977,7 +1011,7 @@ const translations = {
     expensePeriodLabel:"费用统计周期",expensePeriodMonth:"本月",expensePeriodHalf:"本半年",expensePeriodYear:"本年度",expensePeriodTotal:"周期费用合计",expensePeriodEmpty:"该周期暂无费用记录",expensePeriodDept:"部门归属费用",
   },
   vi: {
-    moduleHomeNav:"Trang chủ",moduleProductionNav:"Sản lượng",moduleSalaryNav:"Tiền lương",moduleCostNav:"Chi phí",moduleProfitNav:"Lãi lỗ",moduleDataNav:"Dữ liệu",moduleHomeTitle:"Trang chủ · Tổng quan",moduleHomeDesc:"Theo dõi tiến độ hôm nay và hoạt động của ba nhóm",moduleProductionTitle:"Quản lý sản lượng",moduleProductionDesc:"Hạch toán hằng ngày và lối vào lệnh sửa màu, giặt, sửa dệt",moduleSalaryTitle:"Quản lý tiền lương",moduleSalaryDesc:"Mức lương ngày và lịch sử áp dụng",moduleCostTitle:"Quản lý chi phí",moduleCostDesc:"Ghi nhận và tra cứu chi phí vận hành",moduleProfitTitle:"Báo cáo lãi lỗ",moduleProfitDesc:"Xem doanh thu, chi phí và lợi nhuận theo tháng, nửa năm, năm",moduleDataTitle:"Quản lý dữ liệu",moduleDataDesc:"Nhân viên, lời mời, duyệt phế phẩm và hồ sơ nghiệp vụ",subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
+    moduleHomeNav:"Trang chủ",moduleProductionNav:"Sản lượng",moduleSalaryNav:"Tiền lương",moduleCostNav:"Chi phí",moduleProfitNav:"Lãi lỗ",moduleDataNav:"Dữ liệu",moduleHomeTitle:"Trang chủ · Tổng quan",moduleHomeDesc:"Theo dõi tiến độ hôm nay và hoạt động của ba nhóm",moduleProductionTitle:"Quản lý sản lượng",moduleProductionDesc:"Hạch toán hằng ngày và lối vào lệnh sửa màu, giặt, sửa dệt",moduleSalaryTitle:"Quản lý tiền lương",moduleSalaryDesc:"Mức lương ngày và lịch sử áp dụng",moduleCostTitle:"Quản lý chi phí",moduleCostDesc:"Ghi nhận và tra cứu chi phí vận hành",moduleProfitTitle:"Báo cáo lãi lỗ",moduleProfitDesc:"Xem doanh thu, chi phí và lợi nhuận theo tháng, nửa năm, năm",moduleDataTitle:"Quản lý dữ liệu",moduleDataDesc:"Nhân viên, lời mời, duyệt phế phẩm và hồ sơ nghiệp vụ",moduleSettingsNav:"Giao diện",moduleSettingsTitle:"Quản lý giao diện ngày lễ",moduleSettingsDesc:"Quản lý giao diện lễ hội Việt Nam, số ngày đổi trước và xem trước",holidaySettingsHeading:"Tự động đổi giao diện ngày lễ",holidaySettingsHint:"Ngày lễ được tự động nhận diện theo giờ Việt Nam; thiết lập áp dụng cho tất cả nhân viên đã đăng nhập.",holidayAdvanceLabel:"Số ngày đổi giao diện trước lễ",holidayEnabledTitle:"Bật các ngày lễ",holidayPreviewTitle:"Xem trước giao diện",holidayPreviewButton:"Xem trước",holidayPreviewClear:"Khôi phục tự động",holidaySaveButton:"Lưu thiết lập chung",holidaySaved:"Đã lưu và đồng bộ thiết lập giao diện ngày lễ.",holidaySaveError:"Không thể lưu thiết lập giao diện: ",holidayLoadError:"Không thể tải thiết lập giao diện chung: ",holidayPreviewActive:"Đang xem trước; thiết lập đã lưu không bị thay đổi.",holidayPreviewRestored:"Đã khôi phục giao diện tự động.",subtitle:"Hệ thống quản lý nhà máy", login:"Đăng nhập hệ thống",
     configWarning:"Firebase chưa được cấu hình.", email:"Tài khoản / Email", password:"Mật khẩu",
     loginBtn:"Đăng nhập bằng Email", googleLogin:"Đăng nhập bằng Google", orContinue:"Hoặc tiếp tục bằng", user:"Người dùng hiện tại", logout:"Đăng xuất",
     selectDept:"Chọn bộ phận", repair:"Bộ phận Sửa màu", repairDesc:"Phun màu / vẽ thủ công",
@@ -1320,10 +1354,11 @@ function setActiveModule(key){
   // Navigation is not an authorization boundary; fail closed without a live,
   // resolved identity. Firestore rules remain the data-access boundary.
   if(!auth.currentUser || !["admin","employee"].includes(currentRole)) return;
-  const keys=["home","production","salary","cost","profit","data"];
+  const keys=["home","production","salary","cost","profit","data","settings"];
   if(!keys.includes(key)) key="home";
   if(currentRole!=="admin" && key!=="production") key="production";
   activeModuleKey=key;
+  if(key==="settings") renderHolidaySettingsControls();
   keys.forEach(name=>{
     const page=document.getElementById("module-"+name);
     const button=document.querySelector('.module-nav-item[data-module="'+name+'"]');
@@ -1340,7 +1375,8 @@ function initializeModuleNavigation(){
     salary:document.getElementById("moduleSalaryContent"),
     cost:document.getElementById("moduleCostContent"),
     profit:document.getElementById("moduleProfitContent"),
-    data:document.getElementById("moduleDataContent")
+    data:document.getElementById("moduleDataContent"),
+    settings:document.getElementById("module-settings")
   };
   const dashboard=document.getElementById("dashboardPanel");
   if(dashboard && !dashboard.dataset.reorganized){
@@ -1413,6 +1449,7 @@ function showApp(user, identity){
   document.getElementById("dailyAccountingForm").classList.toggle("hidden",identity.role!=="admin");
   setActiveModule(identity.role==="admin"?"home":"production");
   updateGoogleLinkButton(user);
+  loadHolidayThemeSettings();
   if(identity.role === "admin"){ loadEmployees(); loadDashboard(); loadWageRates(); refreshExpenseList(); loadScrapReviewQueue(); }
   currentDept = "";
 }
