@@ -65,9 +65,14 @@ test("holiday setting IDs stay synchronized with the Firestore allowlist", async
   const labelsEnd = moduleSource.indexOf("const DEFAULT_HOLIDAY_THEME_SETTINGS", labelsStart);
   assert.ok(labelsStart >= 0 && labelsEnd > labelsStart, "holiday labels must be present");
   const labelIds = [...moduleSource.slice(labelsStart, labelsEnd).matchAll(/id:"([^"]+)"/g)].map(match => match[1]);
-  const allowedMatch = rules.match(/match \/appSettings\/vietnamHolidayThemes[\\s\\S]*?enabledHolidayIds\\.hasOnly\\(\\[([\\s\\S]*?)\\]\\)/);
-  assert.ok(allowedMatch, "Firestore rules must define the holiday ID allowlist");
-  const allowedIds = [...allowedMatch[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+  const rulesStart = rules.indexOf("match /appSettings/vietnamHolidayThemes");
+  const rulesEnd = rules.indexOf("allow list, delete: if false;", rulesStart);
+  assert.ok(rulesStart >= 0 && rulesEnd > rulesStart, "Firestore rules must define holiday settings access");
+  const rulesBlock = rules.slice(rulesStart, rulesEnd);
+  const allowlistStart = rulesBlock.indexOf("enabledHolidayIds.hasOnly([");
+  const allowlistEnd = rulesBlock.indexOf("])", allowlistStart);
+  assert.ok(allowlistStart >= 0 && allowlistEnd > allowlistStart, "Firestore holiday ID allowlist must be present");
+  const allowedIds = [...rulesBlock.slice(allowlistStart, allowlistEnd).matchAll(/'([^']+)'/g)].map(match => match[1]);
   assert.deepEqual([...new Set(labelIds)].sort(), [...new Set(allowedIds)].sort());
   assert.equal(new Set(labelIds).size, labelIds.length, "holiday setting labels must not contain duplicate IDs");
 });
