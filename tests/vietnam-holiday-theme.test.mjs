@@ -58,3 +58,16 @@ test("admin holiday settings control enabled holidays and advance days", () => {
   assert.equal(api.getVietnamHolidaySchedule({year:2027,month:2,day:6})?.id, "tet");
   api.setSettings({ enabledHolidayIds: [...api.defaultSettings.enabledHolidayIds], advanceDays: 3 });
 });
+
+test("holiday setting IDs stay synchronized with the Firestore allowlist", async () => {
+  const rules = await readFile(new URL("../firestore.rules", import.meta.url), "utf8");
+  const labelsStart = moduleSource.indexOf("const VIETNAM_HOLIDAY_LABELS");
+  const labelsEnd = moduleSource.indexOf("const DEFAULT_HOLIDAY_THEME_SETTINGS", labelsStart);
+  assert.ok(labelsStart >= 0 && labelsEnd > labelsStart, "holiday labels must be present");
+  const labelIds = [...moduleSource.slice(labelsStart, labelsEnd).matchAll(/id:"([^"]+)"/g)].map(match => match[1]);
+  const allowedMatch = rules.match(/match \/appSettings\/vietnamHolidayThemes[\\s\\S]*?enabledHolidayIds\\.hasOnly\\(\\[([\\s\\S]*?)\\]\\)/);
+  assert.ok(allowedMatch, "Firestore rules must define the holiday ID allowlist");
+  const allowedIds = [...allowedMatch[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+  assert.deepEqual([...new Set(labelIds)].sort(), [...new Set(allowedIds)].sort());
+  assert.equal(new Set(labelIds).size, labelIds.length, "holiday setting labels must not contain duplicate IDs");
+});
