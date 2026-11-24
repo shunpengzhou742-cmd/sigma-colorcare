@@ -2287,9 +2287,9 @@ async function loadDashboard(){
   const start=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth(),1));
   const end=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth()+1,0));
   const [repair,clean,weave]=await Promise.all([
-   getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
-   getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
-   getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000)))
+   getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",start),where("workDate","<=",end)))),
+   getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end)))),
+   getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end))))
   ]);
   if(requestId!==dashboardLoadSequence)return;
   dashboardRowsCache=repair.docs.map(x=>x.data());dashboardCleanRowsCache=clean.docs.map(x=>x.data());dashboardWeaveRowsCache=weave.docs.map(x=>x.data());
