@@ -508,6 +508,19 @@ body.theme-dark .login-brand-copy strong{color:#eff7ff}
 body.theme-dark .login-brand-copy span{color:#c2d5ed}
 @media(max-width:420px){.login-brand{gap:13px;margin-bottom:20px}.login-brand>img{width:66px;height:66px;flex-basis:66px;border-radius:19px}}
 
+
+/* Primary mobile navigation follows the approved Home / Reports / Settings flow */
+.primary-bottom-nav{position:fixed;z-index:1000;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(520px,calc(100% - 24px));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:9px;border:1px solid rgba(255,255,255,.58);border-radius:22px;background:rgba(235,245,255,.72);box-shadow:0 12px 36px rgba(24,62,108,.2),inset 0 1px 0 rgba(255,255,255,.85);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%)}
+.primary-bottom-nav button{min-height:52px;border:1px solid transparent;border-radius:15px;background:transparent;color:#345575;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit}
+.primary-bottom-nav button span{font-size:20px;line-height:1}
+.primary-bottom-nav button b{font-size:11px;font-weight:750}
+.primary-bottom-nav button.active{background:linear-gradient(135deg,rgba(75,151,232,.2),rgba(53,191,202,.17));border-color:rgba(82,150,210,.26);color:#14528b}
+body.theme-dark .primary-bottom-nav{background:rgba(15,31,54,.82);border-color:rgba(153,192,232,.26);box-shadow:0 12px 36px rgba(0,0,0,.32),inset 0 1px 0 rgba(220,238,255,.12)}
+body.theme-dark .primary-bottom-nav button{color:#c1d5eb}
+body.theme-dark .primary-bottom-nav button.active{background:linear-gradient(135deg,rgba(65,143,225,.3),rgba(38,174,187,.22));color:#e4f5ff}
+@media(min-width:721px){.primary-bottom-nav{width:360px;bottom:18px}.primary-bottom-nav button{min-height:46px}}
+#appView{padding-bottom:105px}
+
 </style>
 </head>
 <body>
@@ -696,7 +709,13 @@ body.theme-dark .login-brand-copy span{color:#c2d5ed}
     <button id="deptWeave" class="dept weave" type="button" onclick="openDept('weave')">
       <span><strong data-i18n="weave">修织部门</strong><div class="small" data-i18n="weaveDesc">修织工序管理</div></span><b>→</b>
     </button>
-  </section>
+  
+    <nav id="primaryBottomNav" class="primary-bottom-nav hidden" aria-label="主要导航">
+      <button type="button" data-primary="home" class="active" onclick="setPrimaryTab('home')"><span aria-hidden="true">⌂</span><b data-i18n="moduleHomeNav">首页</b></button>
+      <button type="button" data-primary="reports" onclick="setPrimaryTab('reports')"><span aria-hidden="true">▤</span><b>报表</b></button>
+      <button type="button" data-primary="settings" onclick="setPrimaryTab('settings')"><span aria-hidden="true">⚙</span><b>设置</b></button>
+    </nav>
+</section>
 
   <section id="deptView" class="card hidden">
     <h2 id="deptTitle"></h2>
@@ -1155,8 +1174,18 @@ function setActiveModule(key){
     if(page) page.classList.toggle("active",name===key);
     if(button) button.classList.toggle("active",name===key);
   });
+  document.querySelectorAll("#primaryBottomNav [data-primary]").forEach(button=>{
+    const primary=button.getAttribute("data-primary");
+    button.classList.toggle("active",(primary==="home"&&key==="home")||(primary==="reports"&&key==="profit")||(primary==="settings"&&key==="data"));
+  });
   window.scrollTo({top:0,behavior:"smooth"});
 }
+function setPrimaryTab(tab){
+  if(!auth.currentUser || currentRole!=="admin") return;
+  const target={home:"home",reports:"profit",settings:"data"}[tab]||"home";
+  setActiveModule(target);
+}
+window.setPrimaryTab=setPrimaryTab;
 window.setActiveModule = setActiveModule;
 function initializeModuleNavigation(){
   const targets={
@@ -1202,6 +1231,7 @@ function showLogin(){
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("deptView").classList.add("hidden");
   document.getElementById("moduleNav")?.classList.add("hidden");
+  document.getElementById("primaryBottomNav")?.classList.add("hidden");
   document.querySelectorAll("#appView .module-page").forEach(page => page.classList.remove("active"));
   document.getElementById("loginView").classList.remove("hidden");
 }
@@ -1235,6 +1265,7 @@ function showApp(user, identity){
   document.getElementById("employeeManagePanel").classList.toggle("hidden", identity.role !== "admin");
   document.getElementById("scrapReviewPanel").classList.toggle("hidden",identity.role!=="admin");
   document.getElementById("moduleNav").classList.toggle("hidden",identity.role!=="admin");
+  document.getElementById("primaryBottomNav")?.classList.toggle("hidden",identity.role!=="admin");
   document.getElementById("dailyAccountingForm").classList.toggle("hidden",identity.role!=="admin");
   setActiveModule(identity.role==="admin"?"home":"production");
   updateGoogleLinkButton(user);
