@@ -490,11 +490,29 @@ body.theme-dark #appView .module-page .module-page-heading h2{color:#e0efff}
 @media(max-width:720px){
  body.theme-light #appView>section.module-page.card,body.theme-dark #appView>section.module-page.card{backdrop-filter:blur(15px) saturate(145%)!important;-webkit-backdrop-filter:blur(15px) saturate(145%)!important}
 }
+
+/* Approved brand/login restoration: use the repository app mark, keep both themes glass */
+.header-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.header-brand>img{width:42px;height:42px;flex:0 0 42px;border-radius:13px;box-shadow:0 6px 18px rgba(8,35,80,.22)}
+.header-brand>div{min-width:0}
+.login-brand{display:flex;align-items:center;gap:16px;margin:2px 0 24px;padding:0 0 20px;border-bottom:1px solid rgba(130,160,200,.22)}
+.login-brand>img{width:76px;height:76px;flex:0 0 76px;border-radius:22px;box-shadow:0 12px 28px rgba(20,70,140,.22)}
+.login-brand-copy{display:flex;flex-direction:column;gap:6px;min-width:0}
+.login-brand-copy strong{font-size:clamp(19px,5vw,25px);font-weight:850;letter-spacing:.2px;line-height:1.2}
+.login-brand-copy span{font-size:12px;letter-spacing:.4px;opacity:.82}
+body.theme-light #loginView{background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(238,247,255,.48))!important;border:1px solid rgba(255,255,255,.88)!important;box-shadow:0 24px 64px rgba(48,88,135,.16),inset 0 1px 0 rgba(255,255,255,.94)!important;backdrop-filter:blur(26px) saturate(165%)!important;-webkit-backdrop-filter:blur(26px) saturate(165%)!important}
+body.theme-dark #loginView{background:linear-gradient(145deg,rgba(27,49,79,.78),rgba(17,34,60,.62))!important;border:1px solid rgba(150,190,235,.30)!important;box-shadow:0 24px 68px rgba(0,0,0,.34),inset 0 1px 0 rgba(220,238,255,.16)!important;backdrop-filter:blur(28px) saturate(160%)!important;-webkit-backdrop-filter:blur(28px) saturate(160%)!important}
+body.theme-light .login-brand-copy strong{color:#174b83}
+body.theme-light .login-brand-copy span{color:#526b88}
+body.theme-dark .login-brand-copy strong{color:#eff7ff}
+body.theme-dark .login-brand-copy span{color:#c2d5ed}
+@media(max-width:420px){.login-brand{gap:13px;margin-bottom:20px}.login-brand>img{width:66px;height:66px;flex-basis:66px;border-radius:19px}}
+
 </style>
 </head>
 <body>
 <header>
-  <div><h1>SIGMA ColorCare</h1><p data-i18n="subtitle">智能工厂管理系统</p></div>
+  <div class="header-brand"><img src="./icons/icon-192.png" alt="SIGMA ColorCare 应用标识" width="42" height="42" decoding="async"><div><h1>SIGMA ColorCare</h1><p data-i18n="subtitle">智能工厂管理系统</p></div></div>
   <div style="text-align:right">
     <div class="statusrow"><span id="netStatus" class="status">检查网络</span><span id="fbStatus" class="status">连接中</span></div>
     <button id="langBtn" type="button" onclick="switchLang()">Tiếng Việt</button>
@@ -504,6 +522,13 @@ body.theme-dark #appView .module-page .module-page-heading h2{color:#e0efff}
 
 <main>
   <section id="loginView" class="card">
+    <div class="login-brand">
+      <img src="./icons/icon-192.png" alt="SIGMA ColorCare 应用标识" width="76" height="76" decoding="async">
+      <div class="login-brand-copy">
+        <strong>SIGMA ColorCare</strong>
+        <span data-i18n="subtitle">智能工厂管理系统</span>
+      </div>
+    </div>
     <h2 data-i18n="login">登录系统</h2>
     <div id="configWarning" class="warning hidden" data-i18n="configWarning">Firebase 尚未配置。</div>
     <form id="loginForm">
