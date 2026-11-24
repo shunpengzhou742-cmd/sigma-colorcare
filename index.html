@@ -1017,7 +1017,9 @@ window.setSigmaTheme = function(mode){
   document.body.classList.toggle("theme-light", !dark);
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if(metaTheme) metaTheme.setAttribute("content", dark ? "#0a1730" : "#edf5ff");
-  document.documentElement.classList.toggle("theme-dark", dark);\n  document.documentElement.classList.toggle("theme-light", !dark);\n  try{ localStorage.setItem("sigma-colorcare-theme-v2", dark ? "dark" : "light"); }catch(error){ console.warn("Theme preference could not be saved", error); }
+  document.documentElement.classList.toggle("theme-dark", dark);
+  document.documentElement.classList.toggle("theme-light", !dark);
+  try{ localStorage.setItem("sigma-colorcare-theme-v2", dark ? "dark" : "light"); }catch(error){ console.warn("Theme preference could not be saved", error); }
   updateThemeButton();
 };
 window.toggleSigmaTheme = function(){
