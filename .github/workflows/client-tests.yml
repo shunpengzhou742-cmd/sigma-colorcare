@@ -1,0 +1,27 @@
+name: Client and Holiday Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - feature/dashboard-interactive-calendar
+
+permissions:
+  contents: read
+
+jobs:
+  client-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check browser module syntax
+        run: node scripts/check-client-syntax.mjs
+      - name: Test Vietnam holiday calendar and theme dates
+        run: node --test tests/vietnam-holiday-theme.test.mjs
