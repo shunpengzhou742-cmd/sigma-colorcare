@@ -10,6 +10,13 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active';
     }
 
+    function isActiveEmployee() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/employees/$(request.auth.uid))
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.roleType == 1;
+    }
+
     function isGoogleUser() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'google.com'
@@ -250,6 +257,27 @@ service cloud.firestore {
 
     match /appSettings/departmentWages {
       allow get, create, update: if isAdmin();
+      allow list, delete: if false;
+    }
+
+    match /appSettings/vietnamHolidayThemes {
+      // This document contains public appearance preferences only, not business or employee data.
+      // Signed-in active employees may read it; only an active admin may change it.
+      allow get: if isAdmin() || isActiveEmployee();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['enabledHolidayIds', 'advanceDays', 'updatedAt', 'updatedBy'])
+        && request.resource.data.keys().hasOnly(['enabledHolidayIds', 'advanceDays', 'updatedAt', 'updatedBy'])
+        && request.resource.data.enabledHolidayIds is list
+        && request.resource.data.enabledHolidayIds.size() <= 12
+        && request.resource.data.enabledHolidayIds.hasOnly([
+          'new-year', 'women', 'reunification', 'children', 'national', 'teachers',
+          'christmas', 'tet', 'hung-kings', 'dragon-boat', 'vu-lan', 'mid-autumn'
+        ])
+        && request.resource.data.advanceDays is int
+        && request.resource.data.advanceDays >= 0
+        && request.resource.data.advanceDays <= 30
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
       allow list, delete: if false;
     }
 
