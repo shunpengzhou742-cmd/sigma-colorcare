@@ -481,6 +481,49 @@ describe("SIGMA employee invitation Firestore rules", () => {
     await assertFails(getDocs(collection(googleDb(), "employees")));
   });
 
+  it("blocks disabled employees from submitting or reading department work orders", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com"),
+        status: "disabled"
+      });
+      await setDoc(doc(context.firestore(), "cleanWorkOrders/disabled-employee-order"), {
+        employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+        workDate: "2026-11-25", orderNo: "C-001", styleNo: "S-01",
+        color: "Navy", quantity: 10, note: "", status: "submitted",
+        createdAt: Timestamp.now()
+      });
+    });
+
+    const db = googleDb();
+    const { addDoc, collection, query, where } = await import("firebase/firestore");
+    await assertFails(addDoc(collection(db, "cleanWorkOrders"), {
+      employeeUid: "employee-1", createdBy: "employee-1", departmentId: 2,
+      workDate: "2026-11-25", orderNo: "C-002", styleNo: "S-02",
+      color: "Black", quantity: 5, note: "", status: "submitted",
+      createdAt: serverTimestamp()
+    }));
+    await assertFails(getDocs(query(
+      collection(db, "cleanWorkOrders"),
+      where("employeeUid", "==", "employee-1"),
+      where("departmentId", "==", 2)
+    )));
+  });
+
+  it("blocks disabled employees from reading shared holiday settings", async () => {
+    await testEnv.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), "employees/employee-1"), {
+        ...employeeData("employee-1", "employee@example.com"),
+        status: "disabled"
+      });
+      await setDoc(doc(context.firestore(), "appSettings/vietnamHolidayThemes"), {
+        enabledHolidayIds: ["tet"], advanceDays: 3,
+        updatedAt: Timestamp.now(), updatedBy: "admin-1"
+      });
+    });
+    await assertFails(getDoc(doc(googleDb(), "appSettings/vietnamHolidayThemes")));
+  });
+
   it("rejects employees deleting their own profile", async () => {
     await testEnv.withSecurityRulesDisabled(async context => {
       await setDoc(doc(context.firestore(), "employees/employee-1"), {
