@@ -11,7 +11,13 @@ const end = moduleSource.indexOf("function updateHolidayThemeBanner");
 assert.ok(start >= 0 && end > start, "Vietnam holiday calendar source must be present");
 const holidaySource = moduleSource.slice(start, end);
 const api = new Function(holidaySource + `
-  return { getVietnamHolidaySchedule, findVietnamLunarDate, vietnamDateParts };
+  return {
+    getVietnamHolidaySchedule,
+    findVietnamLunarDate,
+    vietnamDateParts,
+    setSettings(value) { holidayThemeSettings = value; },
+    defaultSettings: DEFAULT_HOLIDAY_THEME_SETTINGS
+  };
 `)();
 
 test("Vietnamese Lunar New Year 2027 is February 6", () => {
@@ -41,4 +47,14 @@ test("fixed-date Vietnamese observances switch theme three days in advance", () 
 test("Vietnam local date is derived from Asia/Ho_Chi_Minh, not UTC", () => {
   const parts = api.vietnamDateParts(new Date("2027-02-05T17:30:00.000Z"));
   assert.deepEqual(parts, {year:2027,month:2,day:6});
+});
+
+test("admin holiday settings control enabled holidays and advance days", () => {
+  api.setSettings({ enabledHolidayIds: ["mid-autumn"], advanceDays: 5 });
+  assert.equal(api.getVietnamHolidaySchedule({year:2027,month:2,day:3}), null);
+  assert.equal(api.getVietnamHolidaySchedule({year:2027,month:9,day:10})?.id, "mid-autumn");
+  api.setSettings({ enabledHolidayIds: ["tet"], advanceDays: 0 });
+  assert.equal(api.getVietnamHolidaySchedule({year:2027,month:2,day:3}), null);
+  assert.equal(api.getVietnamHolidaySchedule({year:2027,month:2,day:6})?.id, "tet");
+  api.setSettings({ enabledHolidayIds: [...api.defaultSettings.enabledHolidayIds], advanceDays: 3 });
 });
