@@ -821,6 +821,16 @@ describe("SIGMA wage settings and daily accounting Firestore rules", () => {
       rates: [...snapshot.data().rates, { departmentId: 1, effectiveDate: "2026-11-02", dailyWage: 310000, createdBy: "admin-1" }],
       updatedBy: "admin-1", updatedAt: serverTimestamp()
     }));
+    await assertFails(setDoc(ref, {
+      rates: [...snapshot.data().rates, { departmentId: 9, effectiveDate: "2026-11-03", dailyWage: -1, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
+    await assertFails(setDoc(ref, {
+      rates: [...snapshot.data().rates,
+        { departmentId: 1, effectiveDate: "2026-11-03", dailyWage: 310000, createdBy: "admin-1" },
+        { departmentId: 2, effectiveDate: "2026-11-03", dailyWage: 280000, createdBy: "admin-1" }],
+      updatedBy: "admin-1", updatedAt: serverTimestamp()
+    }));
   });
 
   it("rejects employees reading or changing department wage settings", async () => {
