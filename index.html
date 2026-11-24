@@ -1742,45 +1742,71 @@ document.getElementById("financeStartDate").addEventListener("change",()=>{docum
 document.getElementById("financeEndDate").addEventListener("change",()=>{document.getElementById("financePeriodType").value="custom";renderFinanceOverview();});
 setFinanceDates("month");
 async function loadFinanceOverview(){const root=document.getElementById("financeDepartmentSummary");root.textContent=tr("financeLoading");try{const [a,b]=await Promise.all([getDocs(collection(db,"dailyRecords")),getDocs(collection(db,"operatingExpenses"))]);financeRecordsCache=a.docs.map(x=>x.data());financeExpensesCache=b.docs.map(x=>x.data());renderFinanceOverview();}catch(e){console.error("Finance overview",e);root.textContent=tr("financeDataError")+(e.code||e.message||"unknown");}}
-async function loadDashboard(){
-  if(currentRole!=="admin") return;
-  const button=document.getElementById("refreshDashboardBtn");
-  const message=document.getElementById("dashboardMessage");
-  if(button) button.disabled=true;
-  message.textContent=tr("dashboardLoading");
-  const today=localWorkDate();
-  document.getElementById("dashboardDate").textContent=today;
-  try{
-    const startDate=new Date();startDate.setDate(startDate.getDate()-6);
-    const startKey=[startDate.getFullYear(),String(startDate.getMonth()+1).padStart(2,"0"),String(startDate.getDate()).padStart(2,"0")].join("-");
-    const q=query(collection(db,"repairWorkOrders"),where("workDate",">=",startKey),where("workDate","<=",today),limit(500));
-    const [snapshot,cleanSnapshot,weaveSnapshot]=await Promise.all([
-      getDocs(q),
-      getDocs(query(collection(db,"cleanWorkOrders"),where("workDate","==",today),limit(500))),
-      getDocs(query(collection(db,"weaveWorkOrders"),where("workDate","==",today),limit(500)))
-    ]);
-    dashboardRowsCache=snapshot.docs.map(item=>item.data());
-    const cleanQty=cleanSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    const weaveQty=weaveSnapshot.docs.reduce((sum,item)=>sum+Number(item.data().quantity||0),0);
-    document.getElementById("metricCleanQty").textContent=cleanQty.toLocaleString();
-    document.getElementById("metricWeaveQty").textContent=weaveQty.toLocaleString();
-    const todayRows=dashboardRowsCache.filter(row=>row.workDate===today);
-    const spray=todayRows.filter(row=>row.repairTypeId===101).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    const hand=todayRows.filter(row=>row.repairTypeId===102).reduce((sum,row)=>sum+Number(row.quantity||0),0);
-    document.getElementById("metricTodayQty").textContent=(spray+hand).toLocaleString();
-    document.getElementById("metricSprayQty").textContent=spray.toLocaleString();
-    document.getElementById("metricHandQty").textContent=hand.toLocaleString();
-    document.getElementById("metricBatchCount").textContent=todayRows.length.toLocaleString();
-    message.textContent=tr("dashboardLoaded")+(snapshot.size===500?" "+tr("dashboardLimit"):"");
-    renderRepairTrend(dashboardRowsCache,startKey,today);
-    await loadFinanceOverview();
-  }catch(error){
-    console.error("SIGMA dashboard load error:",error);
-    ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
-    document.getElementById("repairTrend").innerHTML='<p class="small">'+tr("trendError")+(error.code||error.message||"unknown")+"</p>";
-    message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
-  }finally{if(button) button.disabled=false;}
+let dashboardCleanRowsCache=[];
+let dashboardWeaveRowsCache=[];
+let dashboardCalendarMonth=new Date();
+let dashboardSelectedDate=localWorkDate();
+function dashboardDateKey(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
+function renderDashboardCalendar(){
+ const root=document.getElementById("dashboardCalendar");if(!root)return;
+ const year=dashboardCalendarMonth.getFullYear(),month=dashboardCalendarMonth.getMonth();
+ const first=new Date(year,month,1),start=new Date(year,month,1-first.getDay()),totals={};
+ [...dashboardRowsCache,...dashboardCleanRowsCache,...dashboardWeaveRowsCache].forEach(row=>{if(row.workDate)totals[row.workDate]=(totals[row.workDate]||0)+Number(row.quantity||0);});
+ document.getElementById("calendarMonthLabel").textContent=lang==="zh"?year+"年"+(month+1)+"月":year+"-"+String(month+1).padStart(2,"0");
+ document.getElementById("calendarSelectedLabel").textContent=tr("calendarSelected")+" · "+dashboardSelectedDate;
+ root.replaceChildren();
+ tr("calendarWeekdays").forEach(day=>{const el=document.createElement("div");el.className="calendar-weekday";el.textContent=day;root.append(el);});
+ for(let i=0;i<42;i++){
+  const d=new Date(start);d.setDate(start.getDate()+i);const key=dashboardDateKey(d),total=totals[key]||0;
+  const btn=document.createElement("button");btn.type="button";btn.className="calendar-day";
+  if(d.getMonth()!==month)btn.classList.add("is-outside");
+  if(key===dashboardSelectedDate)btn.classList.add("is-selected");
+  if(key===localWorkDate())btn.classList.add("is-today");
+  if(total>0)btn.classList.add("has-data");
+  btn.setAttribute("aria-pressed",String(key===dashboardSelectedDate));
+  const n=document.createElement("span");n.className="calendar-day-number";n.textContent=String(d.getDate());
+  const v=document.createElement("span");v.className="calendar-day-total";v.textContent=total?total.toLocaleString():"";
+  btn.append(n,v);btn.addEventListener("click",()=>selectDashboardDate(key));root.append(btn);
+ }
 }
+function updateDashboardMetrics(date){
+ const repair=dashboardRowsCache.filter(x=>x.workDate===date),clean=dashboardCleanRowsCache.filter(x=>x.workDate===date),weave=dashboardWeaveRowsCache.filter(x=>x.workDate===date);
+ const sum=rows=>rows.reduce((n,x)=>n+Number(x.quantity||0),0);
+ const spray=sum(repair.filter(x=>Number(x.repairTypeId)===101)),hand=sum(repair.filter(x=>Number(x.repairTypeId)===102));
+ const put=(id,v)=>document.getElementById(id).textContent=v.toLocaleString();
+ put("metricTodayQty",spray+hand);put("metricSprayQty",spray);put("metricHandQty",hand);put("metricBatchCount",repair.length);put("metricCleanQty",sum(clean));put("metricWeaveQty",sum(weave));
+ document.getElementById("dashboardDate").textContent=date;
+ document.getElementById("dashboardMessage").textContent=repair.length+clean.length+weave.length?tr("dashboardLoaded"):tr("calendarNoData");
+}
+function selectDashboardDate(date){dashboardSelectedDate=date;updateDashboardMetrics(date);renderDashboardCalendar();}
+async function loadDashboard(){
+ if(currentRole!=="admin")return;
+ const button=document.getElementById("refreshDashboardBtn"),message=document.getElementById("dashboardMessage");
+ if(button)button.disabled=true;message.textContent=tr("dashboardLoading");
+ try{
+  const start=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth(),1));
+  const end=dashboardDateKey(new Date(dashboardCalendarMonth.getFullYear(),dashboardCalendarMonth.getMonth()+1,0));
+  const [repair,clean,weave]=await Promise.all([
+   getDocs(query(collection(db,"repairWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
+   getDocs(query(collection(db,"cleanWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000))),
+   getDocs(query(collection(db,"weaveWorkOrders"),where("workDate",">=",start),where("workDate","<=",end),limit(1000)))
+  ]);
+  dashboardRowsCache=repair.docs.map(x=>x.data());dashboardCleanRowsCache=clean.docs.map(x=>x.data());dashboardWeaveRowsCache=weave.docs.map(x=>x.data());
+  renderDashboardCalendar();updateDashboardMetrics(dashboardSelectedDate);
+  const endDate=new Date(dashboardSelectedDate+"T12:00:00"),startDate=new Date(endDate);startDate.setDate(endDate.getDate()-6);
+  renderRepairTrend(dashboardRowsCache,dashboardDateKey(startDate),dashboardSelectedDate);
+  await loadFinanceOverview();
+ }catch(error){
+  console.error("SIGMA dashboard load error:",error);
+  ["metricTodayQty","metricSprayQty","metricHandQty","metricBatchCount","metricCleanQty","metricWeaveQty"].forEach(id=>document.getElementById(id).textContent="—");
+  document.getElementById("repairTrend").textContent=tr("trendError")+(error.code||error.message||"unknown");
+  message.textContent=tr("dashboardError")+(error.code||error.message||"unknown");
+ }finally{if(button)button.disabled=false;}
+}
+document.getElementById("calendarPrev").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()-1);loadDashboard();});
+document.getElementById("calendarNext").addEventListener("click",()=>{dashboardCalendarMonth.setMonth(dashboardCalendarMonth.getMonth()+1);loadDashboard();});
+document.getElementById("calendarToday").addEventListener("click",()=>{dashboardSelectedDate=localWorkDate();dashboardCalendarMonth=new Date(dashboardSelectedDate+"T12:00:00");loadDashboard();});
+
 document.getElementById("refreshDashboardBtn").addEventListener("click",loadDashboard);
 
 const requestDepartments={repair:1,clean:2,weave:3};
