@@ -13,6 +13,47 @@ if (!html.includes('classList.toggle("hidden", identity.role !== "admin")')) {
   throw new Error("Admin-only panels must be hidden for non-admin users.");
 }
 
+// Guard the interactive calendar's bilingual UI and Vietnam-local date context.
+const viStart = html.indexOf("  vi: {");
+const viEnd = html.indexOf("\n  }\n};", viStart);
+if (viStart < 0 || viEnd < 0) throw new Error("Could not locate the Vietnamese translation dictionary.");
+const viTranslations = html.slice(viStart, viEnd);
+for (const key of ["calendarTitle", "calendarPrev", "calendarNext", "calendarToday", "calendarSelected", "calendarNoData", "calendarWeekdays"]) {
+  if (!new RegExp("\\b" + key + "\\s*:").test(viTranslations)) {
+    throw new Error("Missing Vietnamese calendar translation: " + key);
+  }
+}
+for (const phrase of ["所选日期的工单数据", "所选日期已提交的修色、清洗和修织工单"]) {
+  if (!html.includes(phrase)) throw new Error("Calendar status text does not describe selected-date data: " + phrase);
+}
+if (!html.includes('let dashboardCalendarMonth=new Date(localWorkDate()+"T12:00:00");')) {
+  throw new Error("Calendar initial month must use the Asia/Ho_Chi_Minh work date.");
+}
+if (!html.includes('btn.setAttribute("aria-label",key+(lang==="zh"')) {
+  throw new Error("Calendar day buttons must expose accessible date and quantity labels.");
+}
+if (!html.includes('#appView .module-page input[type="checkbox"]')) {
+  throw new Error("Checkbox controls must keep their dedicated compact sizing rule.");
+}
+
+// Cross-platform viewport and install-layout safeguards.
+const manifest = JSON.parse(await readFile(new URL("../manifest.json", import.meta.url), "utf8"));
+if (!html.includes('name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"')) {
+  throw new Error("Viewport must support iOS safe areas and user zoom.");
+}
+if (html.includes("maximum-scale=1") || html.includes("user-scalable=no")) {
+  throw new Error("Users must be able to zoom the interface for accessibility.");
+}
+for (const meta of ["apple-mobile-web-app-capable", "apple-mobile-web-app-title", "apple-mobile-web-app-status-bar-style"]) {
+  if (!html.includes('name="' + meta + '"')) throw new Error("Missing iOS web app metadata: " + meta);
+}
+if (Object.hasOwn(manifest, "orientation")) {
+  throw new Error("PWA manifest must not lock phones or foldables to portrait orientation.");
+}
+for (const rule of ["safe-area-inset-top", "safe-area-inset-bottom", "max-width:360px", "max-width:960px", "orientation:landscape"]) {
+  if (!html.includes(rule)) throw new Error("Missing cross-device responsive rule: " + rule);
+}
+
 const tempUrl = new URL("../.index-syntax-check.mjs", import.meta.url);
 const tempPath = fileURLToPath(tempUrl);
 try {
