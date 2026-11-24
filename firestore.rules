@@ -350,14 +350,7 @@ service cloud.firestore {
           'createdBy', 'createdAt', 'updatedAt'
         ])
         && data.workDate is string
-        && data.workDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+        && data.workDate.size() == 10
         && data.departmentId in [1, 2, 3]
         && data.headcount is int && data.headcount >= 0 && data.headcount <= 500
         && data.outputQuantity is int && data.outputQuantity >= 0 && data.outputQuantity <= 10000000
@@ -379,7 +372,6 @@ service cloud.firestore {
 
     match /dailyRecords/{recordId} {
       allow get, list: if isAdmin();
-      // Daily accounting entries are immutable after creation to preserve the audit trail.
       allow create: if isAdmin() && validDailyRecord(request.resource.data);
       allow update, delete: if false;
     }
